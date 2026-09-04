@@ -21,6 +21,8 @@ const app = {
 
   init() {
     this.loadUserData();
+    this.checkAuth();
+    this.updateAuthUI();
     this.bindEvents();
     this.renderHomeJobs();
     this.renderHomePraises();
@@ -101,6 +103,14 @@ const app = {
     const statAssess = document.getElementById('stat-assess');
     const statResume = document.getElementById('stat-resume');
     const historyList = document.getElementById('me-history-list');
+    const nicknameEl = document.querySelector('.p-info-main h2');
+    
+    // 更新昵称显示
+    if (this.currentUser) {
+      if (nicknameEl) nicknameEl.innerText = this.currentUser.nickname || '启航用户';
+    } else {
+      if (nicknameEl) nicknameEl.innerText = '启航用户（未登录）';
+    }
     
     if (this.userData.isVip) {
       if (levelEl) levelEl.innerText = 'Lv.2 重启会员';
@@ -639,6 +649,170 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       case 'year': now.setFullYear(now.getFullYear() + 1); break;
     }
     return now.toISOString();
+  },
+
+  // ========== 登录/注册相关 ==========
+  API_BASE: 'https://careerstart-api.logos6.workers.dev',
+
+  openAuthModal() {
+    document.getElementById('auth-modal').style.display = 'flex';
+    document.getElementById('auth-error').style.display = 'none';
+    this.switchAuthMode('login');
+  },
+
+  closeAuthModal() {
+    document.getElementById('auth-modal').style.display = 'none';
+    document.getElementById('auth-error').style.display = 'none';
+  },
+
+  switchAuthMode(mode) {
+    const loginForm = document.getElementById('auth-login-form');
+    const registerForm = document.getElementById('auth-register-form');
+    const title = document.getElementById('auth-modal-title');
+    const desc = document.getElementById('auth-modal-desc');
+
+    if (mode === 'login') {
+      loginForm.style.display = 'block';
+      registerForm.style.display = 'none';
+      title.innerText = '登录账号';
+      desc.innerText = '登录后享受更多功能，记录你的职业重启旅程';
+    } else {
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'block';
+      title.innerText = '注册新账号';
+      desc.innerText = '加入启航，开启你的职业重启之旅';
+    }
+  },
+
+  showAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    el.innerText = msg;
+    el.style.display = 'block';
+  },
+
+  async login() {
+    const phone = document.getElementById('login-phone').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    if (!phone || !password) {
+      this.showAuthError('请输入手机号和密码');
+      return;
+    }
+
+    if (!/^1\d{10}$/.test(phone)) {
+      this.showAuthError('请输入正确的手机号');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${this.API_BASE}/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        this.showAuthError(data.error || '登录失败');
+        return;
+      }
+
+      // 保存登录信息
+      this.authToken = data.token;
+      this.currentUser = data.user;
+      localStorage.setItem('careerstart_token', data.token);
+      localStorage.setItem('careerstart_user', JSON.stringify(data.user));
+
+      // 更新UI
+      this.updateAuthUI();
+      this.closeAuthModal();
+      this.updateUserDisplay();
+
+    } catch (e) {
+      this.showAuthError('网络错误，请稍后重试');
+    }
+  },
+
+  async register() {
+    const phone = document.getElementById('register-phone').value.trim();
+    const nickname = document.getElementById('register-nickname').value.trim();
+    const password = document.getElementById('register-password').value;
+
+    if (!phone || !password) {
+      this.showAuthError('请输入手机号和密码');
+      return;
+    }
+
+    if (!/^1\d{10}$/.test(phone)) {
+      this.showAuthError('请输入正确的手机号');
+      return;
+    }
+
+    if (password.length < 6) {
+      this.showAuthError('密码至少需要6位');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${this.API_BASE}/api/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password, nickname })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        this.showAuthError(data.error || '注册失败');
+        return;
+      }
+
+      // 保存登录信息
+      this.authToken = data.token;
+      this.currentUser = data.user;
+      localStorage.setItem('careerstart_token', data.token);
+      localStorage.setItem('careerstart_user', JSON.stringify(data.user));
+
+      // 更新UI
+      this.updateAuthUI();
+      this.closeAuthModal();
+      this.updateUserDisplay();
+
+    } catch (e) {
+      this.showAuthError('网络错误，请稍后重试');
+    }
+  },
+
+  logout() {
+    this.authToken = null;
+    this.currentUser = null;
+    localStorage.removeItem('careerstart_token');
+    localStorage.removeItem('careerstart_user');
+    this.updateAuthUI();
+    this.updateUserDisplay();
+  },
+
+  checkAuth() {
+    const token = localStorage.getItem('careerstart_token');
+    const user = localStorage.getItem('careerstart_user');
+    if (token && user) {
+      this.authToken = token;
+      this.currentUser = JSON.parse(user);
+      return true;
+    }
+    return false;
+  },
+
+  updateAuthUI() {
+    const authBtn = document.getElementById('auth-btn');
+    if (this.currentUser) {
+      authBtn.innerHTML = '<i class="ri-logout-box-r-line"></i> 退出';
+      authBtn.onclick = () => this.logout();
+    } else {
+      authBtn.innerHTML = '<i class="ri-user-3-line"></i> 登录';
+      authBtn.onclick = () => this.openAuthModal();
+    }
   },
 };
 
