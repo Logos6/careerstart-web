@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>启航 CareerStart - 35+女性与宝妈职业重启平台 (PC桌面版)</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Remixicon 图标库 (本地 vendor) -->
+  <link href="vendor/remixicon/remixicon.css" rel="stylesheet">
+  <!-- Chart.js 雷达图绘制能力 (本地 vendor) -->
+  <script src="vendor/chart.js/chart.min.js"></script>
+</head>
+<body>
+
+  <!-- PC 顶栏导航 -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand" onclick="app.switchTab('home')" style="cursor:pointer;">
+        <div class="logo-icon"><i class="ri-rocket-fill"></i></div>
+        <div class="brand-text">
+          <span class="brand-title">启航 CareerStart</span>
+          <span class="brand-subtitle">35+女性与宝妈职业重启平台</span>
+        </div>
+      </div>
+
+      <nav class="desktop-nav">
+        <button class="nav-item active" data-target="home"><i class="ri-home-5-line"></i> 平台首页</button>
+        <button class="nav-item" data-target="assess"><i class="ri-compass-3-line"></i> 6维AI测评</button>
+        <button class="nav-item" data-target="jobs"><i class="ri-briefcase-line"></i> 友好岗位库</button>
+        <button class="nav-item" data-target="courses"><i class="ri-book-open-line"></i> 充电站</button>
+        <button class="nav-item" data-target="tools"><i class="ri-cpu-line"></i> AI简历/面试</button>
+        <button class="nav-item" data-target="me"><i class="ri-user-3-line"></i> 个人中心</button>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn btn-primary-gradient" onclick="app.openVipModal()">
+          <i class="ri-vip-crown-fill"></i> 开通重启会员
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 大屏主容器 -->
+  <main class="main-container">
+
+    <!-- 1. 首页 (Home) -->
+    <section id="view-home" class="page-view active">
+      <!-- 左右双栏 Hero Section -->
+      <div class="pc-hero-grid">
+        <div class="hero-left-content">
+          <span class="hero-badge"><i class="ri-shield-user-fill"></i> 专为 35+ 转型女性与宝妈研发</span>
+          <h1 class="hero-heading">告别年龄焦虑，发现属于你的<span class="gradient-text">高价值职业路径</span></h1>
+          <p class="hero-desc">融合 6 维能力匹配模型、岗位年龄歧视排查与 B 站精准提升技能，帮助 35+ 女性与宝妈轻松重启职场。</p>
+          <div class="hero-btns">
+            <button class="btn btn-primary-gradient btn-xl" onclick="app.switchTab('assess')">
+              <i class="ri-flashlight-line"></i> 立即进行免费 6维测评
+            </button>
+
+          </div>
+          <div class="hero-stats-bar">
+            <div class="h-stat">
+              <span class="num">65+</span>
+              <span class="lbl">年龄友好岗位</span>
+            </div>
+            <div class="h-stat">
+              <span class="num">98.4%</span>
+              <span class="lbl">学员好评率</span>
+            </div>
+            <div class="h-stat">
+              <span class="num">32 门</span>
+              <span class="lbl">精选免费课程</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-right-preview">
+          <div class="preview-glass-card">
+            <div class="p-card-header">
+              <i class="ri-radar-fill"></i> 能力匹配示范
+              <span class="p-match-score">匹配度 96%</span>
+            </div>
+            <div class="p-card-body">
+              <h3 style="margin-bottom:4px;">社区主管 / 物业管家</h3>
+              <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">成都 · 灵活工时 · 可接送孩子</p>
+              <div class="tag-row" style="margin-bottom:12px;">
+                <span class="pc-tag">沟通协调超强</span>
+                <span class="pc-tag">阅历加分项</span>
+                <span class="pc-tag">五险一金</span>
+              </div>
+              <div class="mini-chart-box">
+                <!-- 静态展示微缩匹配条 -->
+                <div class="m-bar-item"><span>兴趣相符</span><div class="m-bar"><div class="m-fill" style="width:90%"></div></div></div>
+                <div class="m-bar-item"><span>技能覆盖</span><div class="m-bar"><div class="m-fill" style="width:85%"></div></div></div>
+                <div class="m-bar-item"><span>生活偏好</span><div class="m-bar"><div class="m-fill" style="width:100%"></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 四大核心功能卡片 -->
+      <div class="pc-feature-cards-grid">
+        <div class="feature-card" onclick="app.switchTab('assess')">
+          <div class="f-icon bg-purple"><i class="ri-compass-3-line"></i></div>
+          <h3>6维全方位测评</h3>
+          <p>基于兴趣、能力与工作偏好，精细化打分，生成专属转型白皮书。</p>
+          <span class="f-link">开始测评 <i class="ri-arrow-right-line"></i></span>
+        </div>
+        <div class="feature-card" onclick="app.switchTab('tools')">
+          <div class="f-icon bg-teal"><i class="ri-file-search-line"></i></div>
+          <h3>简历隐形门槛扫描</h3>
+          <p>智能检测“年龄限制”、“高强度加班”等扣分雷区并给出优化建议。</p>
+          <span class="f-link">上传诊断 <i class="ri-arrow-right-line"></i></span>
+        </div>
+        <div class="feature-card" onclick="app.switchTab('courses')">
+          <div class="f-icon bg-orange"><i class="ri-book-read-line"></i></div>
+          <h3>优质技能充电站</h3>
+          <p>精选 32 门对 35+ 女性实用的优质 B 站课程，无缝跳转直达学习。</p>
+          <span class="f-link">浏览课程 <i class="ri-arrow-right-line"></i></span>
+        </div>
+        <div class="feature-card" onclick="app.openVipModal()">
+          <div class="f-icon bg-gold"><i class="ri-vip-diamond-line"></i></div>
+          <h3>重启直通车会员</h3>
+          <p>低至每天 ¥0.75，解锁全站所有深度分析报告与无限次 AI 实战。</p>
+          <span class="f-link">查看权益 <i class="ri-arrow-right-line"></i></span>
+        </div>
+      </div>
+
+      <!-- 友好岗位库预览 -->
+      <div class="pc-section-panel">
+        <div class="panel-header">
+          <div>
+            <h2><i class="ri-briefcase-4-line"></i> 35+ / 宝妈友好岗位推荐 (精选)</h2>
+            <p style="font-size:14px; color:var(--text-muted); margin-top:2px;">真实筛选拒绝歧视，突出阅历加分与弹性工时</p>
+          </div>
+          <button class="btn btn-outline-primary" onclick="app.switchTab('jobs')">查看完整 65+ 岗位库 <i class="ri-arrow-right-line"></i></button>
+        </div>
+        <div class="pc-jobs-grid" id="home-jobs-grid">
+          <!-- 动态渲染 -->
+        </div>
+      </div>
+
+      <!-- 口碑区 -->
+      <div class="pc-section-panel bg-soft-purple">
+        <div class="panel-header">
+          <h2><i class="ri-double-quotes-l"></i> 真实学员转型告白</h2>
+        </div>
+        <div class="pc-praises-grid" id="home-praises-grid">
+          <!-- 动态渲染 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 6维测评 (Assess) - PC 端双栏互动模式 -->
+    <section id="view-assess" class="page-view">
+      <div class="assess-pc-layout">
+        <!-- 左侧答题卡片 -->
+        <div class="assess-main-panel">
+          <div class="step-progress-header">
+            <div class="step-progress-text">
+              <span id="assess-step-label">步骤 1 / 5</span>
+              <span class="step-pct" id="assess-step-pct">20% 完成</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="assess-progress-fill"></div></div>
+          </div>
+
+          <h2 class="step-title-text" id="assess-step-title">请选择你的当前身份定位</h2>
+
+          <div class="assess-options-wrapper" id="assess-options-wrapper">
+            <!-- 动态渲染答题选项 -->
+          </div>
+
+          <div class="assess-actions-bar">
+            <button class="btn btn-secondary btn-lg" id="btn-assess-prev" onclick="app.prevStep()" style="display:none;">
+              <i class="ri-arrow-left-line"></i> 上一步
+            </button>
+            <button class="btn btn-primary-gradient btn-lg" id="btn-assess-next" onclick="app.nextStep()">
+              下一步 <i class="ri-arrow-right-line"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 右侧实时计算面板/提示 -->
+        <div class="assess-side-panel">
+          <div class="side-info-card">
+            <h3><i class="ri-lightbulb-line"></i> 启航引擎说明</h3>
+            <p style="font-size:13px; color:var(--text-muted); line-height:1.6; margin-top:8px;">
+              我们的测评摒弃了传统性格大套话，专门针对 **35+ 职场转型** 与 **宝妈工时分配** 进行了权重大调整：
+            </p>
+            <ul class="side-feature-list">
+              <li><i class="ri-check-line"></i> 兴趣偏好 35%</li>
+              <li><i class="ri-check-line"></i> 技能覆盖 25%</li>
+              <li><i class="ri-check-line"></i> 6维能力雷达 20%</li>
+              <li><i class="ri-check-line"></i> 作息与偏好 15%</li>
+              <li><i class="ri-check-line"></i> 人群属性加成 5%</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 测评结果大屏视图 (默认隐藏) -->
+      <div id="assess-result-view" style="display:none;">
+        <div class="result-hero-header">
+          <span class="r-badge"><i class="ri-checkbox-circle-fill"></i> 测评已生成</span>
+          <h1>你的专属 35+ 职业重启分析报告</h1>
+          <p>基于兴趣、技能与能力模型的全方位分析结果如下：</p>
+        </div>
+
+        <div class="result-pc-grid" id="result-pc-content">
+          <!-- 动态渲染分析结果 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 完整岗位库 (Jobs) -->
+    <section id="view-jobs" class="page-view">
+      <div class="pc-section-panel">
+        <div class="jobs-filter-bar">
+          <h2 style="font-size:22px;"><i class="ri-briefcase-4-line"></i> 35+ / 宝妈友好岗位库 (65+)</h2>
+          <div class="filter-search-box">
+            <input type="text" id="job-search-input" placeholder="搜索岗位名称或关键词..." onkeyup="app.filterJobs()">
+            <i class="ri-search-line"></i>
+          </div>
+        </div>
+
+        <div class="pc-jobs-grid" id="all-jobs-grid">
+          <!-- 动态渲染所有 65 个岗位 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 充电站 (Courses) -->
+    <section id="view-courses" class="page-view">
+      <div class="pc-section-panel">
+        <div class="panel-header">
+          <div>
+            <h2><i class="ri-book-read-line"></i> 技能充电站 · 32 门精选免费课程</h2>
+            <p style="font-size:14px; color:var(--text-muted); margin-top:2px;">涵盖行政、技术、自媒体、电商、康养等实操技能，支持点击直达 B 站观看</p>
+          </div>
+        </div>
+
+        <div class="pc-cat-filter-tabs" id="course-category-tabs">
+          <button class="pc-cat-btn active" data-cat="all">全部课程</button>
+          <button class="pc-cat-btn" data-cat="职能">职能 / 行政</button>
+          <button class="pc-cat-btn" data-cat="互联网">互联网 / 技术</button>
+          <button class="pc-cat-btn" data-cat="内容">内容 / 自媒体</button>
+          <button class="pc-cat-btn" data-cat="电商">电商 / 直播</button>
+          <button class="pc-cat-btn" data-cat="健康">健康 / 康养</button>
+          <button class="pc-cat-btn" data-cat="管理">管理 / 项目</button>
+          <button class="pc-cat-btn" data-cat="灵活就业">灵活就业 / 兼职</button>
+        </div>
+
+        <div class="pc-courses-grid" id="courses-container">
+          <!-- 动态渲染课程 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. AI 工具箱 (Tools) -->
+    <section id="view-tools" class="page-view">
+      <div class="tools-pc-grid">
+        <!-- 简历诊断卡片 -->
+        <div class="tool-card-box">
+          <div class="t-box-header">
+            <h3><i class="ri-file-shield-line"></i> AI 简历年龄隐形门槛扫描</h3>
+            <p>粘贴简历或招聘要求文本，秒级排查年龄歧视与隐形扣分点。</p>
+          </div>
+          <div class="t-box-body">
+            <textarea id="resume-input" class="pc-textarea" placeholder="请在此粘贴你的简历内容或目标岗位描述..."></textarea>
+            <button class="btn btn-primary-gradient btn-lg btn-block" style="margin-top:14px;" onclick="app.runResumeCheck()">
+              <i class="ri-scan-2-line"></i> 开始免费诊断
+            </button>
+            <div id="resume-result-box" style="margin-top:16px; display:none;"></div>
+          </div>
+        </div>
+
+        <!-- 模拟面试卡片 -->
+        <div class="tool-card-box">
+          <div class="t-box-header">
+            <h3><i class="ri-user-voice-line"></i> AI 35+ 模拟面试对话演练</h3>
+            <p>针对职业空白期、工时安排与薪资预期进行对话实战。</p>
+          </div>
+          <div class="t-box-body">
+            <div class="pc-chat-window" id="interview-chat-box">
+              <div class="chat-msg system">
+                <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+                <div class="msg-content">你好！我是启航 AI 面试官。请告诉我你准备面试的岗位（例如：物业主管 / 数据分析 / 托管助教）：</div>
+              </div>
+            </div>
+            <div class="pc-chat-input-bar">
+              <input type="text" id="interview-input" placeholder="输入岗位或回答内容..." onkeypress="if(event.key==='Enter') app.sendInterviewMsg()">
+              <button class="btn btn-primary" onclick="app.sendInterviewMsg()"><i class="ri-send-plane-fill"></i> 发送</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. 个人中心 (Me) -->
+    <section id="view-me" class="page-view">
+      <div class="me-pc-container">
+        <div class="me-profile-card">
+          <div class="p-avatar-lg"><i class="ri-user-3-fill"></i></div>
+          <div class="p-info-main">
+            <h2>启航用户</h2>
+            <div class="p-lvl-tag" id="me-level">Lv.1 启航新人</div>
+          </div>
+          <div class="p-vip-status">
+            <span class="vip-status-label" id="me-vip-tag">免费体验用户</span>
+          </div>
+        </div>
+
+        <div class="pc-vip-banner">
+          <div>
+            <h3 style="color:#fbbf24; font-size:20px;"><i class="ri-vip-crown-fill"></i> 开通启航重启季卡 (主推推荐)</h3>
+            <p style="font-size:14px; opacity:0.9; margin-top:4px;">低至每天 ¥0.75，解锁全站 65+ 深度岗位报告、无限制 AI 简历诊断与模拟面试。</p>
+          </div>
+          <button class="btn btn-gold btn-lg" onclick="app.openVipModal()">立即开通会员</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 会员个人收款 Modal -->
+  <div class="modal-backdrop" id="vip-modal" style="display:none;">
+    <div class="modal-card">
+      <button class="modal-close" onclick="app.closeVipModal()">&times;</button>
+      <div class="modal-header">
+        <span class="m-badge"><i class="ri-vip-crown-fill"></i> 启航会员服务</span>
+        <h2>开通会员 · 重启你的职业生涯</h2>
+        <p>个人微信 / 支付宝无门槛直接扫码支付，付款后填备注即可激活</p>
+      </div>
+
+      <div class="plan-cards-grid">
+        <div class="plan-card" onclick="app.selectPlan('month')" id="plan-card-month">
+          <div class="p-title">月度会员</div>
+          <div class="p-price">¥29 <span>/月</span></div>
+          <div class="p-note">约 ¥0.97 / 天</div>
+        </div>
+        <div class="plan-card active" onclick="app.selectPlan('quarter')" id="plan-card-quarter">
+          <span class="popular-tag">最划算</span>
+          <div class="p-title">重启季卡</div>
+          <div class="p-price">¥69 <span>/季</span></div>
+          <div class="p-note">低至 ¥0.75 / 天</div>
+        </div>
+        <div class="plan-card" onclick="app.selectPlan('year')" id="plan-card-year">
+          <span class="popular-tag green">超值</span>
+          <div class="p-title">全年无限卡</div>
+          <div class="p-price">¥199 <span>/年</span></div>
+          <div class="p-note">低至 ¥0.55 / 天</div>
+        </div>
+      </div>
+
+      <div class="qr-pay-box">
+        <div class="qr-placeholder">
+          <i class="ri-qr-code-line"></i>
+          <p>请扫码微信/支付宝个人收款码支付</p>
+        </div>
+        <div class="pay-amount-display">
+          应付金额：<strong id="pay-final-price">¥69.00</strong>
+        </div>
+        <p class="qr-tip">支付成功后，请输入付款微信备注名或手机号，点击完成激活</p>
+        <div class="input-group">
+          <input type="text" id="pay-user-phone" placeholder="请输入你的手机号或微信备注名">
+        </div>
+        <button class="btn btn-primary-gradient btn-block btn-lg" onclick="app.submitManualPayment()">
+          <i class="ri-checkbox-circle-line"></i> 我已完成支付，点击激活
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全局页脚 -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>© 2026 启航 CareerStart. 专为 35+ 女性与宝妈打造的职业重启平台.</p>
+    </div>
+  </footer>
+
+  <!-- 引入逻辑脚本 -->
+  <script src="js/data.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
