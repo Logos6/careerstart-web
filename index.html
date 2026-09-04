@@ -18,11 +18,36 @@
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
   
+  <!-- 结构化数据 (Schema.org) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "启航 CareerStart",
+    "description": "专为35+女性与全职宝妈打造的职业重启平台。6维AI测评、年龄友好岗位库、免费技能课程。",
+    "url": "https://logos6.github.io/careerstart-web/",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "CNY"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "启航 CareerStart"
+    }
+  }
+  </script>
+  
   <link rel="stylesheet" href="css/style.css">
   <!-- Remixicon 图标库 (本地 vendor) -->
   <link href="vendor/remixicon/remixicon.css" rel="stylesheet">
   <!-- Chart.js 雷达图绘制能力 (本地 vendor) -->
   <script src="vendor/chart.js/chart.min.js" defer></script>
+  
+  <!-- 预连接优化 -->
+  <link rel="dns-prefetch" href="//logos6.github.io">
 </head>
 <body>
 
@@ -420,10 +445,52 @@
     </div>
   </div>
 
+  <!-- 分享 Modal -->
+  <div class="modal-backdrop" id="share-modal" style="display:none;">
+    <div class="modal-card" style="width:400px; text-align:center;">
+      <button class="modal-close" onclick="app.closeShareModal()">&times;</button>
+      
+      <div style="font-size:48px; margin-bottom:16px;">🚀</div>
+      <h2 style="font-size:20px; margin-bottom:8px;">分享给需要的朋友</h2>
+      <p style="font-size:14px; color:var(--text-muted); margin-bottom:24px;">帮助更多35+女性找到职业重启方向</p>
+      
+      <div style="display:flex; justify-content:center; gap:20px; margin-bottom:24px;">
+        <button class="share-btn" onclick="shareToXiaohongshu()" style="background:#ff2442; color:#fff;">
+          <i class="ri-red-packet-line"></i> 小红书
+        </button>
+        <button class="share-btn" onclick="shareToZhihu()" style="background:#0066ff; color:#fff;">
+          <i class="ri-question-answer-line"></i> 知乎
+        </button>
+        <button class="share-btn" onclick="shareToWechat()" style="background:#07c160; color:#fff;">
+          <i class="ri-wechat-fill"></i> 微信
+        </button>
+        <button class="share-btn" onclick="shareToWeibo()" style="background:#e6162d; color:#fff;">
+          <i class="ri-weibo-fill"></i> 微博
+        </button>
+      </div>
+
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" id="share-url" value="https://logos6.github.io/careerstart-web/" readonly style="flex:1; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px; font-size:13px; background:#f8fafc;">
+        <button class="btn btn-outline-primary" onclick="app.copyShareUrl()">复制链接</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 全局页脚 -->
   <footer class="app-footer">
     <div class="footer-container">
-      <p>© 2026 启航 CareerStart. 专为 35+ 女性与宝妈打造的职业重启平台.</p>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <p>© 2026 启航 CareerStart. 专为 35+ 女性与宝妈打造的职业重启平台.</p>
+        <button class="btn btn-outline-primary" onclick="app.openShareModal()" style="font-size:13px; padding:6px 14px;">
+          <i class="ri-share-line"></i> 分享
+        </button>
+      </div>
+      <div style="display:flex; gap:20px; font-size:12px; color:#94a3b8;">
+        <a href="https://logos6.github.io/careerstart-web/" style="color:#94a3b8; text-decoration:none;">首页</a>
+        <a href="javascript:void(0)" onclick="app.switchTab('assess')" style="color:#94a3b8; text-decoration:none;">AI测评</a>
+        <a href="javascript:void(0)" onclick="app.switchTab('jobs')" style="color:#94a3b8; text-decoration:none;">岗位库</a>
+        <a href="javascript:void(0)" onclick="app.switchTab('courses')" style="color:#94a3b8; text-decoration:none;">充电站</a>
+      </div>
     </div>
   </footer>
 
