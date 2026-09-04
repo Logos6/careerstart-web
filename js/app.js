@@ -11,14 +11,90 @@ const app = {
     traits: { logic: 7, creative: 6, social: 8, exec: 7, leader: 6, handcraft: 5 },
     prefs: ['stable', 'growth']
   },
+  userData: {
+    isVip: false,
+    vipPlan: null,
+    vipExpiry: null,
+    assessmentHistory: [],
+    resumeHistory: []
+  },
 
   init() {
+    this.loadUserData();
     this.bindEvents();
     this.renderHomeJobs();
     this.renderHomePraises();
     this.renderAllJobs();
     this.renderCourses('all');
     this.renderAssessStep();
+    this.updateUserDisplay();
+  },
+
+  // 加载用户数据
+  loadUserData() {
+    try {
+      const saved = localStorage.getItem('careerstart_user_data');
+      if (saved) {
+        this.userData = { ...this.userData, ...JSON.parse(saved) };
+      }
+      const answers = localStorage.getItem('careerstart_answers');
+      if (answers) {
+        this.userAnswers = { ...this.userAnswers, ...JSON.parse(answers) };
+      }
+    } catch (e) {
+      console.log('加载用户数据失败:', e);
+    }
+  },
+
+  // 保存用户数据
+  saveUserData() {
+    try {
+      localStorage.setItem('careerstart_user_data', JSON.stringify(this.userData));
+      localStorage.setItem('careerstart_answers', JSON.stringify(this.userAnswers));
+    } catch (e) {
+      console.log('保存用户数据失败:', e);
+    }
+  },
+
+  // 更新用户显示
+  updateUserDisplay() {
+    const levelEl = document.getElementById('me-level');
+    const vipTag = document.getElementById('me-vip-tag');
+    const statAssess = document.getElementById('stat-assess');
+    const statResume = document.getElementById('stat-resume');
+    const historyList = document.getElementById('me-history-list');
+    
+    if (this.userData.isVip) {
+      if (levelEl) levelEl.innerText = 'Lv.2 重启会员';
+      if (vipTag) {
+        vipTag.innerText = `${this.getPlanName(this.userData.vipPlan)} (生效中)`;
+        vipTag.style.background = '#fbbf24';
+        vipTag.style.color = '#1e293b';
+      }
+    }
+
+    // 更新统计数据
+    if (statAssess) statAssess.innerText = this.userData.assessmentHistory.length;
+    if (statResume) statResume.innerText = this.userData.resumeHistory.length;
+
+    // 渲染历史记录
+    if (historyList && this.userData.assessmentHistory.length > 0) {
+      const recent = this.userData.assessmentHistory.slice(-5).reverse();
+      historyList.innerHTML = recent.map(h => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#f8fafc; border-radius:8px; margin-bottom:8px;">
+          <div>
+            <strong>${h.topJob}</strong>
+            <span style="font-size:12px; color:var(--text-muted); margin-left:8px;">${new Date(h.date).toLocaleDateString('zh-CN')}</span>
+          </div>
+          <span style="color:var(--primary); font-weight:600;">${h.score}% 匹配</span>
+        </div>
+      `).join('');
+    }
+  },
+
+  getPlanName(plan) {
+    const names = { month: '月度会员', quarter: '重启季卡', year: '全年无限卡' };
+    return names[plan] || '会员';
   },
 
   bindEvents() {
@@ -318,9 +394,18 @@ const app = {
     const content = document.getElementById('result-pc-content');
     resBox.style.display = 'block';
 
+    // 保存测评历史
+    this.userData.assessmentHistory.push({
+      date: new Date().toISOString(),
+      answers: { ...this.userAnswers },
+      topJob: report.top[0].job.name,
+      score: report.top[0].total
+    });
+    this.saveUserData();
+
     const top1 = report.top[0];
     content.innerHTML = `
-      <div style="grid-column: span 2; background:linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%); padding:32px; border-radius:20px; box-shadow:var(--shadow-sm);">
+      <div style="grid-column: span 2; background:linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%); padding:32px; border-radius:20px; box-shadow:var(--shadow-sm); animation: slideUp 0.5s ease;">
         <span style="background:var(--primary); color:#fff; font-size:13px; padding:4px 14px; border-radius:14px; font-weight:600;">匹配第一名 (TOP 1)</span>
         <h2 style="font-size:28px; color:var(--text-main); margin:12px 0;">${top1.job.name} (综合匹配度 ${top1.total}%)</h2>
         <p style="font-size:15px; color:var(--text-muted); margin-bottom:16px;">${top1.job.desc}</p>
@@ -332,11 +417,11 @@ const app = {
         </div>
       </div>
 
-      <div style="grid-column: span 2; margin-top:20px;">
+      <div style="grid-column: span 2; margin-top:20px; animation: slideUp 0.6s ease;">
         <h3 style="font-size:20px; margin-bottom:16px;">推荐备选岗位分析：</h3>
         <div class="pc-jobs-grid">
-          ${report.top.slice(1).map(item => `
-            <div class="pc-job-card">
+          ${report.top.slice(1).map((item, idx) => `
+            <div class="pc-job-card" style="animation: slideUp ${0.7 + idx * 0.1}s ease;">
               <div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                   <span class="pc-job-title">${item.job.name}</span>
@@ -347,9 +432,48 @@ const app = {
             </div>
           `).join('')}
         </div>
-        <button class="btn btn-primary-gradient btn-lg" style="margin-top:24px;" onclick="location.reload()">重新测试</button>
+        <div style="display:flex; gap:12px; margin-top:24px;">
+          <button class="btn btn-primary-gradient btn-lg" onclick="location.reload()">
+            <i class="ri-refresh-line"></i> 重新测试
+          </button>
+          <button class="btn btn-outline-primary btn-lg" onclick="app.exportReport()">
+            <i class="ri-download-line"></i> 导出报告
+          </button>
+        </div>
       </div>
     `;
+  },
+
+  // 导出报告
+  exportReport() {
+    const report = CareerEngine.buildReport(this.userAnswers);
+    const top1 = report.top[0];
+    const text = `
+启航 CareerStart 职业重启分析报告
+================================
+生成时间：${new Date().toLocaleString('zh-CN')}
+
+【最佳匹配岗位】
+${top1.job.name} (匹配度: ${top1.total}%)
+${top1.job.desc}
+
+【推荐理由】
+${CareerEngine.reasonText(this.userAnswers, top1).join('\n')}
+
+【备选岗位】
+${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n')}
+
+---
+报告由启航 CareerStart 生成
+    `.trim();
+
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `启航职业报告_${new Date().toISOString().slice(0,10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   },
 
   // 6. 简历诊断
@@ -359,9 +483,19 @@ const app = {
     if (!text.trim()) { alert("请先输入简历或岗位要求文本"); return; }
 
     const result = CareerEngine.detectAgeBias(text);
+    
+    // 保存诊断历史
+    this.userData.resumeHistory.push({
+      date: new Date().toISOString(),
+      text: text.substring(0, 100),
+      score: result.score,
+      riskLevel: result.riskLevel
+    });
+    this.saveUserData();
+
     box.style.display = 'block';
     box.innerHTML = `
-      <div style="background:#fff; border:1px solid var(--border-color); padding:20px; border-radius:14px;">
+      <div style="background:#fff; border:1px solid var(--border-color); padding:20px; border-radius:14px; animation: slideUp 0.4s ease;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <h4 style="font-size:18px;">诊断结果</h4>
           <span style="background:${result.riskColor}; color:#fff; font-size:13px; padding:3px 12px; border-radius:12px; font-weight:600;">${result.riskLevel} (${result.score}分)</span>
@@ -374,7 +508,14 @@ const app = {
               ${result.issues.map(i => `<li><b>「${i.word}」</b>: ${i.desc} (修改建议：${i.suggestion})</li>`).join('')}
             </ul>
           </div>
-        ` : ''}
+        ` : `
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:10px; font-size:13px; color:#166534;">
+            <i class="ri-checkbox-circle-fill"></i> 未检测到明显年龄歧视风险，简历表述较为规范。
+          </div>
+        `}
+        <div style="margin-top:12px; font-size:12px; color:var(--text-muted);">
+          <i class="ri-history-line"></i> 已保存至诊断历史 (共 ${this.userData.resumeHistory.length} 条记录)
+        </div>
       </div>
     `;
   },
@@ -425,10 +566,28 @@ const app = {
   submitManualPayment() {
     const phone = document.getElementById('pay-user-phone').value.trim();
     if (!phone) { alert("请输入你的微信备注名或手机号以便人工审核开通！"); return; }
+    
+    // 保存VIP状态
+    this.userData.isVip = true;
+    this.userData.vipPlan = this.selectedPlan;
+    this.userData.vipPhone = phone;
+    this.userData.vipExpiry = this.getVipExpiry(this.selectedPlan);
+    this.saveUserData();
+    
     alert(`提交成功！客服将在 10 分钟内核对备注/手机号 [${phone}] 并激活会员！`);
     this.closeVipModal();
-    document.getElementById('me-vip-tag').innerText = "重启季卡会员 (生效中)";
-  }
+    this.updateUserDisplay();
+  },
+
+  getVipExpiry(plan) {
+    const now = new Date();
+    switch(plan) {
+      case 'month': now.setMonth(now.getMonth() + 1); break;
+      case 'quarter': now.setMonth(now.getMonth() + 3); break;
+      case 'year': now.setFullYear(now.getFullYear() + 1); break;
+    }
+    return now.toISOString();
+  },
 };
 
 window.onload = () => app.init();
