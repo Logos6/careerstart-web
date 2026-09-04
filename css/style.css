@@ -127,11 +127,36 @@ body {
   border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::after {
+  width: 300px;
+  height: 300px;
 }
 
 .btn:hover {
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(125, 42, 232, 0.25);
+}
+
+.btn:active {
+  transform: translateY(0);
 }
 
 .btn-primary-gradient {
@@ -174,6 +199,37 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+.gradient-text-animated {
+  background: linear-gradient(90deg, #7d2ae8, #0a58ff, #7d2ae8);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
 }
 
 /* PC Hero 左右双栏结构 */
@@ -321,16 +377,34 @@ body {
   padding: 24px;
   box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+  transform: scaleX(0);
+  transition: transform 0.3s;
 }
 
 .feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(125, 42, 232, 0.15);
   border-color: var(--primary);
+}
+
+.feature-card:hover::before {
+  transform: scaleX(1);
 }
 
 .f-icon {
@@ -387,12 +461,31 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.pc-job-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary-gradient);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
 .pc-job-card:hover {
   border-color: var(--primary);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 24px rgba(125, 42, 232, 0.12);
+  transform: translateY(-4px);
+}
+
+.pc-job-card:hover::after {
+  opacity: 1;
 }
 
 .pc-job-title { font-size: 18px; font-weight: 700; }
@@ -404,11 +497,88 @@ body {
   gap: 20px;
 }
 
+/* 个人中心样式 */
+.me-pc-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.me-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.p-avatar-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+
+.p-info-main {
+  flex: 1;
+}
+
+.p-info-main h2 {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.p-lvl-tag {
+  display: inline-block;
+  background: #f3e8ff;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.vip-status-label {
+  background: #f1f5f9;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.pc-vip-banner {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
 .pc-praise-card {
   background: #fff;
   padding: 20px;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+}
+
+.pc-praise-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(125, 42, 232, 0.1);
+  border-color: #fae8ff;
 }
 
 /* 测评 PC 布局 (双栏) */
@@ -571,6 +741,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: fadeIn 0.3s ease;
 }
 
 .modal-card {
@@ -580,6 +751,7 @@ body {
   padding: 32px;
   position: relative;
   box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s ease;
 }
 
 .modal-close {
@@ -646,4 +818,68 @@ body {
   text-align: center;
   font-size: 14px;
   color: var(--text-muted);
+}
+
+/* 加载动画 */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 工具提示 */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+/* 标签动画 */
+.tag-row .pc-tag {
+  transition: all 0.2s;
+}
+
+.tag-row .pc-tag:hover {
+  background: var(--primary);
+  color: #fff;
+  transform: scale(1.05);
 }
