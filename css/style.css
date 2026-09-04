@@ -883,3 +883,37 @@ body {
   color: #fff;
   transform: scale(1.05);
 }
+
+/* 分享按钮 */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.share-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 页脚优化 */
+.app-footer {
+  border-top: 1px solid var(--border-color);
+  background: #fff;
+  padding: 24px 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
