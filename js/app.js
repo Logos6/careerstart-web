@@ -28,6 +28,44 @@ const app = {
     this.renderCourses('all');
     this.renderAssessStep();
     this.updateUserDisplay();
+    this.initShareButtons();
+  },
+
+  // 初始化分享按钮
+  initShareButtons() {
+    const shareData = {
+      title: '启航 CareerStart - 35+女性与宝妈职业重启平台',
+      text: '专为35+女性与全职宝妈打造的职业重启平台。6维AI测评、年龄友好岗位库、免费技能课程。',
+      url: 'https://logos6.github.io/careerstart-web/'
+    };
+
+    // 小红书分享
+    window.shareToXiaohongshu = function() {
+      const text = encodeURIComponent(`${shareData.title}\n\n${shareData.text}\n\n👉 ${shareData.url}`);
+      window.open(`https://www.xiaohongshu.com/share?text=${text}`, '_blank');
+    };
+
+    // 知乎分享
+    window.shareToZhihu = function() {
+      const title = encodeURIComponent(shareData.title);
+      const url = encodeURIComponent(shareData.url);
+      window.open(`https://www.zhihu.com/share?url=${url}&title=${title}`, '_blank');
+    };
+
+    // 微信分享（复制链接）
+    window.shareToWechat = function() {
+      navigator.clipboard.writeText(shareData.url).then(() => {
+        alert('链接已复制！请粘贴到微信分享给好友');
+      }).catch(() => {
+        prompt('请复制链接分享到微信：', shareData.url);
+      });
+    };
+
+    // 微博分享
+    window.shareToWeibo = function() {
+      const text = encodeURIComponent(`${shareData.title} ${shareData.url}`);
+      window.open(`https://service.weibo.com/share/share.php?title=${text}`, '_blank');
+    };
   },
 
   // 加载用户数据
@@ -553,6 +591,20 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
   // 会员 Modal
   openVipModal() { document.getElementById('vip-modal').style.display = 'flex'; },
   closeVipModal() { document.getElementById('vip-modal').style.display = 'none'; },
+
+  // 分享 Modal
+  openShareModal() { document.getElementById('share-modal').style.display = 'flex'; },
+  closeShareModal() { document.getElementById('share-modal').style.display = 'none'; },
+  copyShareUrl() {
+    const urlInput = document.getElementById('share-url');
+    navigator.clipboard.writeText(urlInput.value).then(() => {
+      alert('链接已复制！');
+    }).catch(() => {
+      urlInput.select();
+      document.execCommand('copy');
+      alert('链接已复制！');
+    });
+  },
 
   selectPlan(planKey) {
     this.selectedPlan = planKey;
