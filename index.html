@@ -71,6 +71,10 @@
         
       </nav>
 
+      <button class="mobile-menu-btn" onclick="app.toggleMobileNav()" style="display:none;background:none;border:none;font-size:24px;cursor:pointer;padding:8px;">
+        <i class="ri-menu-line"></i>
+      </button>
+      
       <div class="header-actions">
         <button class="btn btn-outline-primary" id="auth-btn" onclick="app.openAuthModal()" style="margin-right:8px;">
           <i class="ri-user-3-line"></i> 登录
@@ -80,7 +84,18 @@
         </button>
       </div>
     </div>
-  </header>
+  
+  <!-- 移动端导航抽屉 -->
+  <div class="mobile-nav-overlay" id="mobile-nav-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;" onclick="app.toggleMobileNav()"></div>
+  <div class="mobile-nav" id="mobile-nav">
+    <button class="mobile-nav-close" onclick="app.toggleMobileNav()">&times;</button>
+    <button class="nav-item" data-target="home" onclick="app.switchTab('home');app.toggleMobileNav()"><i class="ri-home-5-line"></i> 平台首页</button>
+    <button class="nav-item" data-target="assess" onclick="app.switchTab('assess');app.toggleMobileNav()"><i class="ri-compass-3-line"></i> 6维AI测评</button>
+    <button class="nav-item" data-target="jobs" onclick="app.switchTab('jobs');app.toggleMobileNav()"><i class="ri-briefcase-line"></i> 友好岗位库</button>
+    <button class="nav-item" data-target="courses" onclick="app.switchTab('courses');app.toggleMobileNav()"><i class="ri-book-open-line"></i> 充电站</button>
+    <button class="nav-item" data-target="tools" onclick="app.switchTab('tools');app.toggleMobileNav()"><i class="ri-cpu-line"></i> AI简历/面试</button>
+  </div>
+</header>
 
   <!-- 大屏主容器 -->
   <main class="main-container">
@@ -91,7 +106,7 @@
       <div class="pc-hero-grid">
         <div class="hero-left-content">
           <span class="hero-badge"><i class="ri-shield-user-fill"></i> 专为 35+ 转型女性与宝妈研发</span>
-          <h1 class="hero-heading">告别年龄焦虑，发现属于你的<span class="gradient-text">高价值职业路径</span></h1>
+          <h1 class="hero-heading">告���年龄焦虑，发现属于你的<span class="gradient-text">高价值职业路径</span></h1>
           <p class="hero-desc">融合 6 维能力匹配模型、岗位年龄歧视排查与 B 站精准提升技能，帮助 35+ 女性与宝妈轻松重启职场。</p>
           <div class="hero-btns">
             <button class="btn btn-primary-gradient btn-xl" onclick="app.switchTab('assess')">
@@ -145,7 +160,7 @@
         <div class="feature-card" onclick="app.switchTab('assess')">
           <div class="f-icon bg-purple"><i class="ri-compass-3-line"></i></div>
           <h3>6维全方位测评</h3>
-          <p>基于兴趣、能力与工作偏好，精细化打分，生成专属转型白皮书。</p>
+          <p>基于兴趣、能力与工作���好，精细化打分，生成专属转型白皮书。</p>
           <span class="f-link">开始测评 <i class="ri-arrow-right-line"></i></span>
         </div>
         <div class="feature-card" onclick="app.switchTab('tools')">
@@ -227,7 +242,7 @@
           <div class="side-info-card">
             <h3><i class="ri-lightbulb-line"></i> 启航引擎说明</h3>
             <p style="font-size:13px; color:var(--text-muted); line-height:1.6; margin-top:8px;">
-              我们的测评摒弃了传统性格大套话，��门针对 **35+ 职场转型** 与 **宝妈工时分配** 进行了权重大调整：
+              我们的测评摒弃了传统性格大套话，��门针对 **35+ 职场转型** 与 **宝妈工时分配** 进行了权重大��整：
             </p>
             <ul class="side-feature-list">
               <li><i class="ri-check-line"></i> 兴趣偏好 35%</li>
