@@ -270,7 +270,7 @@ const app = {
           <div class="tag-row" style="margin-bottom:12px;">
             <span class="pc-tag" style="background:#e0e7ff; color:#3730a3;">${j.cat}</span>
             ${j.ageFriendly ? '<span class="pc-tag">年龄友好</span>' : ''}
-            ${j.momFriendly ? '<span class="pc-tag">宝妈弹性</span>' : ''}
+            ${j.momFriendly ? '<span class="pc-tag">宝妈���性</span>' : ''}
           </div>
           <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">${j.desc}</p>
         </div>
@@ -369,7 +369,7 @@ const app = {
         break;
 
       case 3:
-        title.innerText = "评估你的 6 维核心能力得分（1-10分）";
+        title.innerText = "评估���的 6 维核心能力得分（1-10分）";
         wrapper.innerHTML = `
           <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:16px;">
             ${CareerData.TRAITS.map(t => `
@@ -655,6 +655,23 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
 
   // ========== 登录/注册相关 ==========
   API_BASE: 'https://careerstart-api.netlify.app',
+
+  toggleMobileNav() {
+    const overlay = document.getElementById('mobile-nav-overlay');
+    const nav = document.getElementById('mobile-nav');
+    if (overlay && nav) {
+      const isOpen = nav.classList.contains('open');
+      if (isOpen) {
+        nav.classList.remove('open');
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      } else {
+        nav.classList.add('open');
+        overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+      }
+    }
+  }
 
   openAuthModal() {
     document.getElementById('auth-modal').style.display = 'flex';
