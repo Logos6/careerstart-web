@@ -16,7 +16,8 @@ const app = {
     vipPlan: null,
     vipExpiry: null,
     assessmentHistory: [],
-    resumeHistory: []
+    resumeHistory: [],
+    lastAssessment: null
   },
 
   init() {
@@ -213,15 +214,21 @@ const app = {
       else btn.classList.remove('active');
     });
 
-    // 切换到测评页面时，确保显示答题界面
+    // 切换到测评页面时，检查是否有上次结果
     if (tabName === 'assess') {
       const resultView = document.getElementById('assess-result-view');
       const pcLayout = document.querySelector('.assess-pc-layout');
-      if (resultView) resultView.style.display = 'none';
-      if (pcLayout) pcLayout.style.display = 'grid';
-      this.assessStep = 0;
-      this.renderAssessStep();
-      this.updateCompetitiveAnalysis();
+      if (this.userData.lastAssessment) {
+        // 有上次结果，直接展示
+        this.showLastAssessmentResult();
+      } else {
+        // 没有历史结果，显示答题界面
+        if (resultView) resultView.style.display = 'none';
+        if (pcLayout) pcLayout.style.display = 'grid';
+        this.assessStep = 0;
+        this.renderAssessStep();
+        this.updateCompetitiveAnalysis();
+      }
     }
 
     if (tabName === 'workshop') {
@@ -568,12 +575,15 @@ const app = {
     resBox.style.display = 'block';
 
     // 保存测评历史
-    this.userData.assessmentHistory.push({
+    const historyEntry = {
       date: new Date().toISOString(),
       answers: { ...this.userAnswers },
       topJob: report.top[0].job.name,
-      score: report.top[0].total
-    });
+      score: report.top[0].total,
+      top3: report.top.slice(0, 3).map(t => ({ name: t.job.name, score: t.total, desc: t.job.desc }))
+    };
+    this.userData.assessmentHistory.push(historyEntry);
+    this.userData.lastAssessment = historyEntry;
     this.saveUserData();
     this.updateHomePreview();
 
@@ -616,6 +626,72 @@ const app = {
         </div>
       </div>
     `;
+  },
+
+  // 展示上次测评结果
+  showLastAssessmentResult() {
+    const last = this.userData.lastAssessment;
+    if (!last) return;
+
+    const pcLayout = document.querySelector('.assess-pc-layout');
+    const resBox = document.getElementById('assess-result-view');
+    const content = document.getElementById('result-pc-content');
+    if (pcLayout) pcLayout.style.display = 'none';
+    if (resBox) resBox.style.display = 'block';
+
+    const top1 = last.top3 ? last.top3[0] : { name: last.topJob, score: last.score, desc: '' };
+    const top3Html = (last.top3 || []).slice(1).map((item, idx) => `
+      <div class="pc-job-card" style="animation: slideUp ${0.7 + idx * 0.1}s ease;">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span class="pc-job-title">${item.name}</span>
+            <span class="pc-job-salary" style="color:var(--primary);">${item.score}% 匹配</span>
+          </div>
+          <p style="font-size:13px; color:var(--text-muted);">${item.desc}</p>
+        </div>
+      </div>
+    `).join('');
+
+    content.innerHTML = `
+      <div style="grid-column: span 2; background:linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%); padding:32px; border-radius:20px; box-shadow:var(--shadow-sm); animation: slideUp 0.5s ease;">
+        <span style="background:var(--primary); color:#fff; font-size:13px; padding:4px 14px; border-radius:14px; font-weight:600;">上次测评结果</span>
+        <h2 style="font-size:28px; color:var(--text-main); margin:12px 0;">${top1.name} (综合匹配度 ${top1.score}%)</h2>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:4px;">测评时间：${new Date(last.date).toLocaleString('zh-CN')}</p>
+        <p style="font-size:15px; color:var(--text-muted); margin-bottom:16px;">${top1.desc}</p>
+      </div>
+
+      ${top3Html ? `
+      <div style="grid-column: span 2; margin-top:20px; animation: slideUp 0.6s ease;">
+        <h3 style="font-size:20px; margin-bottom:16px;">备选岗位：</h3>
+        <div class="pc-jobs-grid">${top3Html}</div>
+      </div>
+      ` : ''}
+
+      <div style="grid-column: span 2; margin-top:24px; animation: slideUp 0.7s ease;">
+        <div style="display:flex; gap:12px;">
+          <button class="btn btn-primary-gradient btn-lg" onclick="app.startNewAssessment()">
+            <i class="ri-refresh-line"></i> 重新测评
+          </button>
+          <button class="btn btn-outline-primary btn-lg" onclick="app.exportReport()">
+            <i class="ri-download-line"></i> 导出报告
+          </button>
+        </div>
+      </div>
+    `;
+  },
+
+  // 开始新一轮测评（清除上次结果）
+  startNewAssessment() {
+    this.userData.lastAssessment = null;
+    this.userAnswers = { persona: '', interests: [], skills: [], traits: {}, prefs: [] };
+    this.assessStep = 0;
+    this.saveUserData();
+    const resultView = document.getElementById('assess-result-view');
+    const pcLayout = document.querySelector('.assess-pc-layout');
+    if (resultView) resultView.style.display = 'none';
+    if (pcLayout) pcLayout.style.display = 'grid';
+    this.renderAssessStep();
+    this.updateCompetitiveAnalysis();
   },
 
   // 导出报告
