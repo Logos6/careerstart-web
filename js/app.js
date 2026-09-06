@@ -313,9 +313,6 @@ const app = {
     const prevBtn = document.getElementById('btn-assess-prev');
     const nextBtn = document.getElementById('btn-assess-next');
     if (!wrapper) return;
-    
-    // 更新实时竞争力分析
-    this.updateCompetitiveAnalysis();
 
     prevBtn.style.display = this.assessStep > 0 ? 'inline-flex' : 'none';
     label.innerText = `步骤 ${this.assessStep + 1} / 5`;
@@ -430,6 +427,7 @@ const app = {
     if (this.assessStep < 4) {
       this.assessStep++;
       this.renderAssessStep();
+      this.updateCompetitiveAnalysis();
     } else {
       this.calculateAndShowReport();
     }
@@ -495,6 +493,7 @@ const app = {
     if (this.assessStep > 0) {
       this.assessStep--;
       this.renderAssessStep();
+      this.updateCompetitiveAnalysis();
     }
   },
 
