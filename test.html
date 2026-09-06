@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Test</title></head>
+<body>
+<div id="output"></div>
+<script src="js/data.js?v=5"></script>
+<script src="js/engine.js?v=5"></script>
+<script src="js/app.js?v=7"></script>
+<script>
+  var out = document.getElementById('output');
+  try {
+    out.innerHTML += '<p>app type: ' + typeof app + '</p>';
+    out.innerHTML += '<p>app.init type: ' + typeof app.init + '</p>';
+    out.innerHTML += '<p>app.switchTab type: ' + typeof app.switchTab + '</p>';
+    out.innerHTML += '<p>CareerData type: ' + typeof CareerData + '</p>';
+    out.innerHTML += '<p>CareerData.JOBS: ' + (CareerData.JOBS ? CareerData.JOBS.length : 'undefined') + '</p>';
+    out.innerHTML += '<p>CareerData.EXPERIMENTS: ' + (CareerData.EXPERIMENTS ? CareerData.EXPERIMENTS.length : 'undefined') + '</p>';
+    app.init();
+    out.innerHTML += '<p style="color:green;">INIT OK</p>';
+  } catch(e) {
+    out.innerHTML += '<p style="color:red;">ERROR: ' + e.message + '</p>';
+    out.innerHTML += '<p style="color:red;">Stack: ' + e.stack + '</p>';
+  }
+</script>
+</body></html>
