@@ -683,7 +683,7 @@ const app = {
   // 开始新一轮测评（清除上次结果）
   startNewAssessment() {
     this.userData.lastAssessment = null;
-    this.userAnswers = { persona: '', interests: [], skills: [], traits: {}, prefs: [] };
+    this.userAnswers = { persona: '', interests: [], skills: [], traits: { logic: 0, creative: 0, social: 0, exec: 0, leader: 0, handcraft: 0 }, prefs: [] };
     this.assessStep = 0;
     this.saveUserData();
     const resultView = document.getElementById('assess-result-view');
