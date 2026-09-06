@@ -294,7 +294,7 @@ const app = {
         <div>
           <div style="font-size:16px; font-weight:700; margin-bottom:6px;">${c.title}</div>
           <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">${c.cat} · ${c.hot || '热度推荐'}</div>
-          <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">${c.desc}</p>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">${c.sub || c.desc}</p>
         </div>
         <a href="${c.url || 'https://www.bilibili.com'}" target="_blank" class="btn btn-primary btn-block" style="text-decoration:none;">
           <i class="ri-play-circle-line"></i> 直达 B 站免费观看
