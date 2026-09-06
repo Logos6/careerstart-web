@@ -173,6 +173,17 @@ const app = {
       else btn.classList.remove('active');
     });
 
+    // 切换到测评页面时，确保显示答题界面
+    if (tabName === 'assess') {
+      const resultView = document.getElementById('assess-result-view');
+      const pcLayout = document.querySelector('.assess-pc-layout');
+      if (resultView) resultView.style.display = 'none';
+      if (pcLayout) pcLayout.style.display = 'grid';
+      this.assessStep = 0;
+      this.renderAssessStep();
+      this.updateCompetitiveAnalysis();
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 
@@ -435,58 +446,65 @@ const app = {
 
   // 动态竞争力分析
   updateCompetitiveAnalysis() {
-    const answers = this.userAnswers;
-    let interestScore = 0;
-    let skillScore = 0;
-    let traitScore = 0;
-    
-    // 计算兴趣匹配度
-    if (answers.interests.length > 0) {
-      interestScore = Math.min(answers.interests.length * 15, 100);
-    }
-    
-    // 计算技能覆盖度
-    if (answers.skills.length > 0) {
-      skillScore = Math.min(answers.skills.length * 12, 100);
-    }
-    
-    // 计算能力评分
-    const traitValues = Object.values(answers.traits);
-    if (traitValues.some(v => v > 0)) {
-      const avgTrait = traitValues.reduce((a, b) => a + b, 0) / traitValues.length;
-      traitScore = Math.round(avgTrait * 10);
-    }
-    
-    // 模拟岗位稀缺度（基于已有数据）
-    const scarcityScore = 45 + Math.floor(Math.random() * 20);
-    
-    // 计算综合竞争力
-    const totalScore = Math.round(
-      (interestScore * 0.35 + skillScore * 0.25 + traitScore * 0.2 + scarcityScore * 0.2)
-    );
-    
-    // 更新实时匹配度显示
-    const matchScoreEl = document.getElementById('realtime-match-score');
-    if (matchScoreEl) {
-      matchScoreEl.textContent = totalScore > 0 ? totalScore + '%' : '--';
-    }
-    
-    // 更新竞争力条形图
-    const updateBar = (index, value) => {
-      const items = document.querySelectorAll('.competitive-item');
-      if (items[index]) {
-        const fill = items[index].querySelector('.competitive-bar-fill');
-        const valueEl = items[index].querySelector('.competitive-value');
-        if (fill) fill.style.width = value + '%';
-        if (valueEl) valueEl.textContent = value > 0 ? value + '%' : '--';
+    try {
+      const answers = this.userAnswers;
+      let interestScore = 0;
+      let skillScore = 0;
+      let traitScore = 0;
+      
+      // 计算兴趣匹配度
+      if (answers.interests && answers.interests.length > 0) {
+        interestScore = Math.min(answers.interests.length * 15, 100);
       }
-    };
-    
-    updateBar(0, interestScore);
-    updateBar(1, skillScore);
-    updateBar(2, traitScore);
-    updateBar(3, scarcityScore);
-    updateBar(4, totalScore);
+      
+      // 计算技能覆盖度
+      if (answers.skills && answers.skills.length > 0) {
+        skillScore = Math.min(answers.skills.length * 12, 100);
+      }
+      
+      // 计算能力评分
+      if (answers.traits) {
+        const traitValues = Object.values(answers.traits);
+        if (traitValues.some(v => v > 0)) {
+          const avgTrait = traitValues.reduce((a, b) => a + b, 0) / traitValues.length;
+          traitScore = Math.round(avgTrait * 10);
+        }
+      }
+      
+      // 模拟岗位稀缺度（基于已有数据）
+      const scarcityScore = 45 + Math.floor(Math.random() * 20);
+      
+      // 计算综合竞争力
+      const totalScore = Math.round(
+        (interestScore * 0.35 + skillScore * 0.25 + traitScore * 0.2 + scarcityScore * 0.2)
+      );
+      
+      // 更新实时匹配度显示
+      const matchScoreEl = document.getElementById('realtime-match-score');
+      if (matchScoreEl) {
+        matchScoreEl.textContent = totalScore > 0 ? totalScore + '%' : '--';
+      }
+      
+      // 更新竞争力条形图
+      const items = document.querySelectorAll('.competitive-item');
+      const scores = [interestScore, skillScore, traitScore, scarcityScore, totalScore];
+      
+      items.forEach((item, index) => {
+        if (index < scores.length) {
+          const fill = item.querySelector('.competitive-bar-fill');
+          const valueEl = item.querySelector('.competitive-value');
+          if (fill) {
+            fill.style.width = scores[index] + '%';
+            fill.style.transition = 'width 0.5s ease';
+          }
+          if (valueEl) {
+            valueEl.textContent = scores[index] > 0 ? scores[index] + '%' : '--';
+          }
+        }
+      });
+    } catch (e) {
+      console.error('[CompetitiveAnalysis Error]', e);
+    }
   },
 
   prevStep() {
