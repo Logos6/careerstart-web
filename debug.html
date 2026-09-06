@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Debug</title></head>
+<body>
+<pre id="out"></pre>
+<script>
+var o = document.getElementById('out');
+window.onerror = function(msg, src, line, col, err) {
+  o.innerHTML += 'ERROR: ' + msg + ' at ' + src + ':' + line + '\n';
+};
+</script>
+<script src="js/data.js?v=99"></script>
+<script>o.innerHTML += 'After data.js: CareerData=' + typeof CareerData + '\n';</script>
+<script src="js/engine.js?v=99"></script>
+<script>o.innerHTML += 'After engine.js\n';</script>
+<script src="js/app.js?v=99"></script>
+<script>o.innerHTML += 'After app.js: app=' + typeof app + '\n';</script>
+<script>
+try {
+  app.init();
+  o.innerHTML += 'init() OK\n';
+} catch(e) {
+  o.innerHTML += 'init() ERROR: ' + e.message + '\n' + e.stack + '\n';
+}
+</script>
+</body></html>
