@@ -117,10 +117,11 @@
       .map(id => PREF_ITEMS.find(x => x.id === id)?.label);
     if (hitPrefs.length) out.push(`符合你「${hitPrefs[0]}」的求职偏好`);
     if (a.persona && j.persona[a.persona] >= 0.85) {
-      out.push({
+      const personaMsg = {
         mid: "该职位看重阅历积累，经验是加分项",
         mom: "该职位时间弹性，适合兼顾家庭",
-      }[a.persona]);
+      };
+      if (personaMsg[a.persona]) out.push(personaMsg[a.persona]);
     }
     if (!out.length) out.push("综合五维测评结果，该职位与你较为匹配");
     return out.slice(0, 3);
@@ -175,7 +176,12 @@
     else if (score <= 15) { riskLevel = "低风险"; riskColor = "#0284c7"; }
     else if (score <= 40) { riskLevel = "中风险"; riskColor = "#d97706"; }
     else { riskLevel = "高风险"; riskColor = "#dc2626"; }
-    return { score, riskLevel, riskColor, issues: found };
+    let summary;
+    if (score === 0) summary = '未检测到年龄歧视风险，该文本表述规范安全。';
+    else if (score <= 15) summary = `检测到轻微风险表述（${found.length}处），建议优化措辞以提升 35+ 求职者通过率。`;
+    else if (score <= 40) summary = `检测到 ${found.length} 处中等风险表述，强烈建议修改以避免 35+ 求职者被筛除。`;
+    else summary = `检测到 ${found.length} 处高风险年龄歧视表述，该文本将严重阻碍 35+ 求职者获得面试机会！`;
+    return { score, riskLevel, riskColor, issues: found, summary };
   }
 
   return {
