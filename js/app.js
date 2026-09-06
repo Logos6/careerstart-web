@@ -956,7 +956,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
           '<div class="wc-metrics">' + exp.metrics.map(m => '<span class="wc-metric-tag">' + m + '</span>').join('') + '</div>' +
         '</div>' +
         '<div class="wc-footer">' +
-          '<button class="wc-start-btn" onclick="app.startExperiment('' + exp.id + '')">' +
+          '<button class="wc-start-btn" onclick="app.startExperiment(\'' + exp.id + '\')">' +
             (isComplete ? '<i class="ri-refresh-line"></i> 重新开始' : daysCompleted > 0 ? '<i class="ri-play-fill"></i> 继续实战' : '<i class="ri-play-fill"></i> 开始实战') +
           '</button>' +
         '</div>' +
@@ -1145,8 +1145,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
   shareProof() {
     const shareText = encodeURIComponent('我刚刚在启航CareerStart完成了实战工坊挑战，获得了能力证明！快来试试吧 👉 https://logos6.github.io/careerstart-web/');
     window.open('https://service.weibo.com/share/share.php?title=' + shareText, '_blank');
-  }
-
+  },
 
   logout() {
     this.authToken = null;
