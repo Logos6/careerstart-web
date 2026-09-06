@@ -67,6 +67,7 @@
         <button class="nav-item" data-target="assess" onclick="app.switchTab('assess')"><i class="ri-compass-3-line"></i> 6维AI测评</button>
         <button class="nav-item" data-target="jobs" onclick="app.switchTab('jobs')"><i class="ri-briefcase-line"></i> 友好岗位库</button>
         <button class="nav-item" data-target="courses" onclick="app.switchTab('courses')"><i class="ri-book-open-line"></i> 充电站</button>
+        <button class="nav-item" data-target="workshop" onclick="app.switchTab('workshop')"><i class="ri-hammer-line"></i> 实战工坊</button>
         <button class="nav-item" data-target="tools" onclick="app.switchTab('tools')"><i class="ri-cpu-line"></i> AI简历/面试</button>
         
       </nav>
@@ -93,6 +94,7 @@
     <button class="nav-item" data-target="assess" onclick="app.switchTab('assess');app.toggleMobileNav()"><i class="ri-compass-3-line"></i> 6维AI测评</button>
     <button class="nav-item" data-target="jobs" onclick="app.switchTab('jobs');app.toggleMobileNav()"><i class="ri-briefcase-line"></i> 友好岗位库</button>
     <button class="nav-item" data-target="courses" onclick="app.switchTab('courses');app.toggleMobileNav()"><i class="ri-book-open-line"></i> 充电站</button>
+    <button class="nav-item" data-target="workshop" onclick="app.switchTab('workshop');app.toggleMobileNav()"><i class="ri-hammer-line"></i> 实战工坊</button>
     <button class="nav-item" data-target="tools" onclick="app.switchTab('tools');app.toggleMobileNav()"><i class="ri-cpu-line"></i> AI简历/面试</button>
   </div>
 </header>
@@ -364,7 +366,107 @@
       </div>
     </section>
 
-    <!-- 5. AI 工具箱 (Tools) -->
+
+    <!-- 6. 实战工坊 (Workshop) -->
+    <section id="view-workshop" class="page-view">
+      <div class="workshop-container">
+        <!-- 实战工坊选择页 -->
+        <div id="workshop-select-view">
+          <div class="workshop-hero">
+            <span class="wh-badge"><i class="ri-hammer-fill"></i> 实战工坊</span>
+            <h1>不是告诉你能做什么，是让你<strong>真正做到一次</strong></h1>
+            <p>完成7天实战任务，生成可分享的<strong>能力证明</strong>，用行动证明你的实力</p>
+          </div>
+
+          <div class="workshop-cards-grid" id="workshop-cards-grid">
+            <!-- 动态渲染3个实验卡片 -->
+          </div>
+
+          <div class="workshop-proof-section">
+            <h3><i class="ri-award-line"></i> 你已获得的能力证明</h3>
+            <div id="workshop-proofs-list">
+              <div class="empty-state" style="padding:40px;">
+                <i class="ri-award-line" style="font-size:48px; opacity:0.3;"></i>
+                <p style="margin-top:12px;">完成实战任务后，能力证明将显示在这里</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 实战工坊流程页 (默认隐藏) -->
+        <div id="workshop-flow-view" style="display:none;">
+          <div class="workshop-flow-header">
+            <button class="btn btn-secondary" onclick="app.backToWorkshopSelect()">
+              <i class="ri-arrow-left-line"></i> 返回选择
+            </button>
+            <div class="workshop-flow-info">
+              <span id="workshop-flow-title" class="wf-title"></span>
+              <span id="workshop-flow-day" class="wf-day"></span>
+            </div>
+          </div>
+
+          <!-- 步骤进度条 -->
+          <div class="workshop-progress-bar">
+            <div class="wp-track">
+              <div class="wp-fill" id="workshop-progress-fill"></div>
+            </div>
+            <div class="wp-steps" id="workshop-progress-steps">
+              <!-- 动态渲染7个步骤点 -->
+            </div>
+          </div>
+
+          <!-- 每日任务内容 -->
+          <div class="workshop-task-card" id="workshop-task-card">
+            <div class="wtc-header">
+              <span class="wtc-day-badge" id="workshop-day-badge"></span>
+              <h2 id="workshop-task-title"></h2>
+            </div>
+            <div class="wtc-task-desc" id="workshop-task-desc"></div>
+            
+            <!-- AI 助手提示 -->
+            <div class="wtc-ai-box">
+              <div class="wtc-ai-avatar"><i class="ri-robot-fill"></i></div>
+              <div class="wtc-ai-content" id="workshop-ai-hint"></div>
+            </div>
+
+            <!-- 任务交互区域 -->
+            <div class="wtc-interaction" id="workshop-interaction">
+              <!-- 动态渲染：选择/输入/操作/分析/证明 -->
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="wtc-actions">
+              <button class="btn btn-secondary" id="workshop-prev-btn" onclick="app.prevWorkshopDay()" style="display:none;">
+                <i class="ri-arrow-left-line"></i> 上一天
+              </button>
+              <button class="btn btn-primary-gradient" id="workshop-next-btn" onclick="app.nextWorkshopDay()">
+                下一天 <i class="ri-arrow-right-line"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 能力证明展示页 (默认隐藏) -->
+        <div id="workshop-proof-view" style="display:none;">
+          <div class="proof-card-large" id="proof-card-large">
+            <!-- 动态渲染能力证明卡片 -->
+          </div>
+          <div class="proof-actions">
+            <button class="btn btn-primary-gradient btn-lg" onclick="app.downloadProof()">
+              <i class="ri-download-line"></i> 下载能力证明
+            </button>
+            <button class="btn btn-outline-primary btn-lg" onclick="app.shareProof()">
+              <i class="ri-share-line"></i> 分享给好友
+            </button>
+            <button class="btn btn-secondary btn-lg" onclick="app.backToWorkshopSelect()">
+              <i class="ri-arrow-left-line"></i> 返回工坊
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. AI 工具箱 (Tools) -->
     <section id="view-tools" class="page-view">
       <div class="tools-pc-grid">
         <!-- 简历诊断卡片 -->
