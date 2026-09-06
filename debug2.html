@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Eval</title></head>
+<body>
+<pre id="out"></pre>
+<script>
+var o = document.getElementById('out');
+var origError = window.onerror;
+window.onerror = function(msg, src, line) {
+  o.innerHTML += 'ERROR: ' + msg + ' line=' + line + ' src=' + (src||'').split('/').pop() + '\n';
+  return true;
+};
+</script>
+<script src="js/data.js?v=99"></script>
+<script src="js/engine.js?v=99"></script>
+<script src="js/app.js?v=99"></script>
+<script>
+o.innerHTML += 'typeof app = ' + typeof app + '\n';
+if (typeof app !== 'undefined') {
+  try {
+    app.init();
+    o.innerHTML += 'init() OK\n';
+  } catch(e) {
+    o.innerHTML += 'init() ERROR: ' + e.message + '\n' + e.stack + '\n';
+  }
+} else {
+  o.innerHTML += 'app is undefined - script failed to parse\n';
+}
+</script>
+</body></html>
