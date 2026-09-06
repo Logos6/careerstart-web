@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>JS Inject</title></head>
+<body>
+<h2>Test Result:</h2>
+<pre id="out"></pre>
+<script>
+var o = document.getElementById('out');
+o.textContent = 'Loading...\n';
+var s = document.createElement('script');
+s.src = 'js/data.js?v=test';
+s.onload = function() {
+  o.textContent += 'data.js loaded: CareerData=' + typeof CareerData + '\n';
+  var s2 = document.createElement('script');
+  s2.src = 'js/engine.js?v=test';
+  s2.onload = function() {
+    o.textContent += 'engine.js loaded\n';
+    var s3 = document.createElement('script');
+    s3.src = 'js/app.js?v=test';
+    s3.onerror = function() {
+      o.textContent += 'app.js FAILED TO LOAD\n';
+    };
+    s3.onload = function() {
+      o.textContent += 'app.js loaded: app=' + typeof app + '\n';
+      if (typeof app !== 'undefined') {
+        try {
+          app.init();
+          o.textContent += 'init() OK\n';
+        } catch(e) {
+          o.textContent += 'init() ERROR: ' + e.message + '\n' + e.stack + '\n';
+        }
+      }
+    };
+    document.head.appendChild(s3);
+  };
+  document.head.appendChild(s2);
+};
+document.head.appendChild(s);
+</script>
+</body></html>
