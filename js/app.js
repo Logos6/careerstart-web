@@ -671,7 +671,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
         document.body.style.overflow = 'hidden';
       }
     }
-  }
+  },
 
   openAuthModal() {
     document.getElementById('auth-modal').style.display = 'flex';
