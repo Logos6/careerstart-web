@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Test Click</title></head>
+<body>
+<pre id="out">Running tests...</pre>
+<script src="js/data.js?v=test99"></script>
+<script src="js/engine.js?v=test99"></script>
+<script src="js/app.js?v=test99"></script>
+<script>
+var o = document.getElementById('out');
+var results = [];
+results.push('typeof app = ' + typeof app);
+results.push('typeof CareerData = ' + typeof CareerData);
+if (typeof app === 'undefined') {
+  results.push('FAIL: app is undefined');
+  o.textContent = results.join('\n');
+} else {
+  try {
+    app.init();
+    results.push('init() OK');
+  } catch(e) {
+    results.push('init() ERROR: ' + e.message);
+    results.push('Stack: ' + e.stack);
+  }
+  try {
+    app.switchTab('assess');
+    results.push('switchTab(assess) OK, currentTab=' + app.currentTab);
+  } catch(e) {
+    results.push('switchTab(assess) ERROR: ' + e.message);
+  }
+  try {
+    app.switchTab('jobs');
+    results.push('switchTab(jobs) OK, currentTab=' + app.currentTab);
+  } catch(e) {
+    results.push('switchTab(jobs) ERROR: ' + e.message);
+  }
+  try {
+    app.switchTab('courses');
+    results.push('switchTab(courses) OK, currentTab=' + app.currentTab);
+  } catch(e) {
+    results.push('switchTab(courses) ERROR: ' + e.message);
+  }
+  try {
+    app.switchTab('workshop');
+    results.push('switchTab(workshop) OK, currentTab=' + app.currentTab);
+  } catch(e) {
+    results.push('switchTab(workshop) ERROR: ' + e.message);
+  }
+  try {
+    app.switchTab('tools');
+    results.push('switchTab(tools) OK, currentTab=' + app.currentTab);
+  } catch(e) {
+    results.push('switchTab(tools) ERROR: ' + e.message);
+  }
+  try {
+    app.switchTab('home');
+    results.push('switchTab(home) OK, currentTab=' + app.currentTab);
+  } catch(e) {
+    results.push('switchTab(home) ERROR: ' + e.message);
+  }
+  o.textContent = results.join('\n');
+}
+</script>
+</body></html>
