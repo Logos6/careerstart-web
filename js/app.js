@@ -431,7 +431,7 @@ const app = {
         break;
 
       case 3:
-        title.innerText = "评估���的 6 维核心能力得分（1-10分）";
+        title.innerText = "评估你的6维核心能力得分（1-10分）";
         wrapper.innerHTML = `
           <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:16px;">
             ${CareerData.TRAITS.map(t => `
