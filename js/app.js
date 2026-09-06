@@ -30,6 +30,7 @@ const app = {
     this.renderCourses('all');
     this.renderAssessStep();
     this.updateUserDisplay();
+    this.updateHomePreview();
     this.initShareButtons();
     this.initWorkshopSelect();
   },
@@ -138,6 +139,44 @@ const app = {
           <span style="color:var(--primary); font-weight:600;">${h.score}% 匹配</span>
         </div>
       `).join('');
+    }
+  },
+
+  // 更新首页右侧预览卡片（用真实测评数据替换默认示范）
+  updateHomePreview() {
+    try {
+      if (!this.userData.assessmentHistory || this.userData.assessmentHistory.length === 0) return;
+
+      const latest = this.userData.assessmentHistory[this.userData.assessmentHistory.length - 1];
+      const report = CareerEngine.buildReport(latest.answers || {});
+      const top1 = report.top[0];
+      const topTags = report.top.slice(0, 3);
+
+      const scoreEl = document.getElementById('home-preview-score');
+      const jobEl = document.getElementById('home-preview-job');
+      const descEl = document.getElementById('home-preview-desc');
+      const tagsEl = document.getElementById('home-preview-tags');
+      const labelEl = document.getElementById('home-preview-label');
+      const barsEl = document.getElementById('home-preview-bars');
+
+      if (scoreEl) scoreEl.innerText = `匹配度 ${top1.total}%`;
+      if (jobEl) jobEl.innerText = top1.job.name;
+      if (descEl) descEl.innerText = top1.job.desc;
+      if (labelEl) labelEl.innerText = '你的测评结果';
+
+      if (tagsEl) {
+        tagsEl.innerHTML = topTags.map(t =>
+          `<span class="pc-tag">${t.job.name} ${t.total}%</span>`
+        ).join('');
+      }
+
+      if (barsEl) {
+        barsEl.innerHTML = report.top.slice(0, 3).map(t =>
+          `<div class="m-bar-item"><span>${t.job.name}</span><div class="m-bar"><div class="m-fill" style="width:${t.total}%"></div></div></div>`
+        ).join('');
+      }
+    } catch (e) {
+      console.error('[updateHomePreview Error]', e);
     }
   },
 
@@ -536,6 +575,7 @@ const app = {
       score: report.top[0].total
     });
     this.saveUserData();
+    this.updateHomePreview();
 
     const top1 = report.top[0];
     content.innerHTML = `
