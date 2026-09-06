@@ -218,7 +218,8 @@
       </div>
     </section>
 
-    <!-- 2. 6维测评 (Assess) - PC 端双栏互动模式 -->
+    
+    <!-- 2. 6维测评 (Assess) - 全新精美设计 -->
     <section id="view-assess" class="page-view">
       <div class="assess-pc-layout">
         <!-- 左侧答题卡片 -->
@@ -247,12 +248,52 @@
           </div>
         </div>
 
-        <!-- 右侧实时计算面板/提示 -->
+        <!-- 右侧实时计算面板 -->
         <div class="assess-side-panel">
-          <div class="side-info-card">
+          <!-- 实时匹配度预览 -->
+          <div class="realtime-match-card">
+            <h4><i class="ri-flashlight-line"></i> 实时匹配度预览</h4>
+            <div class="match-score-display" id="realtime-match-score">--</div>
+            <div class="match-score-label">当前最高匹配度</div>
+          </div>
+
+          <!-- 动态竞争力分析 -->
+          <div class="competitive-analysis-card">
+            <h4><i class="ri-bar-chart-grouped-line"></i> 动态竞争力分析</h4>
+            <div id="competitive-analysis-content">
+              <div class="competitive-item">
+                <span class="competitive-label">兴趣匹配</span>
+                <div class="competitive-bar"><div class="competitive-bar-fill" style="width:0%"></div></div>
+                <span class="competitive-value">--</span>
+              </div>
+              <div class="competitive-item">
+                <span class="competitive-label">技能覆盖</span>
+                <div class="competitive-bar"><div class="competitive-bar-fill" style="width:0%"></div></div>
+                <span class="competitive-value">--</span>
+              </div>
+              <div class="competitive-item">
+                <span class="competitive-label">能力评分</span>
+                <div class="competitive-bar"><div class="competitive-bar-fill" style="width:0%"></div></div>
+                <span class="competitive-value">--</span>
+              </div>
+              <div class="competitive-item">
+                <span class="competitive-label">岗位稀缺度</span>
+                <div class="competitive-bar"><div class="competitive-bar-fill" style="width:0%"></div></div>
+                <span class="competitive-value">--</span>
+              </div>
+              <div class="competitive-item">
+                <span class="competitive-label">综合竞争力</span>
+                <div class="competitive-bar"><div class="competitive-bar-fill" style="width:0%"></div></div>
+                <span class="competitive-value">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 引擎说明 -->
+          <div class="side-info-card" style="margin-top:20px;">
             <h3><i class="ri-lightbulb-line"></i> 启航引擎说明</h3>
             <p style="font-size:13px; color:var(--text-muted); line-height:1.6; margin-top:8px;">
-              我们的测评摒弃了传统性格大套话，专门针对 **35+ 职场转型** 与 **宝妈工时分配** 进行了权重大调整：
+              我们的测评摒弃了传统性格大套话，专门针对 <strong>35+ 职场转型</strong> 与 <strong>宝妈工时分配</strong> 进行了权重大调整：
             </p>
             <ul class="side-feature-list">
               <li><i class="ri-check-line"></i> 兴趣偏好 35%</li>
