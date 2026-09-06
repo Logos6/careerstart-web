@@ -652,7 +652,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
   },
 
   // ========== 登录/注册相关 ==========
-  API_BASE: 'https://careerstart-api.logos6.workers.dev',
+  API_BASE: 'https://bespoke-bunny-e049d1.netlify.app',
 
   openAuthModal() {
     document.getElementById('auth-modal').style.display = 'flex';
@@ -730,7 +730,20 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       this.updateUserDisplay();
 
     } catch (e) {
-      this.showAuthError('网络错误，请稍后重试');
+      // API 不可用时，用 localStorage 兜底
+      const localUsers = JSON.parse(localStorage.getItem('careerstart_local_users') || '{}');
+      const localUser = localUsers[phone];
+      if (!localUser || localUser.password !== password) {
+        this.showAuthError('网络错误，请检查账号密码或注册新账号');
+        return;
+      }
+      this.authToken = 'local_' + Date.now();
+      this.currentUser = { phone, nickname: localUser.nickname };
+      localStorage.setItem('careerstart_token', this.authToken);
+      localStorage.setItem('careerstart_user', JSON.stringify(this.currentUser));
+      this.updateAuthUI();
+      this.closeAuthModal();
+      this.updateUserDisplay();
     }
   },
 
@@ -780,7 +793,21 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       this.updateUserDisplay();
 
     } catch (e) {
-      this.showAuthError('网络错误，请稍后重试');
+      // API 不可用时，用 localStorage 兜底
+      const localUsers = JSON.parse(localStorage.getItem('careerstart_local_users') || '{}');
+      if (localUsers[phone]) {
+        this.showAuthError('该手机号已注册，请直接登录');
+        return;
+      }
+      localUsers[phone] = { password, nickname: nickname || '用户' + phone.slice(-4) };
+      localStorage.setItem('careerstart_local_users', JSON.stringify(localUsers));
+      this.authToken = 'local_' + Date.now();
+      this.currentUser = { phone, nickname: localUsers[phone].nickname };
+      localStorage.setItem('careerstart_token', this.authToken);
+      localStorage.setItem('careerstart_user', JSON.stringify(this.currentUser));
+      this.updateAuthUI();
+      this.closeAuthModal();
+      this.updateUserDisplay();
     }
   },
 
