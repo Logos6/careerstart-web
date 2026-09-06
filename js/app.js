@@ -5,11 +5,11 @@ const app = {
   selectedPlan: 'quarter',
   assessStep: 0,
   userAnswers: {
-    persona: 'mid',
-    interests: ['tech', 'business'],
-    skills: ['office', 'pm'],
-    traits: { logic: 7, creative: 6, social: 8, exec: 7, leader: 6, handcraft: 5 },
-    prefs: ['stable', 'growth']
+    persona: '',
+    interests: [],
+    skills: [],
+    traits: { logic: 0, creative: 0, social: 0, exec: 0, leader: 0, handcraft: 0 },
+    prefs: []
   },
   userData: {
     isVip: false,
