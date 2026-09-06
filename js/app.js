@@ -320,6 +320,8 @@ const app = {
     pct.innerText = `${curPct}% 完成`;
     fill.style.width = `${curPct}%`;
 
+    nextBtn.innerHTML = `下一步 <i class="ri-arrow-right-line"></i>`;
+
     switch(this.assessStep) {
       case 0:
         title.innerText = "请选择你的当前身份定位";
@@ -711,7 +713,9 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
         body: JSON.stringify({ phone, password })
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { throw new Error('NOT_JSON'); }
 
       if (!res.ok) {
         this.showAuthError(data.error || '登录失败');
@@ -734,7 +738,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       const localUsers = JSON.parse(localStorage.getItem('careerstart_local_users') || '{}');
       const localUser = localUsers[phone];
       if (!localUser || localUser.password !== password) {
-        this.showAuthError('网络错误，请检查账号密码或注册新账号');
+        this.showAuthError('本地账号未注册，请先注册新账号');
         return;
       }
       this.authToken = 'local_' + Date.now();
@@ -774,7 +778,9 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
         body: JSON.stringify({ phone, password, nickname })
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { throw new Error('NOT_JSON'); }
 
       if (!res.ok) {
         this.showAuthError(data.error || '注册失败');
