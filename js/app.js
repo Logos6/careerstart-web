@@ -654,7 +654,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
   },
 
   // ========== 登录/注册相关 ==========
-  API_BASE: 'https://bespoke-bunny-e049d1.netlify.app',
+  API_BASE: 'https://careerstart-api.netlify.app',
 
   openAuthModal() {
     document.getElementById('auth-modal').style.display = 'flex';
