@@ -976,6 +976,19 @@ body {
   padding: 0 24px;
 }
 
+/* ===== 移动端导航（默认隐藏）===== */
+.mobile-menu-btn {
+  display: none !important;
+}
+
+.mobile-nav-overlay {
+  display: none !important;
+}
+
+.mobile-nav {
+  display: none !important;
+}
+
 /* ===== 移动端响应式 ===== */
 @media (max-width: 768px) {
   /* 隐藏桌面导航，显示汉堡菜单按钮 */
@@ -987,33 +1000,19 @@ body {
     display: flex !important;
   }
   
-  .header-container {
-    padding: 10px 16px;
-  }
-  
-  .brand-subtitle {
-    display: none;
-  }
-  
-  .brand-title {
-    font-size: 16px;
-  }
-  
-  .header-actions {
-    gap: 6px;
-  }
-  
-  .header-actions .btn {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-  
-  /* 移动端导航抽屉 */
   .mobile-nav-overlay {
-    display: block;
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
   }
   
   .mobile-nav {
+    display: block !important;
     position: fixed;
     top: 0;
     right: -280px;
@@ -1047,6 +1046,27 @@ body {
     font-size: 24px;
     cursor: pointer;
     color: #666;
+  }
+  
+  .header-container {
+    padding: 10px 16px;
+  }
+  
+  .brand-subtitle {
+    display: none;
+  }
+  
+  .brand-title {
+    font-size: 16px;
+  }
+  
+  .header-actions {
+    gap: 6px;
+  }
+  
+  .header-actions .btn {
+    padding: 6px 10px;
+    font-size: 12px;
   }
   
   /* Hero区域移动端适配 */
