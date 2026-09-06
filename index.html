@@ -71,7 +71,7 @@
         
       </nav>
 
-      <button class="mobile-menu-btn" onclick="app.toggleMobileNav()" style="display:none;background:none;border:none;font-size:24px;cursor:pointer;padding:8px;">
+      <button class="mobile-menu-btn" onclick="app.toggleMobileNav()">
         <i class="ri-menu-line"></i>
       </button>
       
@@ -86,7 +86,7 @@
     </div>
   
   <!-- 移动端导航抽屉 -->
-  <div class="mobile-nav-overlay" id="mobile-nav-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;" onclick="app.toggleMobileNav()"></div>
+  <div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="app.toggleMobileNav()"></div>
   <div class="mobile-nav" id="mobile-nav">
     <button class="mobile-nav-close" onclick="app.toggleMobileNav()">&times;</button>
     <button class="nav-item" data-target="home" onclick="app.switchTab('home');app.toggleMobileNav()"><i class="ri-home-5-line"></i> 平台首页</button>
@@ -160,7 +160,7 @@
         <div class="feature-card" onclick="app.switchTab('assess')">
           <div class="f-icon bg-purple"><i class="ri-compass-3-line"></i></div>
           <h3>6维全方位测评</h3>
-          <p>基于兴趣、能力与工作���好，精细化打分，生成专属转型白皮书。</p>
+          <p>基于��趣、能力与工作���好，精细化打分，生成专属转型白皮书。</p>
           <span class="f-link">开始测评 <i class="ri-arrow-right-line"></i></span>
         </div>
         <div class="feature-card" onclick="app.switchTab('tools')">
@@ -512,7 +512,7 @@
         </div>
         <div style="margin-bottom:20px;">
           <label style="display:block; font-size:14px; font-weight:600; margin-bottom:6px; color:var(--text-primary);">密码</label>
-          <input type="password" id="login-password" placeholder="请输入密码" style="width:100%; padding:12px 14px; border:1px solid var(--border-color); border-radius:8px; font-size:15px; box-sizing:border-box;">
+          <input type="password" id="login-password" placeholder="请输入密��" style="width:100%; padding:12px 14px; border:1px solid var(--border-color); border-radius:8px; font-size:15px; box-sizing:border-box;">
         </div>
         <button class="btn btn-primary-gradient btn-block" onclick="app.login()" style="margin-bottom:12px;">
           <i class="ri-login-box-line"></i> 登录
@@ -530,7 +530,7 @@
         </div>
         <div style="margin-bottom:16px;">
           <label style="display:block; font-size:14px; font-weight:600; margin-bottom:6px; color:var(--text-primary);">昵称</label>
-          <input type="text" id="register-nickname" placeholder="给自己取个昵称（选填）" style="width:100%; padding:12px 14px; border:1px solid var(--border-color); border-radius:8px; font-size:15px; box-sizing:border-box;">
+          <input type="text" id="register-nickname" placeholder="���自己取个昵称（选填）" style="width:100%; padding:12px 14px; border:1px solid var(--border-color); border-radius:8px; font-size:15px; box-sizing:border-box;">
         </div>
         <div style="margin-bottom:20px;">
           <label style="display:block; font-size:14px; font-weight:600; margin-bottom:6px; color:var(--text-primary);">密码</label>
