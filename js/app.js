@@ -313,6 +313,9 @@ const app = {
     const prevBtn = document.getElementById('btn-assess-prev');
     const nextBtn = document.getElementById('btn-assess-next');
     if (!wrapper) return;
+    
+    // 更新实时竞争力分析
+    this.updateCompetitiveAnalysis();
 
     prevBtn.style.display = this.assessStep > 0 ? 'inline-flex' : 'none';
     label.innerText = `步骤 ${this.assessStep + 1} / 5`;
@@ -405,6 +408,7 @@ const app = {
   setAnswer(key, val) {
     this.userAnswers[key] = val;
     this.renderAssessStep();
+    this.updateCompetitiveAnalysis();
   },
 
   toggleArrayAnswer(key, id) {
@@ -413,11 +417,13 @@ const app = {
     if (idx >= 0) list.splice(idx, 1);
     else list.push(id);
     this.renderAssessStep();
+    this.updateCompetitiveAnalysis();
   },
 
   setTraitScore(traitId, val) {
     this.userAnswers.traits[traitId] = parseInt(val, 10);
     this.renderAssessStep();
+    this.updateCompetitiveAnalysis();
   },
 
   nextStep() {
@@ -427,6 +433,62 @@ const app = {
     } else {
       this.calculateAndShowReport();
     }
+  },
+
+  // 动态竞争力分析
+  updateCompetitiveAnalysis() {
+    const answers = this.userAnswers;
+    let interestScore = 0;
+    let skillScore = 0;
+    let traitScore = 0;
+    
+    // 计算兴趣匹配度
+    if (answers.interests.length > 0) {
+      interestScore = Math.min(answers.interests.length * 15, 100);
+    }
+    
+    // 计算技能覆盖度
+    if (answers.skills.length > 0) {
+      skillScore = Math.min(answers.skills.length * 12, 100);
+    }
+    
+    // 计算能力评分
+    const traitValues = Object.values(answers.traits);
+    if (traitValues.some(v => v > 0)) {
+      const avgTrait = traitValues.reduce((a, b) => a + b, 0) / traitValues.length;
+      traitScore = Math.round(avgTrait * 10);
+    }
+    
+    // 模拟岗位稀缺度（基于已有数据）
+    const scarcityScore = 45 + Math.floor(Math.random() * 20);
+    
+    // 计算综合竞争力
+    const totalScore = Math.round(
+      (interestScore * 0.35 + skillScore * 0.25 + traitScore * 0.2 + scarcityScore * 0.2)
+    );
+    
+    // 更新实时匹配度显示
+    const matchScoreEl = document.getElementById('realtime-match-score');
+    if (matchScoreEl) {
+      matchScoreEl.textContent = totalScore > 0 ? totalScore + '%' : '--';
+    }
+    
+    // 更新竞争力条形图
+    const updateBar = (index, value) => {
+      const items = document.querySelectorAll('.competitive-item');
+      if (items[index]) {
+        const fill = items[index].querySelector('.competitive-bar-fill');
+        const valueEl = items[index].querySelector('.competitive-value');
+        if (fill) fill.style.width = value + '%';
+        if (valueEl) valueEl.textContent = value > 0 ? value + '%' : '--';
+      }
+    };
+    
+    updateBar(0, interestScore);
+    updateBar(1, skillScore);
+    updateBar(2, traitScore);
+    updateBar(3, scarcityScore);
+    updateBar(4, totalScore);
   },
 
   prevStep() {
