@@ -66,6 +66,7 @@
         <button class="nav-item active" data-target="home" onclick="app.switchTab('home')"><i class="ri-home-5-line"></i> 平台首页</button>
         <button class="nav-item" data-target="assess" onclick="app.switchTab('assess')"><i class="ri-compass-3-line"></i> 6维AI测评</button>
         <button class="nav-item" data-target="tools" onclick="app.switchTab('tools')"><i class="ri-cpu-line"></i> AI简历/面试</button>
+        <button class="nav-item" data-target="coaching" onclick="app.switchTab('coaching')"><i class="ri-user-heart-line"></i> 职业陪跑</button>
         <button class="nav-item" data-target="jobs" onclick="app.switchTab('jobs')"><i class="ri-briefcase-line"></i> 友好岗位库</button>
         
       </nav>
@@ -91,6 +92,7 @@
     <button class="nav-item" data-target="home" onclick="app.switchTab('home');app.toggleMobileNav()"><i class="ri-home-5-line"></i> 平台首页</button>
     <button class="nav-item" data-target="assess" onclick="app.switchTab('assess');app.toggleMobileNav()"><i class="ri-compass-3-line"></i> 6维AI测评</button>
     <button class="nav-item" data-target="tools" onclick="app.switchTab('tools');app.toggleMobileNav()"><i class="ri-cpu-line"></i> AI简历/面试</button>
+    <button class="nav-item" data-target="coaching" onclick="app.switchTab('coaching');app.toggleMobileNav()"><i class="ri-user-heart-line"></i> 职业陪跑</button>
     <button class="nav-item" data-target="jobs" onclick="app.switchTab('jobs');app.toggleMobileNav()"><i class="ri-briefcase-line"></i> 友好岗位库</button>
   </div>
 </header>
@@ -361,6 +363,138 @@
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- 5. 职业陪跑 (Coaching) -->
+    <section id="view-coaching" class="page-view">
+      <div class="coaching-hero">
+        <div class="coaching-hero-content">
+          <span class="hero-badge"><i class="ri-user-heart-line"></i> 一对一深度陪跑</span>
+          <h1>从迷茫到入职，<span class="gradient-text">全程有人带</span></h1>
+          <p>专为 35+ 女性与宝妈设计的职业重启陪跑服务，不是卖课，是陪你一步步走完全程。</p>
+          <button class="btn btn-gold btn-xl" onclick="app.openCoachingModal()"><i class="ri-phone-line"></i> 立即预约咨询</button>
+        </div>
+        <div class="coaching-hero-stats">
+          <div class="ch-stat"><span class="num">327+</span><span class="lbl">成功入职</span></div>
+          <div class="ch-stat"><span class="num">98.4%</span><span class="lbl">好评率</span></div>
+          <div class="ch-stat"><span class="num">30天</span><span class="lbl">平均周期</span></div>
+        </div>
+      </div>
+
+      <!-- 服务流程 -->
+      <div class="coaching-section">
+        <h2 class="section-title"><i class="ri-route-line"></i> 陪跑服务流程</h2>
+        <div class="coaching-steps">
+          <div class="cs-step">
+            <div class="cs-num">01</div>
+            <h3>深度诊断</h3>
+            <p>1对1视频通话，全面梳理你的职业背景、技能优势、家庭时间安排与转型方向。</p>
+          </div>
+          <div class="cs-step">
+            <div class="cs-num">02</div>
+            <h3>定制方案</h3>
+            <p>根据诊断结果，量身定制30天转型行动计划，包含技能提升、简历优化与求职策略。</p>
+          </div>
+          <div class="cs-step">
+            <div class="cs-num">03</div>
+            <h3>每周复盘</h3>
+            <p>每周一次30分钟深度复盘，跟踪进展、解决卡点、动态调整策略。</p>
+          </div>
+          <div class="cs-step">
+            <div class="cs-num">04</div>
+            <h3>全程护航</h3>
+            <p>不限次数紧急决策支持，简历作品集定向优化，模拟面试演练，直到成功入职。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 服务内容 -->
+      <div class="coaching-section">
+        <h2 class="section-title"><i class="ri-list-check-2"></i> 服务内容清单</h2>
+        <div class="coaching-features-grid">
+          <div class="cf-card">
+            <div class="cf-icon"><i class="ri-video-chat-line"></i></div>
+            <h4>每周30分钟深度复盘</h4>
+            <p>定期1对1视频通话，回顾本周进展，分析遇到的问题，制定下周行动计划。</p>
+          </div>
+          <div class="cf-card">
+            <div class="cf-icon"><i class="ri-customer-service-2-line"></i></div>
+            <h4>不限次数紧急支持</h4>
+            <p>遇到突发状况？随时微信联系，第一时间给你专业建议和决策支持。</p>
+          </div>
+          <div class="cf-card">
+            <div class="cf-icon"><i class="ri-file-edit-line"></i></div>
+            <h4>简历作品集优化</h4>
+            <p>针对目标岗位定向优化简历，突出年龄优势和可迁移技能，打造差异化竞争力。</p>
+          </div>
+          <div class="cf-card">
+            <div class="cf-icon"><i class="ri-mic-line"></i></div>
+            <h4>模拟面试演练</h4>
+            <p>模拟真实面试场景，针对空白期、薪资谈判等难点进行专项训练。</p>
+          </div>
+          <div class="cf-card">
+            <div class="cf-icon"><i class="ri-route-line"></i></div>
+            <h4>30天转型行动方案</h4>
+            <p>分阶段、可执行的行动计划，从技能充电到简历投递，每一步都有明确指引。</p>
+          </div>
+          <div class="cf-card">
+            <div class="cf-icon"><i class="ri-shield-check-line"></i></div>
+            <h4>岗位筛选与推荐</h4>
+            <p>帮你筛选年龄友好、弹性工时的优质岗位，避开年龄歧视雷区。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 适合人群 -->
+      <div class="coaching-section">
+        <h2 class="section-title"><i class="ri-group-line"></i> 适合谁来</h2>
+        <div class="coaching-audience">
+          <div class="ca-item"><i class="ri-check-line"></i> 职业空白期 1 年以上，想重返职场但不知从何开始</div>
+          <div class="ca-item"><i class="ri-check-line"></i> 35+ 年龄焦虑，投简历石沉大海，需要重新定位</div>
+          <div class="ca-item"><i class="ri-check-line"></i> 宝妈时间碎片化，需要弹性工作方案和高效求职策略</div>
+          <div class="ca-item"><i class="ri-check-line"></i> 想转行但缺乏方向，需要专业梳理和可落地的路径规划</div>
+          <div class="ca-item"><i class="ri-check-line"></i> 面试屡屡碰壁，需要针对性的面试辅导和心态建设</div>
+          <div class="ca-item"><i class="ri-check-line"></i> 想要有人督促和陪伴，而不是一个人孤军奋战</div>
+        </div>
+      </div>
+
+      <!-- 学员案例 -->
+      <div class="coaching-section">
+        <h2 class="section-title"><i class="ri-emotion-happy-line"></i> 学员成功案例</h2>
+        <div class="coaching-cases">
+          <div class="cc-card">
+            <div class="cc-header">
+              <strong>李姐（38岁）</strong>
+              <span class="cc-tag">二孩妈妈成功转型</span>
+            </div>
+            <p>"断崖式离职后非常迷茫，通过陪跑测出了自己在逻辑与协调上的优势，目前已成功入职社区管家，兼顾接送孩子！"</p>
+            <div class="cc-meta">陪跑周期：28天 | 入职岗位：社区管家</div>
+          </div>
+          <div class="cc-card">
+            <div class="cc-header">
+              <strong>张女士（42岁）</strong>
+              <span class="cc-tag">传统行政转型</span>
+            </div>
+            <p>"之前以为年纪大了没人要，诊断了简历排除隐性门槛后，投递一周收到了3个面试邀请！"</p>
+            <div class="cc-meta">陪跑周期：21天 | 入职岗位：行政主管</div>
+          </div>
+          <div class="cc-card">
+            <div class="cc-header">
+              <strong>陈女士（36岁）</strong>
+              <span class="cc-tag">前幼培老师</span>
+            </div>
+            <p>"推荐的B站课程非常实用，跟着学了Excel高阶与数据分析，顺利转型数据专员。"</p>
+            <div class="cc-meta">陪跑周期：35天 | 入职岗位：数据专员</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="coaching-cta">
+        <h2>准备好重启你的职业生涯了吗？</h2>
+        <p>限时开放，名额有限。立即预约免费咨询，了解专属你的转型方案。</p>
+        <button class="btn btn-gold btn-xl" onclick="app.openCoachingModal()"><i class="ri-phone-line"></i> 立即预约咨询</button>
       </div>
     </section>
 
