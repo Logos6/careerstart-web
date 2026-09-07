@@ -213,7 +213,7 @@
       level: getLevel(scores.total),
       summary: generateSummary(scores, sections, timeline, achievements),
       strengths: findStrengths(scores, sections, achievements, skills),
-      risks: findRisks(scores, sections, timeline, achievements, weakPhrases, contacts, skills),
+      risks: findRisks(scores, sections, timeline, achievements, weakPhrases, contacts, skills, t),
       match_analysis: analyzeMatch(t, skills, sections),
       optimization_tips: generateTips(scores, sections, achievements, weakPhrases, skills),
       dimensions: buildDimensions(scores),
@@ -547,7 +547,7 @@
     return strengths.slice(0, 5);
   }
 
-  function findRisks(scores, sections, timeline, achievements, weakPhrases, contacts, skills) {
+  function findRisks(scores, sections, timeline, achievements, weakPhrases, contacts, skills, text) {
     const risks = [];
 
     // 年龄风险
