@@ -257,6 +257,11 @@
     // 10. 年龄歧视
     const ageBias = detectAgeBias(t);
 
+    // 11. 补充缺失变量
+    const wordCountApprox = charCount;
+    const weakHits = weakFound.map(w => ({ sentence: w.context, desc: `使用了弱化动词「${w.word}」` }));
+    const strongHits = strongFound;
+
     // ==================== 生成深度剖析 ====================
     result.deepAnalysis = [];
 
