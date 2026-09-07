@@ -385,6 +385,57 @@
         </div>
       </div>
 
+      <!-- 三档定价 -->
+      <div class="coaching-section">
+        <h2 class="section-title"><i class="ri-vip-crown-2-line"></i> 选择你的陪跑方案</h2>
+        <div class="pricing-grid">
+          <!-- 轻量版 -->
+          <div class="pricing-card">
+            <div class="pricing-tag">入门体验</div>
+            <h3>轻量版</h3>
+            <div class="pricing-price"><span class="yen">¥</span>99<span class="unit">/次</span></div>
+            <p class="pricing-desc">一次30分钟深度诊断，快速看清方向</p>
+            <ul class="pricing-list">
+              <li><i class="ri-check-line"></i> 单次30分钟1对1视频诊断</li>
+              <li><i class="ri-check-line"></i> 职业背景全面梳理</li>
+              <li><i class="ri-check-line"></i> 技能优势与转型方向分析</li>
+              <li><i class="ri-check-line"></i> 个性化行动建议</li>
+            </ul>
+            <button class="btn btn-outline-primary btn-block" onclick="app.openCoachingModal('light')"><i class="ri-arrow-right-line"></i> 预约轻量版</button>
+          </div>
+          <!-- 标准版 -->
+          <div class="pricing-card pricing-card-hot">
+            <div class="pricing-tag">最受欢迎</div>
+            <h3>标准版</h3>
+            <div class="pricing-price"><span class="yen">¥</span>499<span class="unit">/月</span></div>
+            <p class="pricing-desc">每周复盘+紧急支持+简历优化，系统转型</p>
+            <ul class="pricing-list">
+              <li><i class="ri-check-line"></i> 每周一次30分钟深度复盘</li>
+              <li><i class="ri-check-line"></i> 不限次数紧急决策支持</li>
+              <li><i class="ri-check-line"></i> 简历作品集定向优化</li>
+              <li><i class="ri-check-line"></i> 30天转型行动方案</li>
+              <li><i class="ri-check-line"></i> 微信实时答疑</li>
+            </ul>
+            <button class="btn btn-primary-gradient btn-block" onclick="app.openCoachingModal('standard')"><i class="ri-arrow-right-line"></i> 预约标准版</button>
+          </div>
+          <!-- 尊享版 -->
+          <div class="pricing-card">
+            <div class="pricing-tag">全程护航</div>
+            <h3>尊享版</h3>
+            <div class="pricing-price"><span class="yen">¥</span>999<span class="unit">/月</span></div>
+            <p class="pricing-desc">标准版全部+岗位推荐+不限次模拟面试</p>
+            <ul class="pricing-list">
+              <li><i class="ri-check-line"></i> 标准版全部服务</li>
+              <li><i class="ri-check-line"></i> 岗位筛选与精准推荐</li>
+              <li><i class="ri-check-line"></i> 不限次模拟面试演练</li>
+              <li><i class="ri-check-line"></i> 全程陪跑到入职</li>
+              <li><i class="ri-check-line"></i> 薪资谈判策略指导</li>
+            </ul>
+            <button class="btn btn-outline-primary btn-block" onclick="app.openCoachingModal('premium')"><i class="ri-arrow-right-line"></i> 预约尊享版</button>
+          </div>
+        </div>
+      </div>
+
       <!-- 服务流程 -->
       <div class="coaching-section">
         <h2 class="section-title"><i class="ri-route-line"></i> 陪跑服务流程</h2>
@@ -613,23 +664,33 @@
 
   <!-- 一对一陪跑咨询 Modal -->
   <div class="modal-backdrop" id="coaching-modal" style="display:none;">
-    <div class="modal-card" style="max-width:480px;">
+    <div class="modal-card" style="max-width:520px;">
       <button class="modal-close" onclick="document.getElementById('coaching-modal').style.display='none';document.body.style.overflow='auto'">&times;</button>
       <div class="modal-header">
         <span class="m-badge"><i class="ri-user-heart-fill"></i> 一对一职业重启陪跑</span>
         <h2>预约咨询 · 开启你的转型之旅</h2>
-        <p>¥599/次 · 从迷茫到入职，全程有人带</p>
+        <p>选择适合你的陪跑方案</p>
       </div>
       <div style="padding:0 24px 24px;">
-        <div style="background:linear-gradient(135deg,#f8f5ff,#eef2ff);border-radius:14px;padding:20px;margin-bottom:20px;">
-          <h4 style="font-size:15px;color:#1e1b4b;margin:0 0 12px;"><i class="ri-check-double-line" style="color:#8b5cf6;"></i> 服务包含</h4>
-          <ul style="list-style:none;padding:0;margin:0;font-size:13px;color:#475569;line-height:2;">
-            <li>✓ 每周一次 30 分钟深度复盘（视频/语音）</li>
-            <li>✓ 不限次数紧急决策支持（微信实时答疑）</li>
-            <li>✓ 简历作品集定向优化指导</li>
-            <li>✓ 全程陪跑到入职，不达目标不散场</li>
-          </ul>
+        <!-- 版本选择 -->
+        <div class="modal-tier-select" style="display:flex;gap:10px;margin-bottom:20px;">
+          <label class="tier-option" style="flex:1;border:2px solid var(--border-color);border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;transition:all .2s;" onclick="app.selectTier(this,'light')">
+            <div style="font-weight:700;font-size:14px;color:var(--text-main);">轻量版</div>
+            <div style="font-size:20px;font-weight:800;color:var(--primary);margin:6px 0;">¥99<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/次</span></div>
+            <div style="font-size:11px;color:var(--text-muted);">单次30分钟诊断</div>
+          </label>
+          <label class="tier-option" style="flex:1;border:2px solid var(--primary);border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#f8f5ff,#eef2ff);transition:all .2s;" onclick="app.selectTier(this,'standard')">
+            <div style="font-weight:700;font-size:14px;color:var(--text-main);">标准版 <span style="font-size:10px;background:var(--primary);color:#fff;padding:2px 6px;border-radius:8px;">推荐</span></div>
+            <div style="font-size:20px;font-weight:800;color:var(--primary);margin:6px 0;">¥499<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/月</span></div>
+            <div style="font-size:11px;color:var(--text-muted);">每周复盘+紧急支持</div>
+          </label>
+          <label class="tier-option" style="flex:1;border:2px solid var(--border-color);border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;transition:all .2s;" onclick="app.selectTier(this,'premium')">
+            <div style="font-weight:700;font-size:14px;color:var(--text-main);">尊享版</div>
+            <div style="font-size:20px;font-weight:800;color:var(--primary);margin:6px 0;">¥999<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/月</span></div>
+            <div style="font-size:11px;color:var(--text-muted);">全程陪跑到入职</div>
+          </label>
         </div>
+        <input type="hidden" id="coaching-tier" value="standard">
         <div class="input-group" style="margin-bottom:12px;">
           <input type="text" id="coaching-name" placeholder="你的称呼">
         </div>
