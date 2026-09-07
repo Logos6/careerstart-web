@@ -377,202 +377,220 @@ body {
 .m-bar { flex: 1; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
 .m-fill { height: 100%; background: var(--primary-gradient); }
 
-/* 专属行动方案卡片 */
-.home-action-plan-card {
-  background: linear-gradient(135deg, #f8f5ff 0%, #eef2ff 100%);
-  border: 1px solid rgba(139, 92, 246, 0.15);
+/* 一对一职业重启陪跑卡片 */
+.home-coaching-card {
+  background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 40%, #2d1b69 100%);
+  border-radius: 24px;
+  padding: 36px;
+  margin-bottom: 32px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.home-coaching-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.coaching-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #1e293b;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 14px;
   border-radius: 20px;
-  padding: 32px;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
+}
+.coaching-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 32px;
 }
-.ap-header {
+.coaching-left {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: 18px;
 }
-.ap-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  color: #fff;
-  font-size: 24px;
+.coaching-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 28px;
   flex-shrink: 0;
 }
-.ap-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1e1b4b;
+.coaching-title {
+  font-size: 26px;
+  font-weight: 800;
   margin: 0 0 4px;
+  background: linear-gradient(135deg, #fff 0%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
-.ap-sub {
-  font-size: 13px;
-  color: var(--text-muted);
+.coaching-subtitle {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
   margin: 0;
 }
-.ap-phases {
-  display: flex;
-  flex-direction: column;
+.coaching-price-box {
+  text-align: center;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 16px 28px;
+  flex-shrink: 0;
+}
+.coaching-price-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 4px;
+}
+.coaching-price {
+  font-size: 36px;
+  font-weight: 800;
+  color: #fbbf24;
+}
+.coaching-yen {
+  font-size: 18px;
+  font-weight: 600;
+}
+.coaching-price-note {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 2px;
+}
+.coaching-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
-.ap-phase {
-  background: #fff;
+.coaching-feature {
+  display: flex;
+  gap: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 14px;
-  border: 1px solid rgba(139, 92, 246, 0.08);
-  overflow: hidden;
+  padding: 18px;
 }
-.ap-phase-header {
+.coaching-feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(139, 92, 246, 0.2);
   display: flex;
   align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #a78bfa;
+  flex-shrink: 0;
+}
+.coaching-feature-text h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 4px;
+}
+.coaching-feature-text p {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  margin: 0;
+  line-height: 1.5;
+}
+.coaching-plan-section {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+}
+.coaching-plan-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #c4b5fd;
+  margin: 0 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.coaching-plan-phases {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  padding: 16px 20px;
-  cursor: pointer;
-  transition: background 0.2s;
 }
-.ap-phase-header:hover {
-  background: #faf8ff;
+.coaching-phase {
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
 }
-.ap-phase-num {
-  width: 32px;
-  height: 32px;
+.coaching-phase-num {
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: linear-gradient(135deg, #8b5cf6, #6d28d9);
   color: #fff;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.ap-phase-num.locked {
-  background: linear-gradient(135deg, #d1d5db, #9ca3af);
-}
-.ap-phase-title {
-  font-size: 15px;
+.coaching-phase-title {
+  font-size: 13px;
   font-weight: 600;
-  color: #1e1b4b;
-  flex: 1;
-}
-.ap-phase-tag {
-  font-size: 11px;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-.ap-phase-tag.free {
-  background: #dcfce7;
-  color: #166534;
-}
-.ap-phase-tag.vip {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  color: #92400e;
-}
-.ap-phase-body {
-  padding: 0 20px 16px 64px;
-}
-.ap-task-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.ap-task-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 8px 0;
-  font-size: 14px;
-  color: #475569;
-  line-height: 1.6;
-  border-bottom: 1px solid #f8fafc;
-}
-.ap-task-item:last-child {
-  border-bottom: none;
-}
-.ap-task-check {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  border: 2px solid #d1d5db;
-  flex-shrink: 0;
-  margin-top: 3px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  color: transparent;
-}
-.ap-task-check:hover {
-  border-color: #8b5cf6;
-}
-.ap-task-check.checked {
-  background: #8b5cf6;
-  border-color: #8b5cf6;
   color: #fff;
+  margin-bottom: 2px;
 }
-.ap-task-day {
+.coaching-phase-desc {
   font-size: 12px;
-  color: #8b5cf6;
-  font-weight: 600;
-  white-space: nowrap;
-  flex-shrink: 0;
+  color: rgba(255,255,255,0.5);
 }
-.ap-phase-locked {
-  padding: 0 20px 16px 64px;
-}
-.ap-lock-mask {
-  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.95) 30%);
-  padding: 20px 0 0;
+.coaching-cta {
   text-align: center;
-  position: relative;
 }
-.ap-lock-icon {
-  font-size: 28px;
-  margin-bottom: 8px;
-}
-.ap-lock-text {
-  font-size: 14px;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-}
-.ap-lock-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  color: #1e293b;
+.coaching-btn {
+  background: linear-gradient(135deg, #f59e0b, #f97316) !important;
+  color: #1e293b !important;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 16px 48px;
+  border-radius: 14px;
   border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s;
 }
-.ap-lock-btn:hover {
+.coaching-btn:hover {
   transform: scale(1.03);
 }
-.ap-footer {
-  text-align: center;
-  padding-top: 8px;
+.coaching-cta-note {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 12px;
 }
-.ap-footer-note {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 10px;
+.coaching-cta-note strong {
+  color: #fbbf24;
 }
 @media (max-width: 768px) {
-  .home-action-plan-card { padding: 20px; }
-  .ap-phase-body { padding-left: 20px; }
-  .ap-phase-locked { padding-left: 20px; }
+  .home-coaching-card { padding: 20px; }
+  .coaching-main { flex-direction: column; gap: 20px; align-items: flex-start; }
+  .coaching-price-box { width: 100%; }
+  .coaching-features { grid-template-columns: 1fr; }
+  .coaching-title { font-size: 22px; }
 }
 
 /* 四大核心卡片 */
