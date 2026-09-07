@@ -544,7 +544,161 @@
     return result;
   }
 
+  // ==================== 测评深度分析引擎 ====================
+  function generateAssessmentAnalysis(a, report) {
+    const sections = [];
+
+    // ── 1. 你是谁 ──
+    const personaLabel = a.persona === 'mom' ? '全职妈妈' : '35+ 职场人';
+    const personaDesc = a.persona === 'mom'
+      ? '你正处于重返职场的关键阶段。全职照顾家庭的经历并不是「空白期」，而是一段积累了耐心、时间管理、多任务处理能力的成长期。关键是把这些能力翻译成职场语言。'
+      : '你是一位有丰富职场经验的 35+ 求职者。多年的积累是你最大的资产——行业认知、人脉资源、处理复杂问题的能力，这些都是年轻候选人无法快速获得的。';
+    sections.push({
+      title: '你的画像',
+      icon: 'ri-user-star-line',
+      paragraphs: [
+        `作为「${personaLabel}」，${personaDesc}`,
+        `这个定位决定了你的求职策略：不要和 25 岁的人比「精力旺盛」，而要和他们比「经验深度」和「解决问题的能力」。`
+      ]
+    });
+
+    // ── 2. 兴趣驱动力 ──
+    if (a.interests.length > 0) {
+      const interestLabels = a.interests.map(id => INTERESTS.find(x => x.id === id)?.label).filter(Boolean);
+      const topJobInterests = report.top[0].job.fit.interests;
+      const alignedInterests = a.interests.filter(id => (topJobInterests[id] || 0) >= 0.6);
+      const alignedLabels = alignedInterests.map(id => INTERESTS.find(x => x.id === id)?.label).filter(Boolean);
+
+      const interestSection = {
+        title: '兴趣驱动力',
+        icon: 'ri-compass-3-line',
+        paragraphs: [
+          `你选择了 ${interestLabels.length} 个兴趣方向：${interestLabels.join('、')}。兴趣不是「喜欢什么」这么简单——它决定了你在什么领域能自发投入、持续深耕而不觉得累。`
+        ]
+      };
+      if (alignedLabels.length > 0) {
+        interestSection.paragraphs.push(
+          `好消息是，你最匹配的岗位「${report.top[0].job.name}」正好需要这些兴趣：${alignedLabels.join('、')}。这意味着你在做这份工作时，会更容易进入「心流」状态，不容易职业倦怠。`
+        );
+      } else {
+        interestSection.paragraphs.push(
+          `不过，你选择的兴趣方向和最匹配的岗位之间有一定错位。这不一定坏事——说明你有跨领域的潜力，但也意味着入行初期需要更多适应。`
+        );
+      }
+      sections.push(interestSection);
+    }
+
+    // ── 3. 技能盘点 ──
+    if (a.skills.length > 0) {
+      const skillLabels = a.skills.map(id => SKILL_LABELS[id]).filter(Boolean);
+      const jobSkills = report.top[0].job.fit.skills;
+      const strongSkills = a.skills.filter(id => (jobSkills[id] || 0) >= 0.7).map(id => SKILL_LABELS[id]).filter(Boolean);
+      const weakSkills = Object.entries(jobSkills).filter(([id, w]) => w >= 0.5 && !a.skills.includes(id)).map(([id]) => SKILL_LABELS[id]).filter(Boolean);
+
+      const skillSection = {
+        title: '技能盘点',
+        icon: 'ri-tools-line',
+        paragraphs: [
+          `你目前掌握的技能：${skillLabels.join('、')}。`
+        ]
+      };
+      if (strongSkills.length > 0) {
+        skillSection.paragraphs.push(
+          `其中 ${strongSkills.join('、')} 和目标岗位「${report.top[0].job.name}」的需求高度吻合，这是你的核心竞争力。在简历和面试中，要重点展示这些技能的实际应用案例。`
+        );
+      }
+      if (weakSkills.length > 0) {
+        skillSection.paragraphs.push(
+          `但这个岗位还需要你目前不具备的技能：${weakSkills.slice(0, 3).join('、')}。这不代表你不能做这份工作——35+ 求职者学新技能的速度和深度远超应届生，因为你有大量可迁移的经验。建议在简历中体现你的学习能力，或提前自学补上。`
+        );
+      }
+      sections.push(skillSection);
+    }
+
+    // ── 4. 性格特质 ──
+    const traitAnalysis = [];
+    const sortedTraits = TRAITS.map(t => ({ ...t, score: a.traits[t.id] || 0 })).sort((a, b) => b.score - a.score);
+    const topTraits = sortedTraits.slice(0, 2);
+    const weakTraits = sortedTraits.slice(-2);
+
+    const jobTraitReqs = {};
+    for (const t of TRAITS) {
+      jobTraitReqs[t.id] = report.top[0].job.fit.traits[t.id] || 0.5;
+    }
+    const sortedJobTraits = TRAITS.map(t => ({ id: t.id, label: t.label, req: jobTraitReqs[t.id] })).sort((a, b) => b.req - a.req);
+    const topJobTraits = sortedJobTraits.slice(0, 2);
+
+    const traitSection = {
+      title: '性格特质',
+      icon: 'ri-brain-line',
+      paragraphs: [
+        `你的六维能力画像中，最突出的两个维度是「${topTraits[0].label}」（${topTraits[0].score}/10）和「${topTraits[1].label}」（${topTraits[1].score}/10）。这说明你是一个 ${topTraits[0].score >= 7 ? '在' + topTraits[0].label + '方面有明显优势的人' : topTraits[0].label + '基础不错的人'}。`
+      ]
+    };
+
+    const matchTrait = topTraits[0].label === topJobTraits[0].label || topTraits[0].label === topJobTraits[1].label;
+    if (matchTrait) {
+      traitSection.paragraphs.push(
+        `而「${report.top[0].job.name}」最看重的恰恰是「${topJobTraits[0].label}」——和你的优势高度吻合。这是你面试时最值得强调的卖点。`
+      );
+    } else {
+      traitSection.paragraphs.push(
+        `「${report.top[0].job.name}」最看重的是「${topJobTraits[0].label}」和「${topJobTraits[1].label}」，这和你的核心优势有一定错位。好消息是，性格特质不是固定不变的——你可以在工作中有意识地锻炼这些维度。`
+      );
+    }
+
+    if (weakTraits[0].score <= 5) {
+      traitSection.paragraphs.push(
+        `你的「${weakTraits[0].label}」维度偏弱（${weakTraits[0].score}/10）。如果目标岗位需要这个能力，建议在简历中用具体案例证明，比如：虽然不是强项，但在 XX 项目中成功运用了。`
+      );
+    }
+    sections.push(traitSection);
+
+    // ── 5. 工作偏好 ──
+    if (a.prefs.length > 0) {
+      const prefLabels = a.prefs.map(id => PREF_ITEMS.find(x => x.id === id)?.label).filter(Boolean);
+      const jobPrefs = report.top[0].job.fit.prefs;
+      const matchedPrefs = a.prefs.filter(id => (jobPrefs[id] || 0) >= 0.6).map(id => PREF_ITEMS.find(x => x.id === id)?.label).filter(Boolean);
+      const conflictPrefs = a.prefs.filter(id => (jobPrefs[id] || 0) < 0.3).map(id => PREF_ITEMS.find(x => x.id === id)?.label).filter(Boolean);
+
+      const prefSection = {
+        title: '工作偏好',
+        icon: 'ri-heart-pulse-line',
+        paragraphs: [
+          `你期望的工作状态：${prefLabels.join('、')}。`
+        ]
+      };
+      if (matchedPrefs.length > 0) {
+        prefSection.paragraphs.push(
+          `其中「${matchedPrefs.join('、')}」在目标岗位中可以得到满足。这很重要——工作内容匹配只能决定你「能不能做」，而工作偏好匹配决定你「做得开不开心」。`
+        );
+      }
+      if (conflictPrefs.length > 0) {
+        prefSection.paragraphs.push(
+          `但要注意：你期望的「${conflictPrefs.join('、')}」在目标岗位中可能无法完全满足。这不是说不能选这个岗位，而是你需要想清楚：这些偏好是你「必须有的底线」还是「最好有但可以妥协」的？如果是底线，可以考虑备选岗位。`
+        );
+      }
+      sections.push(prefSection);
+    }
+
+    // ── 6. 总结 ──
+    const top1 = report.top[0];
+    const top2 = report.top[1];
+    const top3 = report.top[2];
+    sections.push({
+      title: '综合建议',
+      icon: 'ri-lightbulb-flash-line',
+      paragraphs: [
+        `综合你的兴趣、技能、性格和偏好，你最匹配的方向是「${top1.job.name}」（匹配度 ${top1.total}%）。${top1.job.desc}`,
+        top2 ? `备选方向是「${top2.job.name}」（${top2.total}%）和「${top3.job.name}」（${top3.total}%）。如果你对第一选择不确定，可以同时关注这两个方向。` : '',
+        `接下来你可以：① 针对目标岗位优化简历（突出匹配的技能和经历）；② 查看「岗位详情」了解具体要求；③ 使用「AI 简历诊断」检查简历质量。`
+      ].filter(Boolean)
+    });
+
+    return sections;
+  }
+
   return {
-    scoreJob, buildReport, gapSkills, gapCoursePlan, reasonText, jobById, courseById, levelOf, detectAgeBias, diagnoseResume
+    scoreJob, buildReport, gapSkills, gapCoursePlan, reasonText, jobById, courseById, levelOf, detectAgeBias, diagnoseResume, generateAssessmentAnalysis
   };
 }));
