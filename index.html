@@ -376,7 +376,7 @@
           <span class="hero-badge"><i class="ri-user-heart-line"></i> 一对一深度陪跑</span>
           <h1>从迷茫到入职，<span class="gradient-text">全程有人带</span></h1>
           <p>专为 35+ 女性与宝妈设计的职业重启陪跑服务，不是卖课，是陪你一步步走完全程。</p>
-          <button class="btn btn-gold btn-xl" onclick="app.openCoachingModal()"><i class="ri-phone-line"></i> 立即预约咨询</button>
+          <button class="btn btn-gold btn-xl" onclick="app.openCoachingModal()"><i class="ri-rocket-line"></i> 获取我的转型方案</button>
         </div>
         <div class="coaching-hero-stats">
           <div class="ch-stat"><span class="num">327+</span><span class="lbl">成功入职</span></div>
@@ -385,56 +385,7 @@
         </div>
       </div>
 
-      <!-- 三档定价 -->
-      <div class="coaching-section">
-        <h2 class="section-title"><i class="ri-vip-crown-2-line"></i> 选择你的陪跑方案</h2>
-        <div class="pricing-grid">
-          <!-- 轻量版 -->
-          <div class="pricing-card">
-            <div class="pricing-tag">入门体验</div>
-            <h3>轻量版</h3>
-            <div class="pricing-price"><span class="yen">¥</span>99<span class="unit">/次</span></div>
-            <p class="pricing-desc">一次30分钟深度诊断，快速看清方向</p>
-            <ul class="pricing-list">
-              <li><i class="ri-check-line"></i> 单次30分钟1对1视频诊断</li>
-              <li><i class="ri-check-line"></i> 职业背景全面梳理</li>
-              <li><i class="ri-check-line"></i> 技能优势与转型方向分析</li>
-              <li><i class="ri-check-line"></i> 个性化行动建议</li>
-            </ul>
-            <button class="btn btn-outline-primary btn-block" onclick="app.openCoachingModal('light')"><i class="ri-arrow-right-line"></i> 预约轻量版</button>
-          </div>
-          <!-- 标准版 -->
-          <div class="pricing-card pricing-card-hot">
-            <div class="pricing-tag">最受欢迎</div>
-            <h3>标准版</h3>
-            <div class="pricing-price"><span class="yen">¥</span>499<span class="unit">/月</span></div>
-            <p class="pricing-desc">每周复盘+紧急支持+简历优化，系统转型</p>
-            <ul class="pricing-list">
-              <li><i class="ri-check-line"></i> 每周一次30分钟深度复盘</li>
-              <li><i class="ri-check-line"></i> 不限次数紧急决策支持</li>
-              <li><i class="ri-check-line"></i> 简历作品集定向优化</li>
-              <li><i class="ri-check-line"></i> 30天转型行动方案</li>
-              <li><i class="ri-check-line"></i> 微信实时答疑</li>
-            </ul>
-            <button class="btn btn-primary-gradient btn-block" onclick="app.openCoachingModal('standard')"><i class="ri-arrow-right-line"></i> 预约标准版</button>
-          </div>
-          <!-- 尊享版 -->
-          <div class="pricing-card">
-            <div class="pricing-tag">全程护航</div>
-            <h3>尊享版</h3>
-            <div class="pricing-price"><span class="yen">¥</span>999<span class="unit">/月</span></div>
-            <p class="pricing-desc">标准版全部+岗位推荐+不限次模拟面试</p>
-            <ul class="pricing-list">
-              <li><i class="ri-check-line"></i> 标准版全部服务</li>
-              <li><i class="ri-check-line"></i> 岗位筛选与精准推荐</li>
-              <li><i class="ri-check-line"></i> 不限次模拟面试演练</li>
-              <li><i class="ri-check-line"></i> 全程陪跑到入职</li>
-              <li><i class="ri-check-line"></i> 薪资谈判策略指导</li>
-            </ul>
-            <button class="btn btn-outline-primary btn-block" onclick="app.openCoachingModal('premium')"><i class="ri-arrow-right-line"></i> 预约尊享版</button>
-          </div>
-        </div>
-      </div>
+      <!-- pricing removed from here -->
 
       <!-- 服务流程 -->
       <div class="coaching-section">
@@ -544,11 +495,62 @@
         </div>
       </div>
 
+      <!-- 三档定价 -->
+      <div class="coaching-section">
+        <h2 class="section-title"><i class="ri-vip-crown-2-line"></i> 选择你的陪跑方案</h2>
+        <div class="pricing-grid">
+          <!-- 轻量版 -->
+          <div class="pricing-card">
+            <div class="pricing-tag">入门体验</div>
+            <h3>轻量版</h3>
+            <div class="pricing-price"><span class="yen">¥</span>99<span class="unit">/次</span></div>
+            <p class="pricing-desc">一次30分钟深度诊断，快速看清方向</p>
+            <ul class="pricing-list">
+              <li><i class="ri-check-line"></i> 单次30分钟1对1视频诊断</li>
+              <li><i class="ri-check-line"></i> 职业背景全面梳理</li>
+              <li><i class="ri-check-line"></i> 技能优势与转型方向分析</li>
+              <li><i class="ri-check-line"></i> 个性化行动建议</li>
+            </ul>
+            <button class="btn btn-outline-primary btn-block" onclick="app.openCoachingModal('light')"><i class="ri-arrow-right-line"></i> 预约轻量版</button>
+          </div>
+          <!-- 标准版 -->
+          <div class="pricing-card pricing-card-hot">
+            <div class="pricing-tag">最受欢迎</div>
+            <h3>标准版</h3>
+            <div class="pricing-price"><span class="yen">¥</span>499<span class="unit">/月</span></div>
+            <p class="pricing-desc">每周复盘+紧急支持+简历优化，系统转型</p>
+            <ul class="pricing-list">
+              <li><i class="ri-check-line"></i> 每周一次30分钟深度复盘</li>
+              <li><i class="ri-check-line"></i> 不限次数紧急决策支持</li>
+              <li><i class="ri-check-line"></i> 简历作品集定向优化</li>
+              <li><i class="ri-check-line"></i> 30天转型行动方案</li>
+              <li><i class="ri-check-line"></i> 微信实时答疑</li>
+            </ul>
+            <button class="btn btn-primary-gradient btn-block" onclick="app.openCoachingModal('standard')"><i class="ri-arrow-right-line"></i> 预约标准版</button>
+          </div>
+          <!-- 尊享版 -->
+          <div class="pricing-card">
+            <div class="pricing-tag">全程护航</div>
+            <h3>尊享版</h3>
+            <div class="pricing-price"><span class="yen">¥</span>999<span class="unit">/月</span></div>
+            <p class="pricing-desc">标准版全部+岗位推荐+不限次模拟面试</p>
+            <ul class="pricing-list">
+              <li><i class="ri-check-line"></i> 标准版全部服务</li>
+              <li><i class="ri-check-line"></i> 岗位筛选与精准推荐</li>
+              <li><i class="ri-check-line"></i> 不限次模拟面试演练</li>
+              <li><i class="ri-check-line"></i> 全程陪跑到入职</li>
+              <li><i class="ri-check-line"></i> 薪资谈判策略指导</li>
+            </ul>
+            <button class="btn btn-outline-primary btn-block" onclick="app.openCoachingModal('premium')"><i class="ri-arrow-right-line"></i> 预约尊享版</button>
+          </div>
+        </div>
+      </div>
+
       <!-- CTA -->
       <div class="coaching-cta">
         <h2>准备好重启你的职业生涯了吗？</h2>
-        <p>限时开放，名额有限。立即预约免费咨询，了解专属你的转型方案。</p>
-        <button class="btn btn-gold btn-xl" onclick="app.openCoachingModal()"><i class="ri-phone-line"></i> 立即预约咨询</button>
+        <p>选好方案，导师24小时内联系你，开启专属转型之旅。</p>
+        <button class="btn btn-gold btn-xl" onclick="app.openCoachingModal()"><i class="ri-rocket-line"></i> 获取我的转型方案</button>
       </div>
     </section>
 
