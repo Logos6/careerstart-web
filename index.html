@@ -706,6 +706,7 @@
         <a href="javascript:void(0)" onclick="app.switchTab('assess')" style="color:#94a3b8; text-decoration:none;">AI测评</a>
         <a href="javascript:void(0)" onclick="app.switchTab('jobs')" style="color:#94a3b8; text-decoration:none;">岗位库</a>
         <a href="javascript:void(0)" onclick="app.switchTab('courses')" style="color:#94a3b8; text-decoration:none;">充电站</a>
+        <span id="visit-counter" style="color:#94a3b8;"></span>
       </div>
     </div>
   </footer>
@@ -714,5 +715,13 @@
   <script src="js/data.js?v=5"></script>
   <script src="js/engine.js?v=5"></script>
   <script src="js/app.js?v=9"></script>
+  <!-- 访客计数器 -->
+  <script>
+    fetch('https://api.countapi.xyz/hit/careerstart/visits')
+      .then(r => r.json())
+      .then(d => {
+        document.getElementById('visit-counter').textContent = '👁 访问量 ' + d.value;
+      }).catch(() => {});
+  </script>
 </body>
 </html>
