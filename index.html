@@ -715,13 +715,15 @@
   <script src="js/data.js?v=5"></script>
   <script src="js/engine.js?v=5"></script>
   <script src="js/app.js?v=9"></script>
-  <!-- 访客计数器 (hits.sh) -->
+  <!-- 百度统计 -->
   <script>
-    fetch('https://hits.sh/github.com/Logos6/careerstart-web.svg?style=flat-square&label=访问量')
-      .then(r => r.text())
-      .then(svg => {
-        document.getElementById('visit-counter').innerHTML = svg;
-      }).catch(() => {});
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?896c8ff12c9f2463df4af129927ac5de";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
   </script>
 </body>
 </html>
