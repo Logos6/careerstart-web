@@ -522,7 +522,7 @@ body {
 .m-bar { flex: 1; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
 .m-fill { height: 100%; background: var(--primary-gradient); }
 
-/* 一对一职业重启陪跑卡片 */
+/* 一对一职业启航陪跑卡片 */
 .home-coaching-card {
   background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 40%, #2d1b69 100%);
   border-radius: 24px;
@@ -2247,7 +2247,7 @@ body {
 /* 测评结果页面样式 */
 #assess-result-view {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
+  min-height: auto;
   padding: 40px 20px;
 }
 
