@@ -313,86 +313,6 @@ var TIER_NAMES = { 1: "起步", 2: "进阶", 3: "深化" };
 var TIER_ICONS = { 1: "i-flag", 2: "i-trend", 3: "i-medal" };
 
 /* ---------- 每步完成时的赞扬语 ---------- */
-
-/* ---------- 实战工坊实验模板 ---------- */
-var EXPERIMENTS = [
-  {
-    id: "exp_content",
-    icon: "i-quill-pen-line",
-    title: "内容创作实战",
-    subtitle: "7天用AI写出3篇小红书笔记",
-    desc: "从零开始，用AI辅助创作真实内容，获得真实用户反馈",
-    difficulty: "入门",
-    duration: "7天",
-    color: "linear-gradient(135deg, #ff6b6b, #ee5a24)",
-    metrics: ["笔记数量", "互动量", "收藏数"],
-    steps: [
-      { day: 1, title: "选择你的领域", task: "从以下3个方向中选择一个你最感兴趣的", aiHint: "基于你的测评结果，我推荐这3个方向", type: "choice", options: ["生活方式分享", "职场经验干货", "亲子教育心得"] },
-      { day: 2, title: "写出第一篇笔记", task: "用AI帮你生成第一篇小红书笔记的标题和大纲", aiHint: "我来帮你优化标题和内容结构", type: "input", placeholder: "描述你想分享的内容..." },
-      { day: 3, title: "优化并发布", task: "润色笔记内容，添加合适的标签和封面建议", aiHint: "好的内容需要好的包装，让我帮你优化", type: "action", actionText: "模拟发布" },
-      { day: 4, title: "分析数据反馈", task: "查看模拟数据，分析哪些内容更受欢迎", aiHint: "数据是最好的老师，让我们看看反馈", type: "analysis" },
-      { day: 5, title: "写出第二篇", task: "基于第一篇的反馈，优化方向写第二篇", aiHint: "好的创作者善于从数据中学习", type: "input", placeholder: "基于反馈，优化你的第二篇内容..." },
-      { day: 6, title: "写出第三篇", task: "综合前两篇经验，写出你最好的作品", aiHint: "这是你展示实力的时刻", type: "input", placeholder: "展示你最佳的创作..." },
-      { day: 7, title: "生成能力证明", task: "查看你的实战成果，生成可分享的能力证明", aiHint: "恭喜你完成实战！现在让我们总结你的成果", type: "proof" }
-    ],
-    proofTemplate: {
-      title: "内容创作能力证明",
-      description: "通过7天实战，验证了内容创作能力",
-      skills: ["AI辅助写作", "内容策划", "数据分析"]
-    }
-  },
-  {
-    id: "exp_data",
-    icon: "i-bar-chart-box-line",
-    title: "数据分析实战",
-    subtitle: "7天用AI分析一份真实数据",
-    desc: "学习用数据分析工具，从数据中发现有价值的洞察",
-    difficulty: "进阶",
-    duration: "7天",
-    color: "linear-gradient(135deg, #4ecdc4, #2ecc71)",
-    metrics: ["分析报告数", "洞察数量", "可执行建议"],
-    steps: [
-      { day: 1, title: "选择数据集", task: "从以下场景中选择一个你感兴趣的数据分析方向", aiHint: "数据分析可以应用于生活的方方面面", type: "choice", options: ["家庭消费分析", "个人时间管理", "健康数据追踪"] },
-      { day: 2, title: "了解数据结构", task: "学习如何查看和理解数据的基本结构", aiHint: "好的分析始于对数据的理解", type: "input", placeholder: "描述你看到的数据..." },
-      { day: 3, title: "数据清洗", task: "学习处理缺失值和异常值", aiHint: "干净的数据是准确分析的基础", type: "action", actionText: "模拟清洗" },
-      { day: 4, title: "探索性分析", task: "用AI帮你发现数据中的基本规律", aiHint: "让AI帮你快速发现数据中的模式", type: "input", placeholder: "描述你发现的规律..." },
-      { day: 5, title: "深度分析", task: "进行相关性分析或趋势预测", aiHint: "深入挖掘数据背后的故事", type: "input", placeholder: "分享你的深度发现..." },
-      { day: 6, title: "可视化呈现", task: "将分析结果用图表形式呈现", aiHint: "好的可视化让数据会说话", type: "action", actionText: "生成图表" },
-      { day: 7, title: "生成能力证明", task: "总结分析成果，生成可分享的能力证明", aiHint: "恭喜你完成实战！现在让我们总结你的成果", type: "proof" }
-    ],
-    proofTemplate: {
-      title: "数据分析能力证明",
-      description: "通过7天实战，验证了数据分析能力",
-      skills: ["数据清洗", "探索性分析", "数据可视化"]
-    }
-  },
-  {
-    id: "exp_project",
-    icon: "i-route-line",
-    title: "项目规划实战",
-    subtitle: "7天用AI规划一次完整活动",
-    desc: "学习项目管理思维，用AI规划并模拟执行一次真实活动",
-    difficulty: "实战",
-    duration: "7天",
-    color: "linear-gradient(135deg, #a29bfe, #6c5ce7)",
-    metrics: ["规划完整度", "预算控制", "风险预案"],
-    steps: [
-      { day: 1, title: "选择项目类型", task: "从以下场景中选择一个你感兴趣的项目", aiHint: "项目管理能力可以应用于各种场景", type: "choice", options: ["家庭旅行规划", "小型活动策划", "个人学习计划"] },
-      { day: 2, title: "明确目标与范围", task: "定义项目的目标、时间线和关键里程碑", aiHint: "清晰的目标是成功的一半", type: "input", placeholder: "描述你的项目目标..." },
-      { day: 3, title: "制定计划", task: "用AI帮你制定详细的执行计划", aiHint: "好的计划让执行事半功倍", type: "input", placeholder: "分享你的计划要点..." },
-      { day: 4, title: "预算规划", task: "学习制定和管理项目预算", aiHint: "预算管理是项目成功的关键", type: "input", placeholder: "描述你的预算分配..." },
-      { day: 5, title: "风险识别", task: "识别潜在风险并制定应对方案", aiHint: "提前识别风险能避免很多问题", type: "input", placeholder: "列出可能的风险..." },
-      { day: 6, title: "模拟执行", task: "模拟项目执行过程，处理突发情况", aiHint: "让我们看看你的计划如何应对真实情况", type: "action", actionText: "模拟执行" },
-      { day: 7, title: "生成能力证明", task: "总结项目成果，生成可分享的能力证明", aiHint: "恭喜你完成实战！现在让我们总结你的成果", type: "proof" }
-    ],
-    proofTemplate: {
-      title: "项目规划能力证明",
-      description: "通过7天实战，验证了项目规划能力",
-      skills: ["目标设定", "计划制定", "风险管理"]
-    }
-  }
-];
-
 var PRAISES = [
 
   ["定位完成","了解自己，是改变的开始"],
@@ -428,8 +348,7 @@ return {
   TASKS: TASKS,
   TIER_NAMES: TIER_NAMES,
   TIER_ICONS: TIER_ICONS,
-  PRAISES: PRAISES,
-  EXPERIMENTS: EXPERIMENTS
+  PRAISES: PRAISES
 };
 
 }));
