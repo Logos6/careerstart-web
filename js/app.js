@@ -522,13 +522,11 @@ const app = {
         }
       }
       
-      // 模拟岗位稀缺度（基于已有数据）
-      const scarcityScore = 45 + Math.floor(Math.random() * 20);
-      
-      // 计算综合竞争力
-      const totalScore = Math.round(
-        (interestScore * 0.35 + skillScore * 0.25 + traitScore * 0.2 + scarcityScore * 0.2)
-      );
+      // 综合竞争力（无数据时全部归零）
+      const hasData = (interestScore + skillScore + traitScore) > 0;
+      const totalScore = hasData
+        ? Math.round(interestScore * 0.35 + skillScore * 0.25 + traitScore * 0.2 + 50 * 0.2)
+        : 0;
       
       // 更新实时匹配度显示
       const matchScoreEl = document.getElementById('realtime-match-score');
@@ -538,7 +536,7 @@ const app = {
       
       // 更新竞争力条形图
       const items = document.querySelectorAll('.competitive-item');
-      const scores = [interestScore, skillScore, traitScore, scarcityScore, totalScore];
+      const scores = hasData ? [interestScore, skillScore, traitScore, 50, totalScore] : [0,0,0,0,0];
       
       items.forEach((item, index) => {
         if (index < scores.length) {
