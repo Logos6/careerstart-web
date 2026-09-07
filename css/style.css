@@ -789,6 +789,98 @@ body {
   color: var(--primary);
 }
 
+/* 三档定价 */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.pricing-card {
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  padding: 32px 28px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+.pricing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(125,42,232,0.1);
+}
+.pricing-card-hot {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, #f8f5ff 0%, #eef2ff 100%);
+  box-shadow: 0 8px 28px rgba(125,42,232,0.12);
+}
+.pricing-card-hot:hover {
+  box-shadow: 0 14px 36px rgba(125,42,232,0.18);
+}
+.pricing-tag {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--primary-gradient);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 16px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.pricing-card h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 8px 0 12px;
+}
+.pricing-price {
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--primary);
+  margin: 12px 0;
+  line-height: 1;
+}
+.pricing-price .yen {
+  font-size: 20px;
+  font-weight: 700;
+  vertical-align: top;
+  margin-right: 2px;
+}
+.pricing-price .unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.pricing-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.pricing-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  text-align: left;
+}
+.pricing-list li {
+  font-size: 13px;
+  color: var(--text-main);
+  padding: 7px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pricing-list li i {
+  color: #22c55e;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
 /* 服务流程 */
 .coaching-steps {
   display: grid;
