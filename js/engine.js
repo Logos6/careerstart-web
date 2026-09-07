@@ -324,6 +324,107 @@
     else if (total >= 40) result.summary = '简历存在一定短板，建议按照诊断建议逐项优化，避免被HR快速淘汰。';
     else result.summary = '简历存在较多问题，建议重点优化结构、量化成果和表述方式，否则很难获得面试机会。';
 
+    // 生成逐条文字诊断
+    result.textAnalysis = [];
+
+    // 年龄歧视文字诊断
+    if (ageBias.issues.length > 0) {
+      result.textAnalysis.push({
+        title: '⚠ 年龄歧视风险',
+        level: 'danger',
+        content: `检测到 ${ageBias.issues.length} 处可能触发HR筛除的歧视性表述：${ageBias.issues.map(i => `「${i.word}」`).join('、')}。这${ageBias.issues.length > 1 ? '些' : '个'}表述会直接导致35+求职者被ATS系统或HR过滤掉。`,
+        fix: ageBias.issues.map(i => `将「${i.word}」改为：${i.suggestion}`).join('；')
+      });
+    } else {
+      result.textAnalysis.push({
+        title: '✓ 年龄歧视风险',
+        level: 'safe',
+        content: '未检测到年龄歧视表述，简历在年龄维度上是安全的。'
+      });
+    }
+
+    // 结构完整性文字诊断
+    const missingStruct = structIssues;
+    if (missingStruct.length > 0) {
+      result.textAnalysis.push({
+        title: '⚠ 简历结构缺失',
+        level: 'danger',
+        content: `你的简历缺少 ${missingStruct.length} 个核心模块：${missingStruct.join('、')}。HR平均只花6-8秒扫一份简历，缺少这些模块会让他找不到关键信息，直接Pass。`,
+        fix: '建议按「联系方式 → 自我评价 → 工作经历 → 技能清单 → 教育背景」的标准结构重新排版'
+      });
+    } else {
+      result.textAnalysis.push({
+        title: '✓ 简历结构完整',
+        level: 'safe',
+        content: '5个核心模块齐全，HR能在6秒内快速定位关键信息。'
+      });
+    }
+
+    // 量化成果文字诊断
+    if (quantScore < 50) {
+      result.textAnalysis.push({
+        title: '⚠ 缺少量化数据',
+        level: 'warn',
+        content: `简历中仅发现 ${quantified.length} 处量化表述。大多数简历的问题是「做了什么」写了一堆，「做出了什么结果」一个没有。没有数据支撑的工作经历，说服力大打折扣。`,
+        fix: '用「提升了30%」「节省了5万成本」「管理10人团队」「完成20个项目」等具体数据替代「负责XX工作」的模糊描述'
+      });
+    } else {
+      result.textAnalysis.push({
+        title: '✓ 量化成果充分',
+        level: 'safe',
+        content: `包含 ${quantified.length} 处量化数据，数据支撑力较强，能有效说服HR你的实际能力。`
+      });
+    }
+
+    // 关键词文字诊断
+    if (kwScore < 50) {
+      const missingKw = skillKeywords.filter(k => !t.includes(k)).slice(0, 5);
+      result.textAnalysis.push({
+        title: '⚠ 关键词覆盖不足',
+        level: 'warn',
+        content: `仅匹配 ${hitKeywords.length} 个核心能力关键词。越来越多的企业使用ATS（简历筛选系统）自动过滤，缺少关键词的简历会在系统层面就被淘汰，HR根本看不到。`,
+        fix: `建议在简历中补充以下关键词：${missingKw.join('、')}`
+      });
+    } else {
+      result.textAnalysis.push({
+        title: '✓ 关键词覆盖良好',
+        level: 'safe',
+        content: `匹配 ${hitKeywords.length} 个核心关键词，ATS通过率较高。`
+      });
+    }
+
+    // 空窗期文字诊断
+    if (gapRisk > 15) {
+      result.textAnalysis.push({
+        title: '⚠ 空窗期风险',
+        level: 'warn',
+        content: `检测到潜在的职业空白期。35+求职者最常见的问题就是「不敢写空白期」或「空白期一笔带过」，这反而会让HR产生更多疑问。`,
+        fix: '建议正面解释空白期原因，强调期间的成长：如「全职期间完成XX证书考取」「照顾家人期间保持XX技能学习」等'
+      });
+    } else {
+      result.textAnalysis.push({
+        title: '✓ 空窗期无明显风险',
+        level: 'safe',
+        content: '未检测到明显的职业空白期风险。'
+      });
+    }
+
+    // 表述专业度文字诊断
+    if (weakHits.length > 0) {
+      result.textAnalysis.push({
+        title: '⚠ 表述偏弱',
+        level: 'warn',
+        content: `简历中使用了 ${weakHits.length} 个弱化动词：${weakHits.map(w => `「${w}」`).join('、')}。这些词汇会让HR觉得你只是「参与了」而不是「做出了成绩」，降低专业感。`,
+        fix: `将弱化动词替换为：主导、统筹、推动、优化、提升、突破 等强有力的行动动词`
+      });
+    } else {
+      result.textAnalysis.push({
+        title: '✓ 表述专业有力',
+        level: 'safe',
+        content: '使用了专业行动动词，表述有力度，能有效展现你的能力。'
+      });
+    }
+
     // 生成优化建议
     if (ageBias.issues.length) result.suggestions.push('消除年龄歧视表述，用能力描述替代年龄限制');
     if (!hasContact) result.suggestions.push('添加清晰的联系方式，方便HR第一时间联系你');
