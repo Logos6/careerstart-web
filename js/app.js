@@ -1117,77 +1117,146 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       date: new Date().toISOString(),
       text: text.substring(0, 100),
       score: result.totalScore,
-      riskLevel: result.totalScore >= 70 ? '优秀' : result.totalScore >= 50 ? '良好' : result.totalScore >= 30 ? '一般' : '需改进'
+      riskLevel: result.level
     });
     this.saveUserData();
 
-    const scoreColor = result.totalScore >= 70 ? '#2ea56a' : result.totalScore >= 50 ? '#0284c7' : result.totalScore >= 30 ? '#d97706' : '#dc2626';
-    const scoreLabel = result.totalScore >= 70 ? '优秀' : result.totalScore >= 50 ? '良好' : result.totalScore >= 30 ? '一般' : '需改进';
-
-    // 按严重程度排序，找出最弱的维度
-    const sorted = [...result.dimensions].sort((a, b) => a.score - b.score);
-    const weakest = sorted[0];
-    const strongest = sorted[sorted.length - 1];
+    const scoreColor = result.totalScore >= 90 ? '#16a34a' : result.totalScore >= 75 ? '#2ea56a' : result.totalScore >= 60 ? '#0284c7' : result.totalScore >= 40 ? '#d97706' : '#dc2626';
+    const severityColor = { '高危': '#dc2626', '中危': '#d97706', '低危': '#0284c7' };
+    const matchColor = { '高': '#16a34a', '中': '#0284c7', '低': '#d97706', '极低': '#dc2626', '未评估': '#94a3b8' };
 
     box.style.display = 'block';
     box.innerHTML = `
-      <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; overflow:hidden; animation: slideUp 0.4s ease;">
+      <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; overflow:hidden; animation:slideUp 0.4s ease;">
 
-        <!-- ========== 顶部：评分环 ========== -->
-        <div style="padding:28px 24px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; border-bottom:1px solid var(--border-color);">
-          <div style="width:90px; height:90px; border-radius:50%; background:conic-gradient(${scoreColor} ${result.totalScore * 3.6}deg, #e2e8f0 0deg); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            <div style="width:72px; height:72px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center;">
-              <span style="font-size:26px; font-weight:900; color:${scoreColor};">${result.totalScore}</span>
+        <!-- ========== 第一部分：文字报告 ========== -->
+
+        <!-- 评分头部 -->
+        <div style="padding:28px 24px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; border-bottom:1px solid var(--border-color); background:linear-gradient(135deg,#f8f5ff 0%,#fff 100%);">
+          <div style="width:96px; height:96px; border-radius:50%; background:conic-gradient(${scoreColor} ${result.totalScore * 3.6}deg, #e2e8f0 0deg); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 16px ${scoreColor}22;">
+            <div style="width:78px; height:78px; border-radius:50%; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <span style="font-size:28px; font-weight:900; color:${scoreColor}; line-height:1;">${result.totalScore}</span>
+              <span style="font-size:11px; color:${scoreColor}; font-weight:600;">${result.level}</span>
             </div>
           </div>
           <div style="flex:1; min-width:200px;">
-            <div style="font-size:18px; font-weight:800; color:var(--text-main);">简历诊断结果：${scoreLabel}</div>
-            <div style="font-size:13px; color:var(--text-muted); margin-top:4px; line-height:1.6;">${result.summary}</div>
+            <div style="font-size:20px; font-weight:800; color:var(--text-main); margin-bottom:4px;">简历诊断报告</div>
+            <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">${result.summary}</div>
           </div>
         </div>
 
-        <!-- ========== 第一部分：深度剖析 ========== -->
+        <!-- 优点 -->
+        ${result.strengths.length > 0 ? `
+        <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+          <h4 style="font-size:15px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:#16a34a;">
+            <i class="ri-thumb-up-line"></i> 简历亮点
+          </h4>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            ${result.strengths.map(s => `
+              <div style="display:flex; align-items:flex-start; gap:8px; font-size:13px; color:#334155; line-height:1.6;">
+                <i class="ri-check-line" style="color:#16a34a; margin-top:2px; flex-shrink:0;"></i>
+                <span>${s}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- 风险清单 -->
+        ${result.risks.length > 0 ? `
+        <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+          <h4 style="font-size:15px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:#dc2626;">
+            <i class="ri-error-warning-line"></i> 问题清单（${result.risks.length} 项）
+          </h4>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            ${result.risks.map(r => `
+              <div style="border:1px solid #e2e8f0; border-radius:10px; overflow:hidden;">
+                <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:${severityColor[r.severity]}08; border-bottom:1px solid #e2e8f0;">
+                  <span style="font-size:11px; font-weight:700; color:#fff; background:${severityColor[r.severity]}; padding:2px 8px; border-radius:4px;">${r.severity}</span>
+                  <span style="font-size:13px; font-weight:700; color:var(--text-main);">${r.type}</span>
+                </div>
+                <div style="padding:12px 14px; background:#fff;">
+                  <div style="font-size:12px; color:#475569; margin-bottom:6px; line-height:1.6;">
+                    <strong>问题：</strong>${r.detail}
+                  </div>
+                  <div style="font-size:12px; color:#dc2626; margin-bottom:6px; line-height:1.6;">
+                    <strong>后果：</strong>${r.consequence}
+                  </div>
+                  <div style="font-size:12px; color:#16a34a; line-height:1.6;">
+                    <strong>建议：</strong>${r.suggestion}
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- 目标岗位匹配 -->
+        <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+          <h4 style="font-size:15px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+            <i class="ri-target-line"></i> 目标岗位匹配分析
+          </h4>
+          <div style="background:#f8fafc; border-radius:10px; padding:14px; border:1px solid #e2e8f0;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+              <span style="font-size:13px; color:var(--text-muted);">匹配程度：</span>
+              <span style="font-size:14px; font-weight:700; color:${matchColor[result.match_analysis.match_level]};">${result.match_analysis.match_level}</span>
+            </div>
+            <div style="font-size:12px; color:#475569; line-height:1.7;">
+              ${result.match_analysis.gap_description}
+            </div>
+            ${result.match_analysis.key_missing_skills.length > 0 ? `
+            <div style="margin-top:8px; font-size:12px; color:#d97706;">
+              <strong>建议补充：</strong>${result.match_analysis.key_missing_skills.join('、')}
+            </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- 优化建议 -->
+        <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+          <h4 style="font-size:15px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+            <i class="ri-lightbulb-line"></i> 优化建议
+          </h4>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            ${result.optimization_tips.map((tip, i) => `
+              <div style="display:flex; align-items:flex-start; gap:10px; font-size:13px; color:#334155; line-height:1.6;">
+                <span style="background:var(--primary); color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;">${i + 1}</span>
+                <span>${tip}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- ========== 第二部分：图形分析 ========== -->
+
+        <!-- 六维度雷达图 + 条形图 -->
         <div style="padding:24px;">
-          <h4 style="font-size:17px; font-weight:800; margin-bottom:18px; display:flex; align-items:center; gap:8px; color:var(--text-main);">
-            <i class="ri-magnifying-glass-line" style="color:var(--primary);"></i> 简历深度剖析
+          <h4 style="font-size:16px; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+            <i class="ri-radar-line" style="color:var(--primary);"></i> 六维度量化分析
           </h4>
-          <div style="display:flex; flex-direction:column; gap:18px;">
-            ${result.deepAnalysis.map(section => `
-              <div style="border:1px solid #e2e8f0; border-radius:12px; overflow:hidden;">
-                <div style="background:linear-gradient(135deg,#f8f5ff,#eef2ff); padding:12px 18px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:8px;">
-                  <i class="${section.icon}" style="color:var(--primary); font-size:16px;"></i>
-                  <span style="font-size:15px; font-weight:700; color:var(--text-main);">${section.title}</span>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <!-- 雷达图 -->
+            <div style="background:#f8fafc; border-radius:12px; padding:16px; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center;">
+              <canvas id="resume-radar-chart" width="280" height="280"></canvas>
+            </div>
+            <!-- 条形图 -->
+            <div style="background:#f8fafc; border-radius:12px; padding:16px; border:1px solid #e2e8f0;">
+              ${result.dimensions.map(d => `
+                <div style="margin-bottom:12px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <span style="font-size:12px; font-weight:600; color:var(--text-main); display:flex; align-items:center; gap:6px;">
+                      <i class="${d.icon}" style="color:${d.color}; font-size:14px;"></i> ${d.name}
+                    </span>
+                    <span style="font-size:13px; font-weight:800; color:${d.color};">${d.score}</span>
+                  </div>
+                  <div style="background:#e2e8f0; height:6px; border-radius:3px; overflow:hidden;">
+                    <div style="background:${d.color}; height:100%; width:${d.score}%; border-radius:3px; transition:width 0.6s ease;"></div>
+                  </div>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">${d.detail}</div>
                 </div>
-                <div style="padding:14px 18px; background:#fff;">
-                  ${section.paragraphs.map(p => {
-                    if (p.startsWith('•')) {
-                      return `<p style="font-size:13px; color:#475569; margin:0 0 6px; line-height:1.8; padding-left:8px;">${p}</p>`;
-                    }
-                    return `<p style="font-size:13px; color:#334155; margin:0 0 10px; line-height:1.8;">${p}</p>`;
-                  }).join('')}
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- ========== 第二部分：六维度量化分析 ========== -->
-        <div style="padding:0 24px 24px;">
-          <h4 style="font-size:16px; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
-            <i class="ri-bar-chart-box-line" style="color:var(--primary);"></i> 六维度量化分析
-          </h4>
-          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
-            ${result.dimensions.map(d => `
-              <div style="background:#f8fafc; border-radius:12px; padding:16px; border:1px solid #e2e8f0; text-align:center;">
-                <i class="${d.icon}" style="font-size:22px; color:${d.color}; margin-bottom:6px; display:block;"></i>
-                <div style="font-size:12px; font-weight:700; color:var(--text-main); margin-bottom:6px;">${d.name}</div>
-                <div style="font-size:30px; font-weight:900; color:${d.color}; line-height:1; margin-bottom:6px;">${d.score}</div>
-                <div style="background:#e2e8f0; height:5px; border-radius:3px; overflow:hidden; margin-bottom:4px;">
-                  <div style="background:${d.color}; height:100%; width:${d.score}%; border-radius:3px;"></div>
-                </div>
-                <div style="font-size:10px; color:var(--text-muted);">${d.detail}</div>
-              </div>
-            `).join('')}
+              `).join('')}
+            </div>
           </div>
         </div>
 
@@ -1198,10 +1267,15 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
         </div>
       </div>
     `;
+
+    // 绘制雷达图
+    setTimeout(() => {
+      this.drawRadarChart('resume-radar-chart', result.dimensions.map(d => ({
+        label: d.name,
+        score: d.score / 10
+      })));
+    }, 100);
   },
-
-  // 付费解锁弹窗
-
 
   // 7. AI 模拟面试
   sendInterviewMsg() {
