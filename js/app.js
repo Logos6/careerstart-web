@@ -1573,7 +1573,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
   // 套餐次数限制
   planLimits: {
     month: { resumeCheck: 10, interview: 5 },
-    quarter: { resumeCheck: 20, interview: 10 },
+    pro: { resumeCheck: 20, interview: 10 },
     year: { resumeCheck: Infinity, interview: Infinity }
   },
 
@@ -1662,7 +1662,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('active'));
     document.getElementById(`plan-card-${planKey}`).classList.add('active');
 
-    const prices = { month: '¥29.00', quarter: '¥39.00', year: '¥199.00' };
+    const prices = { month: '¥29.00', pro: '¥39.00', year: '¥199.00' };
     document.getElementById('pay-final-price').innerText = prices[planKey];
   },
 
