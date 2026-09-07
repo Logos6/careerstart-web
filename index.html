@@ -155,21 +155,26 @@
         </div>
       </div>
 
-      <!-- 测评后推荐课程卡片 -->
-      <div class="home-course-rec-card" id="home-course-rec" style="display:none;">
-        <div class="course-rec-header">
-          <div class="course-rec-icon"><i class="ri-graduation-cap-line"></i></div>
-          <div>
-            <h3 class="course-rec-title">为你推荐的技能培训课程</h3>
-            <p class="course-rec-sub" id="course-rec-sub">基于你的测评结果，精选 3 门最匹配的课程</p>
+      <!-- 专属行动方案卡片 -->
+      <div class="home-action-plan-card" id="home-action-plan">
+        <div class="ap-header">
+          <div class="ap-icon"><i class="ri-route-line"></i></div>
+          <div class="ap-header-text">
+            <h3 class="ap-title" id="ap-title">你的专属·30天职场重启行动方案</h3>
+            <p class="ap-sub" id="ap-sub">完成测评后，AI 将为你生成量身定制的转型行动计划</p>
           </div>
         </div>
-        <div class="course-rec-grid" id="course-rec-grid">
+
+        <div class="ap-phases" id="ap-phases">
           <!-- JS 动态渲染 -->
         </div>
-        <button class="btn btn-outline-primary course-rec-more" onclick="app.switchTab('courses')">
-          查看全部 32 门课程 <i class="ri-arrow-right-line"></i>
-        </button>
+
+        <div class="ap-footer" id="ap-footer" style="display:none;">
+          <button class="btn btn-primary-gradient btn-lg" onclick="app.openVipModal()">
+            <i class="ri-vip-crown-fill"></i> 开通会员解锁完整方案
+          </button>
+          <p class="ap-footer-note">已有 <span id="ap-user-count">1,247</span> 位学员通过行动方案成功转型</p>
+        </div>
       </div>
 
       <!-- 四大核心功能卡片 -->
