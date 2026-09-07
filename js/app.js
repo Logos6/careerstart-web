@@ -1304,11 +1304,16 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     // 显示加载动画
     chatBox.innerHTML = `
       <div style="text-align:center; padding:40px 20px;">
-        <div style="width:48px; height:48px; margin:0 auto 16px; border:3px solid #e2e8f0; border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;"></div>
-        <div style="font-size:15px; font-weight:600; color:var(--text-main); margin-bottom:6px;">AI 面试官正在准备中</div>
+        <div style="width:56px; height:56px; margin:0 auto 16px; background:linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(99,102,241,0.3);">
+          <i class="ri-robot-fill" style="font-size:24px; color:#fff;"></i>
+        </div>
+        <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:6px;">AI 面试官正在准备中</div>
         <div style="font-size:12px; color:var(--text-muted);">正在生成「${txt}」专属面试题库...</div>
+        <div style="width:120px; height:3px; background:#e2e8f0; border-radius:2px; margin:16px auto 0; overflow:hidden;">
+          <div style="width:40%; height:100%; background:linear-gradient(90deg, var(--primary) 0%, #7c3aed 100%); border-radius:2px; animation:loading 1.5s ease-in-out infinite;"></div>
+        </div>
       </div>
-      <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+      <style>@keyframes loading{0%{transform:translateX(-100%)}50%{transform:translateX(150%)}100%{transform:translateX(-100%)}}</style>
     `;
     input.value = '';
 
@@ -1318,17 +1323,21 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       const firstQ = this.interviewSession.questions[0];
 
       chatBox.innerHTML = `
+        <div class="interview-progress">
+          <span style="font-size:11px; color:var(--text-muted);">问题 1/${this.interviewSession.questions.length}</span>
+          <div class="interview-progress-bar"><div class="interview-progress-fill" style="width:${Math.round(100/this.interviewSession.questions.length)}%"></div></div>
+        </div>
         <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-          <div class="msg-avatar" style="background:var(--primary); color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ri-robot-fill"></i></div>
-          <div class="msg-content" style="background:#f1f5f9; color:var(--text-main); padding:12px 16px; border-radius:14px; max-width:80%; font-size:14px; line-height:1.6;">
+          <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+          <div class="msg-content">
+            <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
             你好！我是启航 AI 面试官，今天将针对「${txt}」岗位进行模拟面试。<br><br>
-            <span style="font-size:12px; color:var(--text-muted);">共 ${this.interviewSession.questions.length} 个问题，预计 5-8 分钟</span><br><br>
             ${firstQ.question}
           </div>
         </div>
       `;
       chatBox.scrollTop = chatBox.scrollHeight;
-    }, 1500);
+    }, 2000);
   },
 
   sendInterviewMsg() {
@@ -1340,21 +1349,26 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     // 显示用户消息
     chatBox.innerHTML += `
       <div class="chat-msg user" style="display:flex; gap:12px; flex-direction:row-reverse; margin-bottom:14px;">
-        <div class="msg-avatar" style="background:var(--primary); color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ri-user-line"></i></div>
-        <div class="msg-content" style="background:var(--primary); color:#fff; padding:12px 16px; border-radius:14px; max-width:80%; font-size:14px;">${txt}</div>
+        <div class="msg-avatar" style="width:32px; height:32px; background:linear-gradient(135deg, #94a3b8, #64748b);"><i class="ri-user-line"></i></div>
+        <div class="msg-content">${txt}</div>
       </div>
     `;
     input.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // 显示评分提示
-    const q = this.interviewSession.questions[this.interviewSession.currentQ];
+    // 显示分析中提示
     chatBox.innerHTML += `
-      <div style="text-align:center; padding:8px; margin-bottom:10px;">
-        <span style="font-size:11px; color:var(--text-muted); background:#f1f5f9; padding:4px 10px; border-radius:12px;">
-          <i class="ri-flashlight-line" style="color:var(--primary);"></i> 正在分析回答...
-        </span>
+      <div id="interview-loading" style="text-align:center; padding:12px; margin-bottom:10px;">
+        <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 14px; background:#f1f5f9; border-radius:20px;">
+          <div style="display:flex; gap:3px;">
+            <span style="width:4px; height:4px; background:var(--primary); border-radius:50%; animation:dot 1.4s infinite ease-in-out;"></span>
+            <span style="width:4px; height:4px; background:var(--primary); border-radius:50%; animation:dot 1.4s infinite ease-in-out 0.2s;"></span>
+            <span style="width:4px; height:4px; background:var(--primary); border-radius:50%; animation:dot 1.4s infinite ease-in-out 0.4s;"></span>
+          </div>
+          <span style="font-size:12px; color:var(--text-muted);">正在分析回答...</span>
+        </div>
       </div>
+      <style>@keyframes dot{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}</style>
     `;
     chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -1363,26 +1377,37 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       const result = CareerEngine.getInterviewFeedback(this.interviewSession, txt);
 
       // 移除加载提示
-      const loadingEl = chatBox.querySelector('[style*="正在分析"]');
-      if (loadingEl) loadingEl.parentElement.remove();
+      const loadingEl = document.getElementById('interview-loading');
+      if (loadingEl) loadingEl.remove();
 
-      // 显示评分和反馈
-      const feedbackColor = result.score >= 70 ? '#16a34a' : result.score >= 50 ? '#d97706' : '#dc2626';
+      // 显示评分标签
+      const scoreClass = result.score >= 70 ? 'good' : result.score >= 50 ? 'medium' : 'bad';
       chatBox.innerHTML += `
-        <div style="margin-bottom:10px; padding:8px 12px; background:${feedbackColor}08; border:1px solid ${feedbackColor}22; border-radius:10px;">
-          <span style="font-size:11px; font-weight:700; color:${feedbackColor};">${result.level} ${result.score}分</span>
-          <span style="font-size:11px; color:var(--text-muted); margin-left:8px;">${result.feedback}</span>
+        <div style="margin-bottom:10px; padding:10px 14px; background:#f8fafc; border-radius:10px; border-left:3px solid ${result.score >= 70 ? '#16a34a' : result.score >= 50 ? '#d97706' : '#dc2626'};">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <span class="score-tag ${scoreClass}">${result.level} ${result.score}分</span>
+          </div>
+          <div style="font-size:12px; color:#475569; line-height:1.5;">${result.feedback}</div>
         </div>
       `;
 
       // 显示 AI 追问或下一题
       setTimeout(() => {
+        const progress = Math.round(((this.interviewSession.answers.length) / this.interviewSession.questions.length) * 100);
         chatBox.innerHTML += `
           <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-            <div class="msg-avatar" style="background:var(--primary); color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ri-robot-fill"></i></div>
-            <div class="msg-content" style="background:#f1f5f9; color:var(--text-main); padding:12px 16px; border-radius:14px; max-width:80%; font-size:14px; line-height:1.6;">
+            <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+            <div class="msg-content">
+              <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
               ${result.aiResponse}
-              ${!result.isLast ? `<div style="margin-top:8px;font-size:11px;color:var(--text-muted);">问题 ${this.interviewSession.currentQ + 1}/${this.interviewSession.questions.length}</div>` : ''}
+            </div>
+          </div>
+          ${!result.isLast ? `
+          <div class="interview-progress">
+            <span style="font-size:11px; color:var(--text-muted);">问题 ${this.interviewSession.currentQ + 1}/${this.interviewSession.questions.length}</span>
+            <div class="interview-progress-bar"><div class="interview-progress-fill" style="width:${progress}%"></div></div>
+          </div>
+          ` : ''}
             </div>
           </div>
         `;
