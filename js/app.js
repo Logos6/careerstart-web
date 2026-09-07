@@ -183,7 +183,7 @@ const app = {
 
   updateHomeCoaching() {
     try {
-      const phasesEl = document.getElementById('coaching-plan-phases');
+      const phasesEl = document.getElementById('hero-coaching-phases');
       if (!phasesEl) return;
 
       const hasAssessment = this.userData.assessmentHistory && this.userData.assessmentHistory.length > 0;
@@ -194,31 +194,26 @@ const app = {
         const report = CareerEngine.buildReport(latest.answers || {});
         const top1 = report.top[0];
         const jobName = top1 ? top1.job.name : '目标岗位';
-        const missing = CareerEngine.gapSkills(report);
-        const courses = CareerEngine.gapCoursePlan(missing);
 
         phases = [
-          { num: 1, title: `第1周：深度评估「${jobName}」转型路径`, desc: '完成6维测评 + 1v1定位访谈，锁定目标方向' },
-          { num: 2, title: '第2周：简历重塑与作品集打造', desc: `针对${jobName}岗位重写简历，打磨面试级作品集` },
-          { num: 3, title: `第3周：技能速成·${courses[0] ? courses[0].title : '核心技能'}`, desc: '每天30分钟跟练B站免费课程，完成1个实战项目' },
-          { num: 4, title: '第4周：精准投递与面试冲刺', desc: '模拟面试演练 + 薪资谈判指导，全力冲刺拿offer' },
+          { num: 1, title: `第1周：评估「${jobName}」转型路径` },
+          { num: 2, title: '第2周：简历重塑与作品集' },
+          { num: 3, title: '第3周：技能速成 + 实战' },
+          { num: 4, title: '第4周：投递冲刺拿offer' },
         ];
       } else {
         phases = [
-          { num: 1, title: '第1周：6维测评 + 职业定位访谈', desc: 'AI测评锁定方向，导师1v1确认转型路径' },
-          { num: 2, title: '第2周：简历重塑与作品集打造', desc: '针对目标岗位逐行打磨，打造面试级作品集' },
-          { num: 3, title: '第3周：技能速成 + 实战演练', desc: '精选B站免费课程，每天30分钟掌握核心技能' },
-          { num: 4, title: '第4周：精准投递与面试冲刺', desc: '模拟面试 + 薪资谈判 + 全程陪跑到拿offer' },
+          { num: 1, title: '第1周：测评 + 职业定位' },
+          { num: 2, title: '第2周：简历重塑 + 作品集' },
+          { num: 3, title: '第3周：技能速成 + 实战' },
+          { num: 4, title: '第4周：投递冲刺拿offer' },
         ];
       }
 
       phasesEl.innerHTML = phases.map(p => `
-        <div class="coaching-phase">
-          <div class="coaching-phase-num">${p.num}</div>
-          <div>
-            <div class="coaching-phase-title">${p.title}</div>
-            <div class="coaching-phase-desc">${p.desc}</div>
-          </div>
+        <div class="hc-phase-item">
+          <div class="hc-phase-num">${p.num}</div>
+          <span>${p.title}</span>
         </div>
       `).join('');
     } catch (e) {
