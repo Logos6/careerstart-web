@@ -30,9 +30,7 @@ const app = {
     this.checkAuth();
     this.updateAuthUI();
     this.bindEvents();
-    this.renderHomeJobs();
     this.renderHomePraises();
-    this.renderAllJobs();
     this.renderCourses('all');
     this.renderAssessStep();
     this.updateUserDisplay();
@@ -45,7 +43,7 @@ const app = {
     if (antiFlash) antiFlash.remove();
 
     // 刷新后从hash恢复当前页面
-    const validTabs = ['home','assess','tools','jobs','coaching','me'];
+    const validTabs = ['home','assess','tools','coaching','me'];
     const hash = location.hash.replace('#','');
     const initialTab = validTabs.includes(hash) ? hash : 'home';
     this.switchTab(initialTab);
@@ -355,31 +353,6 @@ const app = {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 
-  // 1. 首页推荐精选岗位
-  renderHomeJobs() {
-    const container = document.getElementById('home-jobs-grid');
-    if (!container) return;
-
-    const jobs = CareerData.JOBS.slice(0, 6);
-    container.innerHTML = jobs.map(j => `
-      <div class="pc-job-card">
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-            <span class="pc-job-title">${j.name}</span>
-            <span class="pc-job-salary">${j.salary ? j.salary.join('-') + 'K' : '面议'}</span>
-          </div>
-          <div class="tag-row" style="margin-bottom:12px;">
-            <span class="pc-tag" style="background:#e0e7ff; color:#3730a3;">${j.cat}</span>
-            ${j.ageFriendly ? '<span class="pc-tag">年龄友好</span>' : ''}
-            ${j.momFriendly ? '<span class="pc-tag">宝妈弹性</span>' : ''}
-          </div>
-          <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">${j.desc}</p>
-        </div>
-        <button class="btn btn-secondary btn-block" onclick="app.switchTab('jobs')">查看精准匹配度</button>
-      </div>
-    `).join('');
-  },
-
   // 2. 学员口碑
   renderHomePraises() {
     const container = document.getElementById('home-praises-grid');
@@ -398,62 +371,6 @@ const app = {
           <span style="font-size:12px; background:#f3e8ff; color:#7d2ae8; padding:3px 10px; border-radius:12px; font-weight:600;">${p.tag}</span>
         </div>
         <p style="font-size:14px; color:var(--text-muted); line-height:1.6;">"${p.text}"</p>
-      </div>
-    `).join('');
-  },
-
-  // 3. 渲染完整 65+ 岗位库
-  renderAllJobs() {
-    const container = document.getElementById('all-jobs-grid');
-    if (!container) return;
-
-    container.innerHTML = CareerData.JOBS.map(j => `
-      <div class="pc-job-card">
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-            <span class="pc-job-title">${j.name}</span>
-            <span class="pc-job-salary">${j.salary ? j.salary.join('-') + 'K' : '面议'}</span>
-          </div>
-          <div class="tag-row" style="margin-bottom:12px;">
-            <span class="pc-tag" style="background:#e0e7ff; color:#3730a3;">${j.cat}</span>
-            ${j.ageFriendly ? '<span class="pc-tag">年龄友好</span>' : ''}
-            ${j.momFriendly ? '<span class="pc-tag">宝妈弹性</span>' : ''}
-          </div>
-          <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">${j.desc}</p>
-          <div style="font-size:12px; color:#475569; background:#f8fafc; padding:10px; border-radius:8px; margin-bottom:16px;">
-            <strong>岗位要求：</strong>${j.need ? j.need.join(' / ') : '具备良好沟通与责任心'}
-          </div>
-        </div>
-        <button class="btn btn-outline-primary btn-block" onclick="app.switchTab('assess')">一键精准匹配</button>
-      </div>
-    `).join('');
-  },
-
-  // 岗位搜索过滤
-  filterJobs() {
-    const q = document.getElementById('job-search-input').value.toLowerCase().trim();
-    const container = document.getElementById('all-jobs-grid');
-    if (!container) return;
-
-    const filtered = CareerData.JOBS.filter(j => 
-      j.name.toLowerCase().includes(q) || j.cat.toLowerCase().includes(q) || j.desc.toLowerCase().includes(q)
-    );
-
-    container.innerHTML = filtered.map(j => `
-      <div class="pc-job-card">
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-            <span class="pc-job-title">${j.name}</span>
-            <span class="pc-job-salary">${j.salary ? j.salary.join('-') + 'K' : '面议'}</span>
-          </div>
-          <div class="tag-row" style="margin-bottom:12px;">
-            <span class="pc-tag" style="background:#e0e7ff; color:#3730a3;">${j.cat}</span>
-            ${j.ageFriendly ? '<span class="pc-tag">年龄友好</span>' : ''}
-            ${j.momFriendly ? '<span class="pc-tag">宝妈���性</span>' : ''}
-          </div>
-          <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">${j.desc}</p>
-        </div>
-        <button class="btn btn-outline-primary btn-block" onclick="app.switchTab('assess')">一键精准匹配</button>
       </div>
     `).join('');
   },
