@@ -249,8 +249,8 @@ body {
 /* PC Hero 左右双栏结构 */
 .pc-hero-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 40px;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px;
   align-items: center;
   background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
   color: #fff;
@@ -664,137 +664,69 @@ body {
 .hero-coaching-card {
   background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 40%, #2d1b69 100%);
   border-radius: 18px;
-  padding: 22px;
+  padding: 28px 24px;
   color: #fff;
   width: 100%;
   max-width: 380px;
-}
-.hc-badge {
-  display: inline-block;
-  background: linear-gradient(135deg, #f59e0b, #f97316);
-  color: #1e293b;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 12px;
-  margin-bottom: 14px;
-  letter-spacing: 0.5px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 }
 .hc-top {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 .hc-icon {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
   background: linear-gradient(135deg, #8b5cf6, #a78bfa);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 22px;
   flex-shrink: 0;
 }
 .hc-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
-  margin: 0 0 2px;
+  margin: 0;
   background: linear-gradient(135deg, #fff 0%, #c4b5fd 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .hc-sub {
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(255,255,255,0.6);
-  margin: 0;
+  margin: 0 0 16px;
 }
 .hc-price-row {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 18px;
   background: rgba(255,255,255,0.06);
   border-radius: 10px;
-  padding: 10px 14px;
-}
-.hc-price-label {
-  font-size: 11px;
-  color: rgba(255,255,255,0.5);
+  padding: 12px 16px;
 }
 .hc-price {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
   color: #fbbf24;
 }
 .hc-yen {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
 }
 .hc-price-note {
-  font-size: 11px;
+  font-size: 12px;
   color: rgba(255,255,255,0.5);
-}
-.hc-features {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-.hc-feat {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: rgba(255,255,255,0.8);
-}
-.hc-feat i {
-  color: #a78bfa;
-  font-size: 14px;
-  flex-shrink: 0;
-}
-.hc-plan-mini {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 14px;
-}
-.hc-plan-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #c4b5fd;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.hc-phase-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: rgba(255,255,255,0.7);
-  padding: 4px 0;
-}
-.hc-phase-num {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 .hc-btn {
   width: 100%;
-  padding: 12px;
-  font-size: 15px;
+  padding: 14px;
+  font-size: 16px;
   font-weight: 700;
   border-radius: 12px;
   border: none;
@@ -806,9 +738,9 @@ body {
 }
 .hc-social {
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   color: rgba(255,255,255,0.5);
-  margin-top: 10px;
+  margin-top: 12px;
 }
 .hc-social strong {
   color: #fbbf24;
