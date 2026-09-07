@@ -188,11 +188,10 @@ const app = {
       const footer = document.getElementById('ap-footer');
       const titleEl = document.getElementById('ap-title');
       const subEl = document.getElementById('ap-sub');
-      if (!card || !phasesEl) { console.log('[AP] card or phasesEl not found'); return; }
+      if (!card || !phasesEl) return;
 
       const hasAssessment = this.userData.assessmentHistory && this.userData.assessmentHistory.length > 0;
       const isVip = this.userData.isVip;
-      console.log('[AP] hasAssessment:', hasAssessment, 'isVip:', isVip);
 
       if (hasAssessment) {
         const latest = this.userData.assessmentHistory[this.userData.assessmentHistory.length - 1];
@@ -208,14 +207,11 @@ const app = {
       } else {
         if (titleEl) titleEl.textContent = '你的专属·30天职场重启行动方案';
         if (subEl) subEl.textContent = '完成测评后，AI 将为你生成量身定制的转型行动计划';
-        const html = this._buildDefaultPlan();
-        console.log('[AP] default plan html length:', html ? html.length : 0);
-        phasesEl.innerHTML = html;
+        phasesEl.innerHTML = this._buildDefaultPlan();
       }
 
       if (footer) footer.style.display = isVip ? 'none' : 'block';
       card.style.display = 'block';
-      console.log('[AP] phases children:', phasesEl.children.length);
     } catch (e) {
       console.error('[updateHomeCourses Error]', e);
     }
