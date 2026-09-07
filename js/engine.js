@@ -893,7 +893,307 @@
     return sections;
   }
 
+  // ==================== 模拟面试引擎 ====================
+
+  const INTERVIEW_QUESTIONS = {
+    general: [
+      { id: 'intro', category: '自我介绍', question: '请用 1-2 分钟简单介绍一下你自己，包括你的工作经验和核心优势。', tips: '结构：姓名→工作年限→核心技能→代表成果→求职意向', weight: 15 },
+      { id: 'gap', category: '职业空白期', question: '我们注意到你的简历有一段职业空白期，请问这段时间你在做什么？为什么选择现在重返职场？', tips: '诚实说明原因（学习/照顾家人/创业尝试），强调这段时间的成长和收获', weight: 20 },
+      { id: 'salary', category: '薪资期望', question: '你对薪资的期望是多少？能说说你的依据吗？', tips: '先说市场行情，再说个人能力，给一个合理区间而非固定数字', weight: 10 },
+      { id: 'stress', category: '抗压能力', question: '如果入职后发现工作内容和预期有差距，或者需要加班，你会怎么处理？', tips: '表达适应能力和学习意愿，同时展现合理的职业规划', weight: 15 },
+      { id: 'plan', category: '职业规划', question: '你未来 3 年的职业规划是什么？打算在我们公司怎么发展？', tips: '结合公司发展路径，展现稳定性和成长意愿', weight: 15 },
+      { id: 'weakness', category: '自我认知', question: '你认为自己最大的弱点是什么？你是如何克服的？', tips: '真实但不致命，重点在改进措施和成长', weight: 15 },
+      { id: 'value', category: '价值主张', question: '相比于年轻的候选人，你觉得你的核心竞争力是什么？', tips: '突出经验、稳定性、行业洞察、人脉资源等35+专属优势', weight: 20 }
+    ],
+    management: [
+      { id: 'team', category: '团队管理', question: '你管理过多大的团队？如果团队成员不服从安排，你会怎么处理？', tips: '用具体案例说明管理方法和沟通技巧', weight: 20 },
+      { id: 'conflict', category: '冲突处理', question: '请举例说明你是如何处理团队内部冲突的？结果如何？', tips: '用 STAR 法则：情境→任务→行动→结果', weight: 20 },
+      { id: 'kpi', category: '目标达成', question: '你曾经设定过最有挑战性的 KPI 是什么？你是怎么达成的？', tips: '量化结果，说明策略和执行过程', weight: 20 }
+    ],
+    technical: [
+      { id: 'skill', category: '专业技能', question: '你最近学习的新技能或工具是什么？为什么选择学这个？', tips: '展现学习能力和对行业趋势的关注', weight: 20 },
+      { id: 'project', category: '项目经验', question: '请介绍一个你最满意的项目，你在其中承担什么角色？', tips: '突出个人贡献和可量化的成果', weight: 25 }
+    ],
+    service: [
+      { id: 'customer', category: '客户服务', question: '遇到情绪激动的客户投诉，你会怎么处理？请举个实际例子。', tips: '先共情→再解决→后跟进，展现服务意识', weight: 20 },
+      { id: 'rework', category: '重复工作', question: '这个岗位可能需要重复性的工作，你能接受吗？你有什么方法保持效率？', tips: '表达耐心和责任心，分享提高效率的方法', weight: 15 }
+    ]
+  };
+
+  const INTERVIEW_STAGES = [
+    { stage: 'greeting', label: '开场', icon: 'ri-hand-heart-line' },
+    { stage: 'intro', label: '自我介绍', icon: 'ri-user-line' },
+    { stage: 'core', label: '核心问题', icon: 'ri-questionnaire-line' },
+    { stage: 'scenario', label: '情景模拟', icon: 'ri-chat-follow-up-line' },
+    { stage: 'closing', label: '结束', icon: 'ri-flag-line' }
+  ];
+
+  function initInterviewSession(jobName) {
+    const jobType = detectJobType(jobName);
+    const questions = selectQuestions(jobType);
+    
+    return {
+      jobName,
+      jobType,
+      questions,
+      answers: [],
+      currentQ: 0,
+      stage: 'intro',
+      scores: {},
+      startTime: Date.now()
+    };
+  }
+
+  function detectJobType(jobName) {
+    const name = jobName.toLowerCase();
+    if (/管理|主管|经理|总监|leader|manager/i.test(name)) return 'management';
+    if (/开发|工程|技术|测试|运维|数据|IT| programmer/i.test(name)) return 'technical';
+    if (/客服|服务|前台|接待|咨询/i.test(name)) return 'service';
+    return 'general';
+  }
+
+  function selectQuestions(jobType) {
+    const base = [...INTERVIEW_QUESTIONS.general];
+    const extra = INTERVIEW_QUESTIONS[jobType] || [];
+    
+    // 打乱通用问题顺序
+    for (let i = base.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [base[i], base[j]] = [base[j], base[i]];
+    }
+
+    // 选择 5 个通用 + 2 个专项
+    const selected = base.slice(0, 5);
+    const extraShuffled = extra.sort(() => Math.random() - 0.5).slice(0, 2);
+    
+    return [...selected, ...extraShuffled];
+  }
+
+  function analyzeAnswer(answer, question) {
+    if (!answer || answer.trim().length < 5) {
+      return { score: 10, level: '无效', feedback: '回答过短，请详细展开', keywords: [], suggestion: '建议至少说 2-3 句话，包含具体案例或数据' };
+    }
+
+    const text = answer.trim();
+    const len = text.length;
+    let score = 50; // 基础分
+
+    // 1. 长度评分
+    if (len >= 100) score += 15;
+    else if (len >= 50) score += 10;
+    else if (len >= 20) score += 5;
+    else score -= 10;
+
+    // 2. 结构化表达检测
+    const structurePatterns = [
+      /首先|第一|1[.、]/,
+      /其次|第二|2[.、]/,
+      /最后|第三|3[.、]/,
+      /总结|总的来说|综上/
+    ];
+    const structureCount = structurePatterns.filter(p => p.test(text)).length;
+    score += structureCount * 5;
+
+    // 3. 量化数据检测
+    const quantifyPattern = /\d+[%％万元人天次个月年]|提升了?\d+|增长了?\d+|节省了?\d+|带领\d+人|管理\d+/;
+    if (quantifyPattern.test(text)) score += 10;
+
+    // 4. 案例/经历描述
+    const casePatterns = [
+      /当时|有一次|曾经|之前|在.*公司/,
+      /具体来说|举个例子|比如|例如/,
+      /结果|最终|后来|最后/
+    ];
+    const caseCount = casePatterns.filter(p => p.test(text)).length;
+    score += caseCount * 5;
+
+    // 5. 积极/专业词汇
+    const positiveWords = /主动|积极|负责|主导|统筹|推动|优化|提升|达成|突破|学习|成长|改进/;
+    const positiveCount = (text.match(positiveWords) || []).length;
+    score += Math.min(10, positiveCount * 3);
+
+    // 6. 消极词汇扣分
+    const negativeWords = /不知道|不清楚|随便|无所谓|还行|一般|可能|大概|应该/;
+    const negativeCount = (text.match(negativeWords) || []).length;
+    score -= negativeCount * 5;
+
+    // 7. 套话检测
+    const genericPhrases = /性格开朗|工作认真|吃苦耐劳|学习能力强|团队精神/;
+    if (genericPhrases.test(text) && len < 50) score -= 10;
+
+    // 限制分数范围
+    score = Math.max(10, Math.min(100, score));
+
+    // 评级
+    let level, color;
+    if (score >= 85) { level = '优秀'; color = '#16a34a'; }
+    else if (score >= 70) { level = '良好'; color = '#2ea56a'; }
+    else if (score >= 55) { level = '一般'; color = '#d97706'; }
+    else { level = '较差'; color = '#dc2626'; }
+
+    // 生成反馈
+    const feedback = generateFeedback(score, text, question);
+
+    // 提取关键词
+    const keywords = extractKeywords(text);
+
+    return { score, level, color, feedback, keywords, suggestion: feedback.suggestion };
+  }
+
+  function generateFeedback(score, text, question) {
+    const parts = [];
+    let suggestion = '';
+
+    if (score >= 85) {
+      parts.push('回答结构清晰，有具体案例支撑');
+      suggestion = '保持这个水平，面试时注意语速和眼神交流';
+    } else if (score >= 70) {
+      parts.push('回答有条理，但可以更具体');
+      suggestion = '建议补充 1-2 个量化数据或实际案例来增强说服力';
+    } else if (score >= 55) {
+      parts.push('回答基本完整，但缺乏亮点');
+      suggestion = '用 STAR 法则重新组织：情境→任务→行动→结果';
+    } else {
+      parts.push('回答较简略，缺少实质内容');
+      suggestion = '准备 2-3 个成功案例，每个用 3-4 句话讲清楚';
+    }
+
+    // 具体建议
+    if (text.length < 50) parts.push('回答过短，建议展开到 100 字以上');
+    if (!/\d+/.test(text)) parts.push('缺少量化数据，如数字、百分比、时间等');
+    if (!/当时|有一次|曾经|之前/.test(text)) parts.push('缺少具体案例，建议用真实经历佐证');
+
+    return { text: parts.join('；'), suggestion };
+  }
+
+  function extractKeywords(text) {
+    const keywords = [];
+    const patterns = [
+      { regex: /管理|带领|统筹|领导/, cat: '管理' },
+      { regex: /沟通|协调|协作|谈判/, cat: '沟通' },
+      { regex: /数据|分析|报表|KPI/, cat: '数据' },
+      { regex: /优化|提升|改进|效率/, cat: '优化' },
+      { regex: /学习|培训|进修|考证/, cat: '学习' },
+      { regex: /客户|用户|服务|满意度/, cat: '服务' },
+      { regex: /项目|产品|上线|交付/, cat: '项目' }
+    ];
+
+    for (const p of patterns) {
+      if (p.regex.test(text)) keywords.push(p.cat);
+    }
+    return keywords;
+  }
+
+  function getInterviewFeedback(session, userAnswer) {
+    const q = session.questions[session.currentQ];
+    const analysis = analyzeAnswer(userAnswer, q);
+
+    // 保存答案
+    session.answers.push({
+      question: q,
+      answer: userAnswer,
+      analysis
+    });
+
+    // 生成追问或下一题
+    const isLast = session.currentQ >= session.questions.length - 1;
+    let aiResponse = '';
+
+    if (isLast) {
+      aiResponse = '感谢你的回答！面试到此结束，请稍候正在生成面试评估报告...';
+    } else {
+      // 根据回答质量决定追问还是下一题
+      if (analysis.score < 50 && userAnswer.length > 20) {
+        aiResponse = `你提到了「${analysis.keywords[0] || '某个方面'}」，能再具体说说吗？比如用一个实际案例来说明？`;
+      } else {
+        session.currentQ++;
+        const nextQ = session.questions[session.currentQ];
+        aiResponse = nextQ.question;
+      }
+    }
+
+    return {
+      feedback: analysis.feedback,
+      score: analysis.score,
+      level: analysis.level,
+      isLast,
+      aiResponse,
+      progress: Math.round(((session.answers.length) / session.questions.length) * 100)
+    };
+  }
+
+  function generateInterviewReport(session) {
+    const totalScore = Math.round(session.answers.reduce((s, a) => s + a.analysis.score, 0) / session.answers.length);
+    const duration = Math.round((Date.now() - session.startTime) / 1000);
+
+    // 分类评分
+    const categoryScores = {};
+    for (const a of session.answers) {
+      const cat = a.question.category;
+      if (!categoryScores[cat]) categoryScores[cat] = [];
+      categoryScores[cat].push(a.analysis.score);
+    }
+    const avgByCategory = {};
+    for (const [cat, scores] of Object.entries(categoryScores)) {
+      avgByCategory[cat] = Math.round(scores.reduce((s, v) => s + v, 0) / scores.length);
+    }
+
+    // 找出强项和弱项
+    const sorted = Object.entries(avgByCategory).sort((a, b) => b[1] - a[1]);
+    const strengths = sorted.filter(([, s]) => s >= 70).map(([cat]) => cat);
+    const weaknesses = sorted.filter(([, s]) => s < 60).map(([cat]) => cat);
+
+    // 综合评级
+    let level, color, suggestion;
+    if (totalScore >= 85) {
+      level = '面试表现优秀';
+      color = '#16a34a';
+      suggestion = '你的面试表现整体出色，建议保持自信和条理，面试时注意语速控制和眼神交流。';
+    } else if (totalScore >= 70) {
+      level = '面试表现良好';
+      color = '#2ea56a';
+      suggestion = '基础扎实，建议在薄弱环节重点准备，多用 STAR 法则组织回答。';
+    } else if (totalScore >= 55) {
+      level = '面试表现一般';
+      color = '#d97706';
+      suggestion = '有一定基础但缺乏亮点，建议准备 3-5 个成功案例并反复练习。';
+    } else {
+      level = '需要加强准备';
+      color = '#dc2626';
+      suggestion = '建议系统准备：① 梳理核心优势 ② 准备量化案例 ③ 反复模拟练习。';
+    }
+
+    // 收集所有关键词
+    const allKeywords = [...new Set(session.answers.flatMap(a => a.analysis.keywords))];
+
+    return {
+      jobName: session.jobName,
+      totalScore,
+      level,
+      color,
+      suggestion,
+      duration: `${Math.floor(duration / 60)}分${duration % 60}秒`,
+      totalQuestions: session.questions.length,
+      answeredQuestions: session.answers.length,
+      categoryScores: avgByCategory,
+      strengths,
+      weaknesses,
+      keywords: allKeywords,
+      details: session.answers.map(a => ({
+        question: a.question.question,
+        category: a.question.category,
+        answer: a.answer,
+        score: a.analysis.score,
+        level: a.analysis.level,
+        color: a.analysis.color,
+        feedback: a.analysis.feedback.text,
+        suggestion: a.analysis.suggestion
+      }))
+    };
+  }
+
   return {
-    scoreJob, buildReport, gapSkills, gapCoursePlan, reasonText, jobById, courseById, levelOf, detectAgeBias, diagnoseResume, generateAssessmentAnalysis
+    scoreJob, buildReport, gapSkills, gapCoursePlan, reasonText, jobById, courseById, levelOf, detectAgeBias, diagnoseResume, generateAssessmentAnalysis,
+    initInterviewSession, getInterviewFeedback, generateInterviewReport
   };
 }));
