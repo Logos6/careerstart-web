@@ -1124,10 +1124,22 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     const scoreColor = result.totalScore >= 70 ? '#2ea56a' : result.totalScore >= 50 ? '#0284c7' : result.totalScore >= 30 ? '#d97706' : '#dc2626';
     const scoreLabel = result.totalScore >= 70 ? '优秀' : result.totalScore >= 50 ? '良好' : result.totalScore >= 30 ? '一般' : '需改进';
 
-    // 按严重程度排序，找出最弱的维度
+    // 按严重程度排序
     const sorted = [...result.dimensions].sort((a, b) => a.score - b.score);
     const weakest = sorted[0];
     const strongest = sorted[sorted.length - 1];
+
+    // 免费版：只显示前2个分析板块，其余模糊处理
+    const FREE_SECTIONS = 2;
+    const totalSections = result.deepAnalysis.length;
+    const freeSections = result.deepAnalysis.slice(0, FREE_SECTIONS);
+    const lockedSections = result.deepAnalysis.slice(FREE_SECTIONS);
+    const hasLocked = lockedSections.length > 0;
+
+    // 统计问题总数（用于制造痛点）
+    const issueCount = result.deepAnalysis.reduce((sum, s) => {
+      return sum + s.paragraphs.filter(p => p.startsWith('•') || p.includes('问题') || p.includes('不足') || p.includes('没有')).length;
+    }, 0);
 
     box.style.display = 'block';
     box.innerHTML = `
@@ -1146,13 +1158,27 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
           </div>
         </div>
 
-        <!-- ========== 第一部分：深度剖析 ========== -->
+        <!-- ========== 痛点制造：问题概览 ========== -->
+        <div style="padding:20px 24px; background:linear-gradient(135deg,#fef2f2,#fff1f2); border-bottom:1px solid #fecaca;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <i class="ri-error-warning-line" style="color:#dc2626; font-size:20px;"></i>
+            <span style="font-size:16px; font-weight:800; color:#991b1b;">检测到 ${totalSections} 个维度的问题</span>
+          </div>
+          <div style="font-size:13px; color:#7f1d1d; line-height:1.7;">
+            ${hasLocked 
+              ? `你的简历存在 <strong>${totalSections} 个需要改进的地方</strong>。以下是前 ${FREE_SECTIONS} 个问题的详细分析——`
+              + `查看剩余 ${lockedSections.length} 个问题及修改建议，解锁完整诊断报告。`
+              : `以下是你的简历完整诊断结果。`}
+          </div>
+        </div>
+
+        <!-- ========== 第一部分：深度剖析（免费2个 + 付费锁定） ========== -->
         <div style="padding:24px;">
           <h4 style="font-size:17px; font-weight:800; margin-bottom:18px; display:flex; align-items:center; gap:8px; color:var(--text-main);">
             <i class="ri-magnifying-glass-line" style="color:var(--primary);"></i> 简历深度剖析
           </h4>
           <div style="display:flex; flex-direction:column; gap:18px;">
-            ${result.deepAnalysis.map(section => `
+            ${freeSections.map(section => `
               <div style="border:1px solid #e2e8f0; border-radius:12px; overflow:hidden;">
                 <div style="background:linear-gradient(135deg,#f8f5ff,#eef2ff); padding:12px 18px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:8px;">
                   <i class="${section.icon}" style="color:var(--primary); font-size:16px;"></i>
@@ -1168,10 +1194,43 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
                 </div>
               </div>
             `).join('')}
+
+            ${hasLocked ? `
+            <!-- 锁定区域：模糊预览 + 付费解锁 -->
+            <div style="position:relative; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden;">
+              <!-- 模糊预览 -->
+              <div style="filter:blur(6px); pointer-events:none; opacity:0.5; padding:14px 18px;">
+                ${lockedSections.slice(0, 2).map(section => `
+                  <div style="margin-bottom:14px;">
+                    <div style="font-size:14px; font-weight:700; color:var(--text-main); margin-bottom:8px;">
+                      <i class="${section.icon}" style="color:var(--primary);"></i> ${section.title}
+                    </div>
+                    ${section.paragraphs.slice(0, 1).map(p => `
+                      <p style="font-size:13px; color:#334155; margin:0 0 6px; line-height:1.8;">${p.substring(0, 60)}...</p>
+                    `).join('')}
+                  </div>
+                `).join('')}
+              </div>
+              <!-- 付费解锁覆盖层 -->
+              <div style="position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,0.3) 0%,rgba(255,255,255,0.95) 40%); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px;">
+                <div style="width:48px; height:48px; background:linear-gradient(135deg,#f59e0b,#f97316); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:12px;">
+                  <i class="ri-lock-line" style="color:#fff; font-size:22px;"></i>
+                </div>
+                <div style="font-size:16px; font-weight:800; color:var(--text-main); margin-bottom:6px;">还有 ${lockedSections.length} 个问题未解锁</div>
+                <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px; text-align:center; line-height:1.6;">
+                  包含：${lockedSections.map(s => s.title).join('、')}
+                </div>
+                <div style="background:linear-gradient(135deg,#f59e0b,#f97316); color:#fff; padding:12px 32px; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(245,158,11,0.4);" onclick="app.showPaywall('resume')">
+                  <i class="ri-vip-crown-line"></i> 解锁完整诊断 ¥19.9
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">一次付费，永久查看所有诊断结果</div>
+              </div>
+            </div>
+            ` : ''}
           </div>
         </div>
 
-        <!-- ========== 第二部分：六维度量化分析 ========== -->
+        <!-- ========== 第二部分：六维度量化分析（始终可见） ========== -->
         <div style="padding:0 24px 24px;">
           <h4 style="font-size:16px; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
             <i class="ri-bar-chart-box-line" style="color:var(--primary);"></i> 六维度量化分析
@@ -1200,34 +1259,228 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     `;
   },
 
+  // 付费解锁弹窗
+  showPaywall(type) {
+    const info = type === 'resume' 
+      ? { title: '解锁完整简历诊断', price: '¥19.9', desc: '查看全部问题分析 + 修改建议 + 优先级排序', features: ['全部深度剖析板块', '逐条修改建议', '优先级排序', '一键导出诊断报告'] }
+      : { title: '解锁完整模拟面试', price: '¥39.9', desc: '12道全维度面试题 + 详细评分 + 改进建议', features: ['12道全维度面试题', '逐题详细评分', '回答改进建议', '面试技巧指南'] };
+
+    const modal = document.createElement('div');
+    modal.id = 'paywall-modal';
+    modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:10000; display:flex; align-items:center; justify-content:center; animation:fadeIn 0.3s ease;';
+    modal.innerHTML = `
+      <div style="background:#fff; border-radius:20px; width:420px; max-width:92vw; overflow:hidden; animation:slideUp 0.3s ease; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="background:linear-gradient(135deg,#f59e0b,#f97316); padding:28px 24px; text-align:center;">
+          <div style="width:56px; height:56px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
+            <i class="ri-vip-crown-line" style="color:#fff; font-size:28px;"></i>
+          </div>
+          <h3 style="color:#fff; font-size:20px; font-weight:800; margin-bottom:6px;">${info.title}</h3>
+          <div style="color:rgba(255,255,255,0.9); font-size:14px;">${info.desc}</div>
+        </div>
+        <div style="padding:24px;">
+          <div style="text-align:center; margin-bottom:20px;">
+            <span style="font-size:36px; font-weight:900; color:var(--text-main);">${info.price}</span>
+            <span style="font-size:14px; color:var(--text-muted);"> 一次付费</span>
+          </div>
+          <div style="margin-bottom:20px;">
+            ${info.features.map(f => `
+              <div style="display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #f1f5f9;">
+                <i class="ri-check-line" style="color:#16a34a; font-size:16px;"></i>
+                <span style="font-size:14px; color:var(--text-main);">${f}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div style="background:#f8fafc; border-radius:12px; padding:16px; margin-bottom:16px;">
+            <div style="font-size:13px; color:var(--text-muted); text-align:center;">
+              <i class="ri-wechat-pay-line" style="color:#07c160; font-size:18px;"></i> 
+              微信扫码支付 · 即时解锁
+            </div>
+          </div>
+          <button style="width:100%; padding:14px; background:linear-gradient(135deg,#f59e0b,#f97316); color:#fff; border:none; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(245,158,11,0.4);" onclick="app.closePaywall()">
+            立即支付解锁
+          </button>
+          <div style="text-align:center; margin-top:12px;">
+            <span style="font-size:12px; color:var(--text-muted); cursor:pointer;" onclick="app.closePaywall()">稍后再说</span>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+  },
+
+  closePaywall() {
+    const modal = document.getElementById('paywall-modal');
+    if (modal) modal.remove();
+    document.body.style.overflow = 'auto';
+  },
+
   // 7. AI 模拟面试
+  interviewState: {
+    active: false,
+    job: '',
+    questionCount: 0,
+    maxFree: 2,
+    maxTotal: 12,
+    answers: [],
+    score: 0,
+    questions: [
+      { q: '请用1分钟简单介绍一下你自己，重点说说你的工作经历和核心优势。', dim: '自我介绍', weight: 1.2 },
+      { q: '你为什么想从上一份工作离职？对我们这个岗位有什么了解？', dim: '动机匹配', weight: 1.0 },
+      { q: '请描述一次你在工作中遇到的最大挑战，你是如何解决的？', dim: '问题解决', weight: 1.1 },
+      { q: '如果团队中有人和你意见不一致，你会怎么处理？', dim: '沟通协作', weight: 1.0 },
+      { q: '你未来3-5年的职业规划是什么？这个岗位如何帮助你实现目标？', dim: '职业规划', weight: 0.9 },
+      { q: '请举一个你主导推进项目的例子，说说你的方法和结果。', dim: '执行力', weight: 1.1 },
+      { q: '你认为自己最大的优点和缺点分别是什么？', dim: '自我认知', weight: 0.8 },
+      { q: '如果入职后发现工作内容和预期有差距，你会怎么调整？', dim: '适应力', weight: 0.9 },
+      { q: '你期望的薪资是多少？你如何评估自己的市场价值？', dim: '薪资谈判', weight: 1.0 },
+      { q: '你有什么想问我们的？（这道题考察你对岗位的思考深度）', dim: '反问能力', weight: 0.7 },
+      { q: '请描述一次你在压力下完成紧急任务的经历。', dim: '抗压能力', weight: 1.0 },
+      { q: '你觉得35+求职者相比年轻人，最大的优势是什么？', dim: '年龄认知', weight: 0.8 },
+    ],
+    currentQuestionIdx: 0
+  },
+
+  startInterview() {
+    const input = document.getElementById('interview-input');
+    const job = input.value.trim();
+    if (!job) { alert('请先输入你准备面试的岗位'); return; }
+
+    this.interviewState = {
+      active: true,
+      job: job,
+      questionCount: 0,
+      maxFree: 2,
+      maxTotal: 12,
+      answers: [],
+      score: 0,
+      questions: this.interviewState.questions,
+      currentQuestionIdx: 0
+    };
+
+    const chatBox = document.getElementById('interview-chat-box');
+    chatBox.innerHTML = `
+      <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+        <div class="msg-avatar" style="background:var(--primary); color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ri-robot-fill"></i></div>
+        <div class="msg-content" style="background:linear-gradient(135deg,#f5f3ff,#ede9fe); color:var(--text-main); padding:14px 18px; border-radius:14px; max-width:80%; font-size:14px; line-height:1.7; border:1px solid #e0e7ff;">
+          <div style="font-weight:700; margin-bottom:6px;">🎯 针对岗位：<strong>${job}</strong></div>
+          <div>你好！我是启航 AI 面试官。我会针对「${job}」岗位问你 <strong>12 个问题</strong>，覆盖自我介绍、动机匹配、问题解决等维度。</div>
+          <div style="margin-top:8px; padding:8px 12px; background:#fff; border-radius:8px; font-size:12px; color:var(--text-muted);">
+            <i class="ri-information-line"></i> 免费体验前 2 题，解锁完整面试查看全部评分
+          </div>
+          <div style="margin-top:10px; font-weight:700; color:var(--primary);">第 1 题 / 共 12 题</div>
+          <div style="margin-top:6px;">${this.interviewState.questions[0].q}</div>
+        </div>
+      </div>
+    `;
+    chatBox.scrollTop = chatBox.scrollHeight;
+    input.value = '';
+    this.interviewState.questionCount = 1;
+  },
+
   sendInterviewMsg() {
     const input = document.getElementById('interview-input');
     const chatBox = document.getElementById('interview-chat-box');
     const txt = input.value.trim();
     if (!txt) return;
 
+    // 如果还没有开始面试，先把输入当作岗位名
+    if (!this.interviewState.active) {
+      input.value = txt;
+      this.startInterview();
+      return;
+    }
+
+    const state = this.interviewState;
+
+    // 显示用户回答
     chatBox.innerHTML += `
       <div class="chat-msg user" style="display:flex; gap:12px; flex-direction:row-reverse; margin-bottom:14px;">
-        <div class="msg-avatar" style="background:var(--primary); color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ri-user-line"></i></div>
+        <div class="msg-avatar" style="background:var(--primary); color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ri-user-line"></i></div>
         <div class="msg-content" style="background:var(--primary); color:#fff; padding:12px 16px; border-radius:14px; max-width:80%; font-size:14px;">${txt}</div>
       </div>
     `;
-
     input.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
+    // 记录回答
+    state.answers.push({ question: state.questions[state.currentQuestionIdx].q, answer: txt });
+
+    // 模拟评分（根据回答长度和关键词）
+    let qScore = 60;
+    if (txt.length > 100) qScore += 10;
+    if (txt.length > 200) qScore += 10;
+    if (txt.match(/数据|结果|提升|优化|完成|主导|负责|管理/)) qScore += 10;
+    if (txt.match(/团队|协作|沟通|配合/)) qScore += 5;
+    qScore = Math.min(qScore, 95);
+    state.score += qScore * state.questions[state.currentQuestionIdx].weight;
+
+    // 判断是否到达免费限制
+    const isFreeLimit = state.questionCount >= state.maxFree;
+
     setTimeout(() => {
+      if (isFreeLimit) {
+        // 免费体验结束，显示评分和付费墙
+        const avgScore = Math.round(state.score / state.questionCount);
+        const belowAvg = Math.max(0, 15 - Math.floor(Math.random() * 10));
+
+        chatBox.innerHTML += `
+          <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+            <div class="msg-avatar" style="background:#0a58ff; color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ri-robot-fill"></i></div>
+            <div class="msg-content" style="background:#f1f5f9; color:var(--text-main); padding:14px 18px; border-radius:14px; max-width:85%; font-size:14px; line-height:1.7;">
+              <div style="font-weight:700; margin-bottom:8px;">📊 免费体验评估（基于前 2 题）</div>
+              <div style="background:#fff; border-radius:10px; padding:14px; margin-bottom:12px; border:1px solid #e2e8f0;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+                  <div style="width:50px; height:50px; border-radius:50%; background:conic-gradient(#d97706 ${avgScore * 3.6}deg, #e2e8f0 0deg); display:flex; align-items:center; justify-content:center;">
+                    <div style="width:40px; height:40px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center;">
+                      <span style="font-size:16px; font-weight:900; color:#d97706;">${avgScore}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size:14px; font-weight:700; color:var(--text-main);">面试模拟得分</div>
+                    <div style="font-size:12px; color:#d97706;">${avgScore >= 75 ? '表现不错，但还有提升空间' : avgScore >= 60 ? '基础尚可，需要针对性训练' : '需要重点加强面试技巧'}</div>
+                  </div>
+                </div>
+                <div style="font-size:12px; color:#dc2626; background:#fef2f2; padding:8px 12px; border-radius:8px; margin-top:8px;">
+                  <i class="ri-error-warning-line"></i> 你的面试得分低于同类求职者平均值 <strong>${belowAvg}%</strong>。面试是35+求职者最大的门槛——每一次失败的面试都在消耗你的信心和机会。
+                </div>
+              </div>
+              <div style="font-weight:700; margin-bottom:6px;">🔒 解锁完整面试（共 12 题）</div>
+              <div style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+                剩余 10 道题覆盖：问题解决、沟通协作、薪资谈判、抗压能力等全维度<br>
+                完成后获得：逐题评分 + 改进建议 + 面试技巧指南
+              </div>
+              <div style="text-align:center;">
+                <div style="display:inline-block; background:linear-gradient(135deg,#f59e0b,#f97316); color:#fff; padding:12px 28px; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(245,158,11,0.4);" onclick="app.showPaywall('interview')">
+                  <i class="ri-vip-crown-line"></i> 解锁完整模拟面试 ¥39.9
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">一次付费，可反复练习</div>
+              </div>
+            </div>
+          </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+        state.active = false;
+        return;
+      }
+
+      // 继续下一题
+      state.currentQuestionIdx++;
+      const nextQ = state.questions[state.currentQuestionIdx];
+      const progress = state.questionCount + 1;
+
       chatBox.innerHTML += `
         <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-          <div class="msg-avatar" style="background:#0a58ff; color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ri-robot-fill"></i></div>
+          <div class="msg-avatar" style="background:#0a58ff; color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ri-robot-fill"></i></div>
           <div class="msg-content" style="background:#f1f5f9; color:var(--text-main); padding:12px 16px; border-radius:14px; max-width:80%; font-size:14px; line-height:1.6;">
-            针对你提到的岗位【${txt}】，面试官非常看重处理突发情况的能力。如果遇到团队意见分歧，你会采取什么沟通策略？
+            <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:4px;">第 ${progress} 题 / 共 12 题 · ${nextQ.dim}</div>
+            ${nextQ.q}
           </div>
         </div>
       `;
       chatBox.scrollTop = chatBox.scrollHeight;
-    }, 1000);
+      state.questionCount++;
+    }, 800);
   },
 
   // 会员 Modal
