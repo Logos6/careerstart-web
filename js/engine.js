@@ -540,10 +540,158 @@
     let total = 0;
     for (const d of result.dimensions) total += d.score * (d.weight / 100);
     result.totalScore = Math.round(total);
-    if (total >= 80) result.summary = '简历整体质量较高。';
-    else if (total >= 60) result.summary = '简历有基础，多个维度有优化空间。';
-    else if (total >= 40) result.summary = '简历存在明显短板，需针对性优化。';
-    else result.summary = '问题较多，建议按下方剖析逐项改进。';
+
+    // ==================== 新结构化输出 ====================
+
+    // 等级
+    if (total >= 90) result.level = '优秀';
+    else if (total >= 75) result.level = '良好';
+    else if (total >= 60) result.level = '一般';
+    else if (total >= 40) result.level = '较差';
+    else result.level = '很差';
+
+    // 总体评价
+    if (total >= 90) result.summary = '简历无明显硬伤，职业路径清晰，量化成果充分，目标岗位匹配度高。';
+    else if (total >= 75) result.summary = '简历整体不错，有1-2处小瑕疵，但不影响整体竞争力。';
+    else if (total >= 60) result.summary = '简历存在明显问题，需要中等程度的修改。';
+    else if (total >= 40) result.summary = '简历存在多项硬伤，需要大幅修改。';
+    else result.summary = '简历存在致命问题，几乎需要重写。';
+
+    // 优点
+    result.strengths = [];
+    if (quantified.length >= 5) result.strengths.push(`包含 ${quantified.length} 处量化数据，数据说服力较强`);
+    if (strongHits.length >= 3) result.strengths.push(`使用了「${strongHits.slice(0,3).join('、')}」等专业动词，表述力度好`);
+    if (structScore >= 80) result.strengths.push('简历结构完整，包含联系方式、工作经历、教育背景、技能和自我评价');
+    if (hitKeywords.length >= 10) result.strengths.push(`覆盖 ${hitKeywords.length} 个核心关键词，ATS通过率较高`);
+    if (charCount >= 500 && charCount <= 1500) result.strengths.push('篇幅适中，信息密度合理');
+    if (ageBias.issues.length === 0) result.strengths.push('未发现年龄歧视风险表述');
+    if (result.strengths.length === 0) result.strengths.push('简历有基本框架，具备改进基础');
+
+    // 风险点
+    result.risks = [];
+
+    // 年龄风险
+    if (ageBias.issues.length > 0) {
+      ageBias.issues.forEach(issue => {
+        result.risks.push({
+          type: '年龄歧视风险',
+          severity: '高危',
+          detail: `「${issue.word}」——${issue.desc}`,
+          consequence: '可能触发ATS系统自动筛除，HR直接跳过简历',
+          suggestion: `改为：${issue.suggestion}`
+        });
+      });
+    }
+
+    // 弱化动词
+    if (weakHits.length > 0) {
+      result.risks.push({
+        type: '表述力度',
+        severity: weakHits.length > 3 ? '高危' : '中危',
+        detail: `使用了 ${weakHits.length} 处弱化动词（如「${weakFound.slice(0,3).map(w=>w.word).join('、')}」），HR判断你可能是配角而非主角`,
+        consequence: '降低HR对你能力的预期，面试邀约率下降',
+        suggestion: '将「负责/参与/协助」全部替换为「主导/统筹/推动/搭建/优化」'
+      });
+    }
+
+    // 数据不足
+    if (quantified.length < 3) {
+      result.risks.push({
+        type: '数据说服力',
+        severity: quantified.length === 0 ? '高危' : '中危',
+        detail: quantified.length === 0 ? '整篇简历无任何量化数据，HR无法判断你的实际能力水平' : `仅 ${quantified.length} 处量化数据，信息量不足`,
+        consequence: '没有数据支撑的工作经历在HR眼里约等于「没做过」',
+        suggestion: '回顾每段工作：管了多少人？花了多少钱？产出了多少？把数字写出来'
+      });
+    }
+
+    // 模糊工作经历
+    if (vagueWorkLines.length > 0) {
+      result.risks.push({
+        type: '成果说服力',
+        severity: vagueWorkLines.length > 2 ? '高危' : '中危',
+        detail: `${vagueWorkLines.length} 条工作经历只写了「做了什么」，没写「做出了什么结果」，把职责当成果`,
+        consequence: 'HR无法区分你的实际贡献，简历竞争力大幅下降',
+        suggestion: '用「动作动词+具体事项+量化结果」公式重写，如：主导3个项目交付，按时交付率从70%提升至95%'
+      });
+    }
+
+    // 关键词不足
+    if (hitKeywords.length < 8) {
+      const missingKw = skillKeywords.filter(k => !t.includes(k));
+      result.risks.push({
+        type: 'ATS关键词',
+        severity: hitKeywords.length < 5 ? '高危' : '中危',
+        detail: `仅匹配 ${hitKeywords.length}/${skillKeywords.length} 个核心关键词，缺失：${missingKw.slice(0,5).join('、')}`,
+        consequence: '70%+企业使用ATS自动筛选，关键词不足会在系统层被直接过滤',
+        suggestion: '在描述工作经历时自然带入关键词，不需要生硬堆砌'
+      });
+    }
+
+    // 空窗期
+    if (years.length >= 2) {
+      const gaps = [];
+      for (let i = 1; i < years.length; i++) {
+        const diff = years[i] - years[i - 1];
+        if (diff > 1) gaps.push({ from: years[i - 1], to: years[i], months: diff * 12 });
+      }
+      const hasExplanation = /学习|进修|考证|培训|照顾|育儿|自由职业|创业|兼职|全职妈妈|家庭/.test(t);
+      if (gaps.length > 0 && !hasExplanation) {
+        result.risks.push({
+          type: '职业路径',
+          severity: '中危',
+          detail: `存在 ${gaps.length} 段职业空白期（如 ${gaps[0].from}-${gaps[0].to} 年），且无合理解释`,
+          consequence: 'HR会怀疑：是否被裁？能力不行找不到工作？',
+          suggestion: '正面解释空白期，如「期间全职照顾家人，同时完成了PMP认证和Python课程」'
+        });
+      }
+    }
+
+    // 自我评价
+    if (selfContent) {
+      const genericWords = selfContent.match(/热爱|喜欢|积极|乐观|认真|负责|团队|学习|抗压|沟通|踏实|勤奋|细心/g) || [];
+      if (genericWords.length >= 3) {
+        result.risks.push({
+          type: '自我评价',
+          severity: '低危',
+          detail: `自我评价使用了「${[...new Set(genericWords)].slice(0,3).join('、')}」等套话，90%简历都在用`,
+          consequence: 'HR看了等于没看，错过展示核心竞争力的机会',
+          suggestion: '用一句话概括最大竞争力，如「10年供应链管理经验，主导3次系统迁移，累计节省200万+」'
+        });
+      }
+    }
+
+    // 技能描述
+    if (skillLines.length > 0) {
+      const skillGeneric = skillLines.filter(l => /Office|Word|Excel|PPT|普通话|英语|计算机/.test(l));
+      if (skillGeneric.length > 0 && skillLines.length <= 4) {
+        result.risks.push({
+          type: '技能匹配',
+          severity: '低危',
+          detail: '技能模块主要列的是Office/英语等通用技能，这些是35+求职者标配，不是加分项',
+          consequence: '无法体现不可替代性，和年轻候选人没有差异化',
+          suggestion: '突出行业Know-how、特定系统经验、管理能力等35+专属优势'
+        });
+      }
+    }
+
+    // 目标岗位匹配度（基于简历内容推断）
+    result.match_analysis = {
+      target_position: '未明确（简历未指定目标岗位）',
+      match_level: '未评估',
+      gap_description: '简历中未明确求职意向，无法评估匹配度。建议在简历顶部添加明确的求职目标。',
+      key_missing_skills: []
+    };
+
+    // 优化建议
+    result.optimization_tips = [];
+    if (quantified.length < 5) result.optimization_tips.push('给每段工作经历补充1-2个量化成果（人数、金额、百分比、时间缩短等）');
+    if (weakHits.length > 0) result.optimization_tips.push('将所有弱化动词替换为高强度动词：主导/统筹/推动/搭建/优化/达成/突破');
+    if (hitKeywords.length < 10) result.optimization_tips.push('在工作经历描述中自然融入更多行业关键词，提升ATS通过率');
+    if (vagueWorkLines.length > 0) result.optimization_tips.push('用「动作动词+具体事项+量化结果」公式重写模糊的工作描述');
+    if (ageBias.issues.length > 0) result.optimization_tips.push('删除或替换可能触发年龄歧视的表述（如毕业年份、年龄相关词汇）');
+    if (selfContent && /热爱|喜欢|积极|乐观|认真|负责/.test(selfContent)) result.optimization_tips.push('重写自我评价，用一句话概括核心竞争力，避免套话');
+    if (result.optimization_tips.length === 0) result.optimization_tips.push('简历质量较高，可针对目标岗位做定制化微调');
 
     return result;
   }
