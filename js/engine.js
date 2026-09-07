@@ -257,145 +257,217 @@
     // 10. 年龄歧视
     const ageBias = detectAgeBias(t);
 
-    // ==================== 生成深度剖析文本 ====================
+    // ==================== 生成深度剖析 ====================
     result.deepAnalysis = [];
 
-    // 开篇总览
-    const wordCountApprox = Math.round(charCount / 2);
+    // ── 开篇：一句话定性 ──
     result.deepAnalysis.push({
-      title: '简历概览',
+      title: '简历总览',
       icon: 'ri-file-text-line',
       paragraphs: [
-        `这份简历共 ${lineCount} 行，约 ${wordCountApprox} 字。${charCount < 300 ? '内容偏少，HR获取的信息量不足以做出面试判断。' : charCount > 2000 ? '篇幅较长，建议精简到1页以内，HR平均只花6-8秒扫一份简历。' : '篇幅适中。'}`,
-        `${workLines.length ? `找到 ${workLines.length} 条与工作经历相关的表述` : '未发现明确的工作经历描述'}。${skillLines.length ? `${skillLines.length} 处技能相关表述。` : ''}${timeMatches.length ? `时间线跨度从 ${years[0]} 年到 ${years[years.length-1]} 年。` : ''}`
+        charCount < 200
+          ? `这份简历只有约 ${wordCountApprox} 字，信息量严重不足。HR 平均用 6-8 秒扫一份简历，你给他的信息甚至不够他读完一段话。一份合格的简历至少需要 500-800 字，覆盖工作经历、技能和教育背景。`
+          : charCount < 500
+          ? `这份简历约 ${wordCountApprox} 字，信息量偏少。对 HR 来说，这意味着他需要「猜」你的能力边界——而 HR 是不会猜的，信息不够就直接 Pass。`
+          : charCount > 2000
+          ? `这份简历约 ${wordCountApprox} 字，篇幅偏长。HR 的阅读习惯是「扫」而不是「读」，超过 1 页的简历有 80% 的内容不会被看到。建议精简到 1 页，把最有冲击力的内容留在前面。`
+          : `这份简历约 ${wordCountApprox} 字，篇幅适中。接下来我会逐项帮你拆解，看哪些地方需要调整。`
       ]
     });
 
-    // 逐句剖析弱化表述
-    if (weakFound.length > 0) {
-      const weakAnalysis = {
-        title: '动词力度分析',
-        icon: 'ri-quill-pen-line',
-        paragraphs: []
-      };
-      weakAnalysis.paragraphs.push(`你在简历中使用了 ${weakFound.length} 处偏弱的动词表述。这些词会让HR觉得你只是「做了这件事」，而不是「做出了成绩」。`);
-      weakFound.slice(0, 4).forEach(item => {
-        weakAnalysis.paragraphs.push(`• 你写的是「${item.context}」——这里的「${item.word}」是典型的被动表述。建议改成：主导/统筹/推动/优化，让HR看到你是这件事的主人，而不是旁观者。`);
-      });
-      if (strongFound.length) {
-        weakAnalysis.paragraphs.push(`不过你也用了一些不错的动词，比如「${strongFound.slice(0,3).join('、')}」，只是不够统一。建议全文统一使用强有力动词。`);
-      }
-      result.deepAnalysis.push(weakAnalysis);
-    } else if (strongFound.length) {
-      result.deepAnalysis.push({
-        title: '动词力度分析',
+    // ── 弱化动词逐句剖析 ──
+    if (weakHits.length > 0) {
+      const section = {
+        title: '表述力度诊断',
         icon: 'ri-quill-pen-line',
         paragraphs: [
-          `你使用了 ${strongFound.length} 个专业行动动词：「${strongFound.slice(0,5).join('、')}」，动词选择整体不错，能有效传达你的主动性和执行力。`
+          `你在简历中用了 ${weakHits.length} 处偏弱的动词。这个问题看似小事，但直接影响 HR 对你「是主角还是配角」的判断。逐句来看：`
+        ]
+      };
+      weakHits.slice(0, 5).forEach((item, i) => {
+        section.paragraphs.push(`${i + 1}. 你写的是「${item.sentence}」——${item.desc}`);
+      });
+      if (strongHits.length > 0) {
+        section.paragraphs.push(`不过你简历里也出现了一些不错的动词，比如「${strongHits.slice(0, 3).join('、')}」。问题是用得不够统一，建议全文保持一致的高强度动词风格。`);
+      }
+      section.paragraphs.push(`改法很简单：把「负责/参与/协助」全部替换成「主导/统筹/推动/搭建/优化」。同一个意思，换一个词，HR 的感受完全不同。`);
+      result.deepAnalysis.push(section);
+    } else if (strongHits.length > 0) {
+      result.deepAnalysis.push({
+        title: '表述力度诊断',
+        icon: 'ri-quill-pen-line',
+        paragraphs: [
+          `动词选择整体不错，用了「${strongHits.join('、')}」等专业动词，能有效传达你的主导权和执行力。继续保持这个风格。`
         ]
       });
     }
 
-    // 量化成果深度分析
-    const quantAnalysis = {
-      title: '数据说服力分析',
+    // ── 数据说服力逐条剖析 ──
+    const quantSection = {
+      title: '数据说服力诊断',
       icon: 'ri-bar-chart-grouped-line',
       paragraphs: []
     };
     if (quantified.length >= 5) {
-      quantAnalysis.paragraphs.push(`你的简历包含 ${quantified.length} 处量化数据，这在35+求职者中属于较好水平。`);
-      quantifyDetails.slice(0, 3).forEach(d => {
-        quantAnalysis.paragraphs.push(`• 比如「${d}」——这类数据能让HR直观看到你的成果，比单纯说「负责XX工作」有说服力得多。`);
+      quantSection.paragraphs.push(`你的简历包含 ${quantified.length} 处量化数据，在 35+ 求职者中属于较好水平。数据是简历里最有说服力的武器，你已经用起来了。`);
+      quantified.slice(0, 3).forEach(q => {
+        quantSection.paragraphs.push(`• 你写了「${q.context}」——这种有具体数字的表述，HR 一看就知道你做到了什么程度，比单纯说「负责XX工作」强十倍。`);
       });
+      if (quantified.length > 5) {
+        quantSection.paragraphs.push(`不过要检查一下：这些数据是你真实能力的体现，还是有夸大的成分？面试时 HR 可能会追问数据来源，确保每个数字都能自圆其说。`);
+      }
     } else if (quantified.length > 0) {
-      quantAnalysis.paragraphs.push(`你的简历中仅发现 ${quantified.length} 处量化数据。有数据比没有好，但数量偏少。`);
-      quantifyDetails.forEach(d => {
-        quantAnalysis.paragraphs.push(`• 你提到「${d}」，这是好的开头。`);
+      quantSection.paragraphs.push(`你的简历中仅找到 ${quantified.length} 处量化数据。这说明你有「用数据说话」的意识，但执行得还不够。`);
+      quantified.forEach(q => {
+        quantSection.paragraphs.push(`• 你写了「${q.context}」——这是好的开头，但一篇简历至少需要 5 个以上的数据点才能建立起「数据感」。`);
       });
-      quantAnalysis.paragraphs.push(`• 建议：每段工作经历至少补充1-2个数据。比如「管理XX人团队」「提升XX%效率」「节省XX万成本」「完成XX个项目」。没有数据支撑的工作经历，说服力会大打折扣。`);
+      quantSection.paragraphs.push(`怎么补？回顾你每段工作经历，问自己三个问题：我管了多少人？花了多少钱？产出了多少？哪怕是估算的也比没有强。比如「管理 8 人团队」「负责 50 万预算」「服务 200+ 客户」「将处理时间从 3 天缩短到 4 小时」。`);
     } else {
-      quantAnalysis.paragraphs.push(`你的简历中没有找到任何量化数据（数字+单位的组合）。这是35+求职简历中最常见的问题。`);
-      quantAnalysis.paragraphs.push(`• HR看到「负责项目管理」会想：管理了几个？多大规模？什么行业？没数据就等于没说。`);
-      quantAnalysis.paragraphs.push(`• 建议：回顾你过去的工作，至少补充3-5个数据点。哪怕是估算的也比没有强。比如「带领5人小组」「项目预算50万」「服务200+客户」。`);
+      quantSection.paragraphs.push(
+        `这是你简历最大的问题：整篇没有一个量化数据。`,
+        `HR 看到「负责项目管理」会怎么想？管理了几个项目？多大规模？预算多少？团队多大？什么结果？——你一个都没回答。没有数据支撑的工作经历，在 HR 眼里约等于「没做过」。`,
+        `35+ 求职者和应届生最大的区别，就是你有大量可量化的真实业绩。好好回忆一下：你带过多少人的团队？做过多少预算的项目？服务过多少客户？把数字写出来，你的简历说服力会翻倍。`
+      );
     }
-    result.deepAnalysis.push(quantAnalysis);
+    result.deepAnalysis.push(quantSection);
 
-    // 工作经历质量
+    // ── 工作经历质量 ──
     if (vagueWorkLines.length > 0) {
       result.deepAnalysis.push({
-        title: '工作经历质量',
+        title: '工作经历质量诊断',
         icon: 'ri-briefcase-line',
         paragraphs: [
-          `你有 ${vagueWorkLines.length} 条工作经历描述缺乏数据支撑，只描述了「做了什么」而没有说「做出了什么结果」。`,
-          `• 你写「${vagueWorkLines[0].trim().substring(0, 60)}${vagueWorkLines[0].trim().length > 60 ? '...' : ''}」——这句话告诉HR你做了这件事，但没告诉他你做得怎么样。`,
-          `• 好的工作经历描述公式：动作动词 + 具体事项 + 量化结果。例如：「主导XX项目重构，将处理时间从3天缩短到4小时，效率提升83%」。`
+          `你有 ${vagueWorkLines.length} 条工作经历只描述了「做了什么」，完全没有说「做出了什么结果」。这是 35+ 简历中最常见的问题——把职责当成果写。`,
+          `• 你写了「${vagueWorkLines[0].trim().substring(0, 80)}${vagueWorkLines[0].trim().length > 80 ? '...' : ''}」——这句话告诉 HR 你做了这件事，但没告诉他你做得好不好。`,
+          `记住这个公式：<strong>动作动词 + 具体事项 + 量化结果</strong>。比如：`,
+          `改前：负责项目管理工作`,
+          `改后：主导 3 个并行项目交付，管理 8 人跨部门团队，项目按时交付率从 70% 提升至 95%`,
+          `改前：协助部门完成日常行政工作`,
+          `改后：统筹部门年度预算 120 万，优化采购流程后节省 15% 支出，连续两年零超支`
         ]
       });
     }
 
-    // 空窗期
+    // ── 空窗期 ──
     if (years.length >= 2) {
       const gaps = [];
       for (let i = 1; i < years.length; i++) {
-        const diff = years[i] - years[i-1];
-        if (diff > 1) gaps.push({ from: years[i-1], to: years[i], months: diff * 12 });
+        const diff = years[i] - years[i - 1];
+        if (diff > 1) gaps.push({ from: years[i - 1], to: years[i], months: diff * 12 });
       }
       if (gaps.length > 0) {
-        const gapAnalysis = { title: '时间线连续性', icon: 'ri-calendar-timeline-line', paragraphs: [] };
+        const gapSection = { title: '时间线诊断', icon: 'ri-calendar-timeline-line', paragraphs: [] };
         gaps.forEach(g => {
-          const gapLine = `• 从 ${g.from} 年到 ${g.to} 年之间有约 ${g.months} 个月的空白。`;
-          if (/学习|进修|考证|培训|照顾|育儿|自由职业|创业|兼职/.test(t)) {
-            gapAnalysis.paragraphs.push(gapLine + '好在你的简历中提到了这段期间的活动（学习/照顾/创业等），这让空白期变得合理。');
+          const hasExplanation = /学习|进修|考证|培训|照顾|育儿|自由职业|创业|兼职|全职妈妈|家庭/.test(t);
+          if (hasExplanation) {
+            gapSection.paragraphs.push(
+              `从 ${g.from} 年到 ${g.to} 年之间有约 ${g.months} 个月的空白。你简历中提到了这段时间在做什么，这是对的——HR 不怕空白，怕的是没有解释的空白。`
+            );
           } else {
-            gapAnalysis.paragraphs.push(gapLine + '这段空白没有解释，HR会好奇你这段时间在做什么。建议正面说明：照顾家人、自主学习、自由职业等，把「空白」变成「成长」。');
+            gapSection.paragraphs.push(
+              `从 ${g.from} 年到 ${g.to} 年之间有约 ${g.months} 个月的空白，而且没有做任何解释。HR 看到空白期会本能地怀疑：这人在干什么？是不是被裁了？能力不行找不到工作？`,
+              `正面解释反而能加分。比如：「期间全职照顾家人，同时完成了 PMP 认证和 Python 在线课程」「期间自由职业，为 3 家中小企业提供咨询服务」。把空白变成成长故事。`
+            );
           }
         });
-        result.deepAnalysis.push(gapAnalysis);
+        result.deepAnalysis.push(gapSection);
       }
     }
 
-    // 关键词覆盖
+    // ── 关键词 ──
     if (hitKeywords.length < 8) {
-      const missingKw = skillKeywords.filter(k => !t.includes(k)).slice(0, 6);
+      const missingKw = skillKeywords.filter(k => !t.includes(k));
       result.deepAnalysis.push({
-        title: 'ATS关键词匹配',
+        title: 'ATS 关键词诊断',
         icon: 'ri-key-2-line',
         paragraphs: [
-          `你的简历匹配了 ${hitKeywords.length} 个核心能力关键词。越来越多企业使用ATS（简历筛选系统）自动过滤，关键词不足会在系统层面就被淘汰。`,
-          `• 缺失的关键词：${missingKw.join('、')}。建议在工作经历或技能模块中自然融入这些词。`
+          `你的简历只匹配了 ${hitKeywords.length} 个核心能力关键词（共 ${skillKeywords.length} 个）。现在超过 70% 的企业用 ATS（简历筛选系统）自动过滤，关键词不足意味着你的简历在系统层面就会被筛掉，HR 根本看不到。`,
+          `• 缺失的关键词：${missingKw.join('、')}。`,
+          `• 怎么补？不需要生硬堆砌，而是在描述工作经历时自然带入。比如你做过销售相关工作，就在描述中加入「销售管理」「市场分析」「客户运营」等词。`
         ]
       });
     }
 
-    // 年龄歧视
+    // ── 年龄歧视 ──
     if (ageBias.issues.length > 0) {
       result.deepAnalysis.push({
         title: '年龄歧视风险',
         icon: 'ri-shield-check-line',
         paragraphs: [
-          `你的简历中检测到 ${ageBias.issues.length} 处可能触发筛除的表述：`,
-          ...ageBias.issues.map(i => `• 「${i.word}」——${i.desc}。建议修改为：${i.suggestion}`)
+          `你的简历中有 ${ageBias.issues.length} 处可能触发 ATS 或 HR 自动筛除的表述：`,
+          ...ageBias.issues.map(i => `• 「${i.word}」——${i.desc}。改为：${i.suggestion}`),
+          `35+ 求职者的简历要格外注意这一点。很多 HR 看到年龄相关关键词会直接跳过，不是因为你能力不行，而是系统先把你的简历过滤了。`
         ]
       });
     }
 
-    // 自我评价
+    // ── 自我评价 ──
     if (selfContent) {
-      const selfVerbs = selfContent.match(/热爱|喜欢|积极|乐观|认真|负责|团队|学习/g) || [];
-      if (selfVerbs.length >= 3) {
+      const genericWords = selfContent.match(/热爱|喜欢|积极|乐观|认真|负责|团队|学习|抗压|沟通|踏实|勤奋|细心/g) || [];
+      if (genericWords.length >= 3) {
         result.deepAnalysis.push({
-          title: '自我评价分析',
+          title: '自我评价诊断',
           icon: 'ri-user-heart-line',
           paragraphs: [
-            `你的自我评价使用了「${selfVerbs.slice(0,3).join('、')}」等通用词汇。这类表述在90%的简历中都会出现，缺乏辨识度。`,
-            `• 建议：用具体事例替代空泛形容词。比如不说「我学习能力强」，而说「2周内自学Python并完成数据分析项目」。`
+            `你的自我评价里出现了「${[...new Set(genericWords)].slice(0, 5).join('、')}」这类词。问题是：90% 的简历都在用这些词，HR 已经完全免疫了。`,
+            `自我评价应该是一个「微型卖点」，用一句话概括你最大的竞争力。比如：`,
+            `改前：「本人性格开朗，工作认真负责，有团队精神」`,
+            `改后：「10 年供应链管理经验，主导过 3 次仓库系统迁移，累计节省物流成本 200 万+」`,
+            `前者 HR 看了等于没看，后者 HR 会想：这个人有点东西，我要仔细看看他的工作经历。`
           ]
         });
       }
     }
 
+    // ── 技能描述 ──
+    const skillLines = lines.filter(l => /精通|熟练|掌握|熟悉|了解|擅长|技能|能力/.test(l));
+    if (skillLines.length > 0) {
+      const skillGeneric = skillLines.filter(l => /Office|Word|Excel|PPT|普通话|英语|计算机/.test(l));
+      if (skillGeneric.length > 0 && skillLines.length <= 4) {
+        result.deepAnalysis.push({
+          title: '技能描述诊断',
+          icon: 'ri-tools-line',
+          paragraphs: [
+            `你的技能模块主要列的是「${skillGeneric.map(l => l.trim().substring(0, 15)).join('、')}」这类通用技能。问题是：这些是 35+ 求职者的标配，不是加分项。HR 看到「精通 Office」的反应是：这不是应该的吗？`,
+            `35+ 求职者的技能模块应该突出「不可替代性」——你有什么是年轻候选人没有的？比如行业 Know-how、特定系统经验、管理能力、客户资源等。`
+          ]
+        });
+      }
+    }
+
+    // ── 总结 ──
+    const issueCount = weakHits.length + (quantified.length < 3 ? 1 : 0) + vagueWorkLines.length + (ageBias.issues.length > 0 ? 1 : 0);
+    if (issueCount > 3) {
+      result.deepAnalysis.push({
+        title: '整体建议',
+        icon: 'ri-lightbulb-line',
+        paragraphs: [
+          `你的简历有 ${issueCount} 个需要改进的地方。好消息是：这些问题都不难改，改完之后效果会非常明显。`,
+          `最值得优先处理的两件事：`,
+          `1. <strong>补数据</strong>——给每段工作经历加上 1-2 个量化成果，这是 35+ 简历最大的差异化武器。`,
+          `2. <strong>换动词</strong>——把所有「负责/参与/协助」替换成「主导/统筹/推动」，一个字的改变，HR 的感受完全不同。`,
+          `这两件事做完，你的简历质量至少提升 30%。`
+        ]
+      });
+    } else if (issueCount > 0) {
+      result.deepAnalysis.push({
+        title: '整体建议',
+        icon: 'ri-lightbulb-line',
+        paragraphs: [
+          `你的简历基础不错，只有 ${issueCount} 个小问题需要调整。改完这些细节，面试邀约率会进一步提升。`
+        ]
+      });
+    } else {
+      result.deepAnalysis.push({
+        title: '整体建议',
+        icon: 'ri-lightbulb-line',
+        paragraphs: [
+          `你的简历整体质量很高，没有发现明显的硬伤。保持这个水平，针对目标岗位稍作定制化调整即可。`
+        ]
+      });
+    }
+
     // ==================== 六维度评分 ====================
-    // 1. 年龄歧视
     result.dimensions.push({
       name: '年龄歧视风险',
       icon: 'ri-shield-check-line',
@@ -405,7 +477,6 @@
       color: ageBias.riskColor
     });
 
-    // 2. 结构
     const hasContact = /[\w.-]+@[\w.-]+|1[3-9]\d{9}|微信|手机|电话|联系方式/.test(t);
     const hasWork = /工作经历|工作经验|从业经历|任职|负责|担任|参与/.test(t);
     const hasEdu = /教育背景|学历|毕业|学位|本科|大专|硕士|博士|学校/.test(t);
@@ -421,7 +492,6 @@
       color: structScore >= 80 ? '#2ea56a' : structScore >= 50 ? '#d97706' : '#dc2626'
     });
 
-    // 3. 量化
     const quantScore = Math.min(100, quantified.length >= 5 ? 90 : quantified.length >= 3 ? 70 : quantified.length >= 1 ? 40 : 10);
     result.dimensions.push({
       name: '数据说服力',
@@ -432,18 +502,16 @@
       color: quantScore >= 70 ? '#2ea56a' : quantScore >= 40 ? '#d97706' : '#dc2626'
     });
 
-    // 4. 动词力度
-    const profScore = Math.min(100, Math.max(10, 50 + strongFound.length * 8 - weakFound.length * 12));
+    const profScore = Math.min(100, Math.max(10, 50 + strongHits.length * 8 - weakHits.length * 12));
     result.dimensions.push({
       name: '动词力度',
       icon: 'ri-quill-pen-line',
       score: profScore,
       weight: 15,
-      detail: `${strongFound.length} 强 / ${weakFound.length} 弱`,
+      detail: `${strongHits.length} 强 / ${weakHits.length} 弱`,
       color: profScore >= 70 ? '#2ea56a' : profScore >= 40 ? '#d97706' : '#dc2626'
     });
 
-    // 5. 关键词
     const kwScore = Math.min(100, hitKeywords.length * 8);
     result.dimensions.push({
       name: '关键词覆盖',
@@ -454,7 +522,6 @@
       color: kwScore >= 70 ? '#2ea56a' : kwScore >= 40 ? '#d97706' : '#dc2626'
     });
 
-    // 6. 信息密度
     const densityScore = Math.min(100, charCount < 200 ? 20 : charCount < 400 ? 40 : charCount < 1500 ? 80 : charCount < 2500 ? 70 : 50);
     result.dimensions.push({
       name: '信息密度',
@@ -469,11 +536,10 @@
     let total = 0;
     for (const d of result.dimensions) total += d.score * (d.weight / 100);
     result.totalScore = Math.round(total);
-
     if (total >= 80) result.summary = '简历整体质量较高。';
-    else if (total >= 60) result.summary = '简历有基础，但多个维度有优化空间。';
-    else if (total >= 40) result.summary = '简历存在明显短板，需要针对性优化。';
-    else result.summary = '简历问题较多，建议按下方剖析逐项改进。';
+    else if (total >= 60) result.summary = '简历有基础，多个维度有优化空间。';
+    else if (total >= 40) result.summary = '简历存在明显短板，需针对性优化。';
+    else result.summary = '问题较多，建议按下方剖析逐项改进。';
 
     return result;
   }
