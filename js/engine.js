@@ -184,516 +184,559 @@
     return { score, riskLevel, riskColor, issues: found, summary };
   }
 
-  // 多维度简历诊断
+  // 多维度简历诊断（智能版）
   function diagnoseResume(text, targetJob) {
     if (!text || !text.trim()) return null;
     const t = text.trim();
     const lines = t.split(/\n/).filter(l => l.trim());
+
+    // ==================== 智能解析 ====================
+
+    // 1. 提取结构化信息
+    const sections = parseResumeSections(t, lines);
+    const timeline = extractTimeline(t);
+    const contacts = extractContacts(t);
+    const skills = extractSkills(t);
+    const achievements = extractAchievements(t);
+    const weakPhrases = extractWeakPhrases(t);
+    const strongPhrases = extractStrongPhrases(t);
+
+    // 2. 计算各维度分数
+    const scores = calculateDimensionScores({
+      sections, timeline, contacts, skills, achievements,
+      weakPhrases, strongPhrases, text: t, lines
+    });
+
+    // 3. 生成诊断结果
     const result = {
-      totalScore: 0,
-      dimensions: [],
-      deepAnalysis: [],
-      summary: ''
+      totalScore: scores.total,
+      level: getLevel(scores.total),
+      summary: generateSummary(scores, sections, timeline, achievements),
+      strengths: findStrengths(scores, sections, achievements, skills),
+      risks: findRisks(scores, sections, timeline, achievements, weakPhrases, contacts, skills, t),
+      match_analysis: analyzeMatch(t, skills, sections),
+      optimization_tips: generateTips(scores, sections, achievements, weakPhrases, skills),
+      dimensions: buildDimensions(scores),
+      deepAnalysis: []  // 兼容旧版
     };
 
-    // ==================== 深度剖析引擎 ====================
+    return result;
+  }
 
-    // 1. 简历长度与信息密度
-    const charCount = t.replace(/\s/g, '').length;
-    const lineCount = lines.length;
-    const avgLineLen = charCount / Math.max(1, lineCount);
+  // ==================== 智能解析函数 ====================
 
-    // 2. 找出所有弱化表述及其所在行
-    const weakWords = ['负责过','做过','参与了','帮忙','打杂','还行','还可以','一般','普通','基本','协助','配合'];
-    const weakFound = [];
-    for (const w of weakWords) {
-      const idx = t.indexOf(w);
-      if (idx !== -1) {
-        // 取该词前后各20字作为上下文
-        const start = Math.max(0, idx - 20);
-        const end = Math.min(t.length, idx + w.length + 20);
-        const context = t.substring(start, end).replace(/\n/g, ' ').trim();
-        weakFound.push({ word: w, context: context });
+  // 解析简历各区块
+  function parseResumeSections(text, lines) {
+    const sectionPatterns = [
+      { name: 'header', regex: /^(自我评价|个人简介|求职意向|个人总结|关于我)/m },
+      { name: 'contact', regex: /联系方式|电话|手机|邮箱|Email|微信|地址/m },
+      { name: 'education', regex: /教育背景|学历|毕业|学位|本科|大专|硕士|博士|学校|大学|学院/m },
+      { name: 'work', regex: /工作经历|工作经验|从业经历|任职|职业经历/m },
+      { name: 'skills', regex: /专业技能|技能特长|技术能力|掌握|精通|熟练/m },
+      { name: 'projects', regex: /项目经验|项目经历|参与项目/m },
+      { name: 'certs', regex: /证书|资质|认证|执照/m },
+      { name: 'awards', regex: /荣誉|获奖|奖项|表彰/m }
+    ];
+
+    const found = {};
+    for (const s of sectionPatterns) {
+      found[s.name] = s.regex.test(text);
+    }
+
+    // 提取各区块内容
+    const workSection = text.match(/工作经历[：:\s]*([\s\S]*?)(?=教育背景|专业技能|项目经验|自我评价|$)/i);
+    const workContent = workSection ? workSection[1] : '';
+
+    const eduSection = text.match(/教育背景[：:\s]*([\s\S]*?)(?=工作经历|专业技能|项目经验|自我评价|$)/i);
+    const eduContent = eduSection ? eduSection[1] : '';
+
+    return { found, workContent, eduContent };
+  }
+
+  // 提取时间线
+  function extractTimeline(text) {
+    const patterns = [
+      /20\d{2}\s*[-–~至到/]\s*(20\d{2}|至今|现在|目前)/g,
+      /(\d{4})\s*年\s*[-–~至到/]\s*(\d{4})\s*年/g,
+      /(\d{4})\s*年(\d{1,2})\s*月\s*[-–~至到/]\s*(\d{4})\s*年(\d{1,2})\s*月/g
+    ];
+
+    const dates = [];
+    for (const p of patterns) {
+      const matches = [...text.matchAll(p)];
+      for (const m of matches) {
+        const startYear = parseInt(m[0].match(/20\d{2}/)[0]);
+        dates.push(startYear);
       }
     }
 
-    // 3. 找出量化数据
-    const quantified = t.match(/\d+[%％万元人天次个月年项目个]/g) || [];
-    const quantifyDetails = [];
-    for (const q of quantified) {
-      const idx = t.indexOf(q);
-      const start = Math.max(0, idx - 30);
-      const end = Math.min(t.length, idx + q.length + 10);
-      quantifyDetails.push(t.substring(start, end).replace(/\n/g, ' ').trim());
-    }
+    dates.sort((a, b) => a - b);
 
-    // 4. 找出工作经历条目（按时间或动词开头的行）
-    const workLines = lines.filter(l => /负责|担任|主导|参与|完成|管理|带领|协调|策划|执行/.test(l));
-    const vagueWorkLines = workLines.filter(l => !/\d+/.test(l) && !/提升|增长|节省|优化|突破/.test(l));
-
-    // 5. 找出技能描述
-    const skillLines = lines.filter(l => /精通|熟练|掌握|熟悉|了解|擅长|技能|能力/.test(l));
-
-    // 6. 找出自我评价
-    const selfEval = lines.filter(l => /自我评价|个人简介|自我介绍|关于我/.test(l));
-    const selfContent = selfEval.length ? lines.slice(lines.indexOf(selfEval[0])).join(' ').substring(0, 200) : '';
-
-    // 7. 时间线分析
-    const yearPattern = /20\d{2}\s*[-–~至到/]\s*(20\d{2}|至今|现在|目前)/g;
-    const timeMatches = [...t.matchAll(yearPattern)];
-    const years = timeMatches.map(m => {
-      const startYear = parseInt(m[0].match(/20\d{2}/)[0]);
-      return startYear;
-    }).sort((a, b) => a - b);
-
-    // 8. 专业动词统计
-    const strongVerbs = ['主导','统筹','推动','优化','提升','突破','达成','荣获','领导','管理','策划','设计','开发','搭建','从0到1','负责'];
-    const strongFound = strongVerbs.filter(v => t.includes(v));
-
-    // 9. 关键词
-    const skillKeywords = ['管理','领导','协调','沟通','策划','执行','分析','设计','开发','运营','营销','销售','财务','行政','人事','客服','项目','产品','数据','市场'];
-    const hitKeywords = skillKeywords.filter(k => t.includes(k));
-
-    // 10. 年龄歧视
-    const ageBias = detectAgeBias(t);
-
-    // 11. 补充缺失变量
-    const wordCountApprox = charCount;
-    const weakHits = weakFound.map(w => ({ sentence: w.context, desc: `使用了弱化动词「${w.word}」` }));
-    const strongHits = strongFound;
-
-    // ==================== 生成深度剖析 ====================
-    result.deepAnalysis = [];
-
-    // ── 开篇：一句话定性 ──
-    result.deepAnalysis.push({
-      title: '简历总览',
-      icon: 'ri-file-text-line',
-      paragraphs: [
-        charCount < 200
-          ? `这份简历只有约 ${wordCountApprox} 字，信息量严重不足。HR 平均用 6-8 秒扫一份简历，你给他的信息甚至不够他读完一段话。一份合格的简历至少需要 500-800 字，覆盖工作经历、技能和教育背景。`
-          : charCount < 500
-          ? `这份简历约 ${wordCountApprox} 字，信息量偏少。对 HR 来说，这意味着他需要「猜」你的能力边界——而 HR 是不会猜的，信息不够就直接 Pass。`
-          : charCount > 2000
-          ? `这份简历约 ${wordCountApprox} 字，篇幅偏长。HR 的阅读习惯是「扫」而不是「读」，超过 1 页的简历有 80% 的内容不会被看到。建议精简到 1 页，把最有冲击力的内容留在前面。`
-          : `这份简历约 ${wordCountApprox} 字，篇幅适中。接下来我会逐项帮你拆解，看哪些地方需要调整。`
-      ]
-    });
-
-    // ── 弱化动词逐句剖析 ──
-    if (weakHits.length > 0) {
-      const section = {
-        title: '表述力度诊断',
-        icon: 'ri-quill-pen-line',
-        paragraphs: [
-          `你在简历中用了 ${weakHits.length} 处偏弱的动词。这个问题看似小事，但直接影响 HR 对你「是主角还是配角」的判断。逐句来看：`
-        ]
-      };
-      weakHits.slice(0, 5).forEach((item, i) => {
-        section.paragraphs.push(`${i + 1}. 你写的是「${item.sentence}」——${item.desc}`);
-      });
-      if (strongHits.length > 0) {
-        section.paragraphs.push(`不过你简历里也出现了一些不错的动词，比如「${strongHits.slice(0, 3).join('、')}」。问题是用得不够统一，建议全文保持一致的高强度动词风格。`);
+    // 检测空白期
+    const gaps = [];
+    for (let i = 1; i < dates.length; i++) {
+      if (dates[i] - dates[i-1] > 1) {
+        gaps.push({ from: dates[i-1], to: dates[i], years: dates[i] - dates[i-1] });
       }
-      section.paragraphs.push(`改法很简单：把「负责/参与/协助」全部替换成「主导/统筹/推动/搭建/优化」。同一个意思，换一个词，HR 的感受完全不同。`);
-      result.deepAnalysis.push(section);
-    } else if (strongHits.length > 0) {
-      result.deepAnalysis.push({
-        title: '表述力度诊断',
-        icon: 'ri-quill-pen-line',
-        paragraphs: [
-          `动词选择整体不错，用了「${strongHits.join('、')}」等专业动词，能有效传达你的主导权和执行力。继续保持这个风格。`
-        ]
-      });
     }
 
-    // ── 数据说服力逐条剖析 ──
-    const quantSection = {
-      title: '数据说服力诊断',
-      icon: 'ri-bar-chart-grouped-line',
-      paragraphs: []
+    // 检测频繁跳槽
+    const recentYears = dates.filter(y => y >= 2022);
+    const jobHops = recentYears.length > 3;
+
+    return { dates, gaps, jobHops, span: dates.length > 1 ? dates[dates.length-1] - dates[0] : 0 };
+  }
+
+  // 提取联系方式
+  function extractContacts(text) {
+    const hasEmail = /[\w.-]+@[\w.-]+\.\w+/.test(text);
+    const hasPhone = /1[3-9]\d{9}/.test(text);
+    const hasWechat = /微信|wechat/i.test(text);
+    return { hasEmail, hasPhone, hasWechat, complete: hasEmail && hasPhone };
+  }
+
+  // 提取技能
+  function extractSkills(text) {
+    const skillCategories = {
+      technical: /编程|开发|Python|Java|JavaScript|SQL|数据分析|机器学习|AI|前端|后端|测试|运维/,
+      management: /管理|领导|统筹|带团队|项目管理|团队管理|部门管理/,
+      communication: /沟通|协调|谈判|汇报|演讲|培训/,
+      creative: /设计|策划|创意|文案|运营|营销|推广/,
+      admin: /行政|人事|HR|财务|客服|前台|文秘/,
+      industry: /医疗|教育|金融|电商|互联网|制造业|地产|零售|物流|餐饮/
     };
-    if (quantified.length >= 5) {
-      quantSection.paragraphs.push(`你的简历包含 ${quantified.length} 处量化数据，在 35+ 求职者中属于较好水平。数据是简历里最有说服力的武器，你已经用起来了。`);
-      quantified.slice(0, 3).forEach(q => {
-        quantSection.paragraphs.push(`• 你写了「${q.context}」——这种有具体数字的表述，HR 一看就知道你做到了什么程度，比单纯说「负责XX工作」强十倍。`);
-      });
-      if (quantified.length > 5) {
-        quantSection.paragraphs.push(`不过要检查一下：这些数据是你真实能力的体现，还是有夸大的成分？面试时 HR 可能会追问数据来源，确保每个数字都能自圆其说。`);
-      }
-    } else if (quantified.length > 0) {
-      quantSection.paragraphs.push(`你的简历中仅找到 ${quantified.length} 处量化数据。这说明你有「用数据说话」的意识，但执行得还不够。`);
-      quantified.forEach(q => {
-        quantSection.paragraphs.push(`• 你写了「${q.context}」——这是好的开头，但一篇简历至少需要 5 个以上的数据点才能建立起「数据感」。`);
-      });
-      quantSection.paragraphs.push(`怎么补？回顾你每段工作经历，问自己三个问题：我管了多少人？花了多少钱？产出了多少？哪怕是估算的也比没有强。比如「管理 8 人团队」「负责 50 万预算」「服务 200+ 客户」「将处理时间从 3 天缩短到 4 小时」。`);
-    } else {
-      quantSection.paragraphs.push(
-        `这是你简历最大的问题：整篇没有一个量化数据。`,
-        `HR 看到「负责项目管理」会怎么想？管理了几个项目？多大规模？预算多少？团队多大？什么结果？——你一个都没回答。没有数据支撑的工作经历，在 HR 眼里约等于「没做过」。`,
-        `35+ 求职者和应届生最大的区别，就是你有大量可量化的真实业绩。好好回忆一下：你带过多少人的团队？做过多少预算的项目？服务过多少客户？把数字写出来，你的简历说服力会翻倍。`
-      );
-    }
-    result.deepAnalysis.push(quantSection);
 
-    // ── 工作经历质量 ──
-    if (vagueWorkLines.length > 0) {
-      result.deepAnalysis.push({
-        title: '工作经历质量诊断',
-        icon: 'ri-briefcase-line',
-        paragraphs: [
-          `你有 ${vagueWorkLines.length} 条工作经历只描述了「做了什么」，完全没有说「做出了什么结果」。这是 35+ 简历中最常见的问题——把职责当成果写。`,
-          `• 你写了「${vagueWorkLines[0].trim().substring(0, 80)}${vagueWorkLines[0].trim().length > 80 ? '...' : ''}」——这句话告诉 HR 你做了这件事，但没告诉他你做得好不好。`,
-          `记住这个公式：<strong>动作动词 + 具体事项 + 量化结果</strong>。比如：`,
-          `改前：负责项目管理工作`,
-          `改后：主导 3 个并行项目交付，管理 8 人跨部门团队，项目按时交付率从 70% 提升至 95%`,
-          `改前：协助部门完成日常行政工作`,
-          `改后：统筹部门年度预算 120 万，优化采购流程后节省 15% 支出，连续两年零超支`
-        ]
-      });
-    }
-
-    // ── 空窗期 ──
-    if (years.length >= 2) {
-      const gaps = [];
-      for (let i = 1; i < years.length; i++) {
-        const diff = years[i] - years[i - 1];
-        if (diff > 1) gaps.push({ from: years[i - 1], to: years[i], months: diff * 12 });
-      }
-      if (gaps.length > 0) {
-        const gapSection = { title: '时间线诊断', icon: 'ri-calendar-timeline-line', paragraphs: [] };
-        gaps.forEach(g => {
-          const hasExplanation = /学习|进修|考证|培训|照顾|育儿|自由职业|创业|兼职|全职妈妈|家庭/.test(t);
-          if (hasExplanation) {
-            gapSection.paragraphs.push(
-              `从 ${g.from} 年到 ${g.to} 年之间有约 ${g.months} 个月的空白。你简历中提到了这段时间在做什么，这是对的——HR 不怕空白，怕的是没有解释的空白。`
-            );
-          } else {
-            gapSection.paragraphs.push(
-              `从 ${g.from} 年到 ${g.to} 年之间有约 ${g.months} 个月的空白，而且没有做任何解释。HR 看到空白期会本能地怀疑：这人在干什么？是不是被裁了？能力不行找不到工作？`,
-              `正面解释反而能加分。比如：「期间全职照顾家人，同时完成了 PMP 认证和 Python 在线课程」「期间自由职业，为 3 家中小企业提供咨询服务」。把空白变成成长故事。`
-            );
-          }
-        });
-        result.deepAnalysis.push(gapSection);
-      }
-    }
-
-    // ── 关键词 ──
-    if (hitKeywords.length < 8) {
-      const missingKw = skillKeywords.filter(k => !t.includes(k));
-      result.deepAnalysis.push({
-        title: 'ATS 关键词诊断',
-        icon: 'ri-key-2-line',
-        paragraphs: [
-          `你的简历只匹配了 ${hitKeywords.length} 个核心能力关键词（共 ${skillKeywords.length} 个）。现在超过 70% 的企业用 ATS（简历筛选系统）自动过滤，关键词不足意味着你的简历在系统层面就会被筛掉，HR 根本看不到。`,
-          `• 缺失的关键词：${missingKw.join('、')}。`,
-          `• 怎么补？不需要生硬堆砌，而是在描述工作经历时自然带入。比如你做过销售相关工作，就在描述中加入「销售管理」「市场分析」「客户运营」等词。`
-        ]
-      });
-    }
-
-    // ── 年龄歧视 ──
-    if (ageBias.issues.length > 0) {
-      result.deepAnalysis.push({
-        title: '年龄歧视风险',
-        icon: 'ri-shield-check-line',
-        paragraphs: [
-          `你的简历中有 ${ageBias.issues.length} 处可能触发 ATS 或 HR 自动筛除的表述：`,
-          ...ageBias.issues.map(i => `• 「${i.word}」——${i.desc}。改为：${i.suggestion}`),
-          `35+ 求职者的简历要格外注意这一点。很多 HR 看到年龄相关关键词会直接跳过，不是因为你能力不行，而是系统先把你的简历过滤了。`
-        ]
-      });
-    }
-
-    // ── 自我评价 ──
-    if (selfContent) {
-      const genericWords = selfContent.match(/热爱|喜欢|积极|乐观|认真|负责|团队|学习|抗压|沟通|踏实|勤奋|细心/g) || [];
-      if (genericWords.length >= 3) {
-        result.deepAnalysis.push({
-          title: '自我评价诊断',
-          icon: 'ri-user-heart-line',
-          paragraphs: [
-            `你的自我评价里出现了「${[...new Set(genericWords)].slice(0, 5).join('、')}」这类词。问题是：90% 的简历都在用这些词，HR 已经完全免疫了。`,
-            `自我评价应该是一个「微型卖点」，用一句话概括你最大的竞争力。比如：`,
-            `改前：「本人性格开朗，工作认真负责，有团队精神」`,
-            `改后：「10 年供应链管理经验，主导过 3 次仓库系统迁移，累计节省物流成本 200 万+」`,
-            `前者 HR 看了等于没看，后者 HR 会想：这个人有点东西，我要仔细看看他的工作经历。`
-          ]
-        });
-      }
-    }
-
-    // ── 技能描述 ──
-    if (skillLines.length > 0) {
-      const skillGeneric = skillLines.filter(l => /Office|Word|Excel|PPT|普通话|英语|计算机/.test(l));
-      if (skillGeneric.length > 0 && skillLines.length <= 4) {
-        result.deepAnalysis.push({
-          title: '技能描述诊断',
-          icon: 'ri-tools-line',
-          paragraphs: [
-            `你的技能模块主要列的是「${skillGeneric.map(l => l.trim().substring(0, 15)).join('、')}」这类通用技能。问题是：这些是 35+ 求职者的标配，不是加分项。HR 看到「精通 Office」的反应是：这不是应该的吗？`,
-            `35+ 求职者的技能模块应该突出「不可替代性」——你有什么是年轻候选人没有的？比如行业 Know-how、特定系统经验、管理能力、客户资源等。`
-          ]
-        });
-      }
-    }
-
-    // ── 总结 ──
-    const issueCount = weakHits.length + (quantified.length < 3 ? 1 : 0) + vagueWorkLines.length + (ageBias.issues.length > 0 ? 1 : 0);
-    if (issueCount > 3) {
-      result.deepAnalysis.push({
-        title: '整体建议',
-        icon: 'ri-lightbulb-line',
-        paragraphs: [
-          `你的简历有 ${issueCount} 个需要改进的地方。好消息是：这些问题都不难改，改完之后效果会非常明显。`,
-          `最值得优先处理的两件事：`,
-          `1. <strong>补数据</strong>——给每段工作经历加上 1-2 个量化成果，这是 35+ 简历最大的差异化武器。`,
-          `2. <strong>换动词</strong>——把所有「负责/参与/协助」替换成「主导/统筹/推动」，一个字的改变，HR 的感受完全不同。`,
-          `这两件事做完，你的简历质量至少提升 30%。`
-        ]
-      });
-    } else if (issueCount > 0) {
-      result.deepAnalysis.push({
-        title: '整体建议',
-        icon: 'ri-lightbulb-line',
-        paragraphs: [
-          `你的简历基础不错，只有 ${issueCount} 个小问题需要调整。改完这些细节，面试邀约率会进一步提升。`
-        ]
-      });
-    } else {
-      result.deepAnalysis.push({
-        title: '整体建议',
-        icon: 'ri-lightbulb-line',
-        paragraphs: [
-          `你的简历整体质量很高，没有发现明显的硬伤。保持这个水平，针对目标岗位稍作定制化调整即可。`
-        ]
-      });
-    }
-
-    // ==================== 六维度评分 ====================
-    result.dimensions.push({
-      name: '年龄歧视风险',
-      icon: 'ri-shield-check-line',
-      score: Math.max(0, 100 - ageBias.score),
-      weight: 20,
-      detail: ageBias.issues.length ? `${ageBias.issues.length} 处风险` : '安全',
-      color: ageBias.riskColor
-    });
-
-    const hasContact = /[\w.-]+@[\w.-]+|1[3-9]\d{9}|微信|手机|电话|联系方式/.test(t);
-    const hasWork = /工作经历|工作经验|从业经历|任职|负责|担任|参与/.test(t);
-    const hasEdu = /教育背景|学历|毕业|学位|本科|大专|硕士|博士|学校/.test(t);
-    const hasSkill = /技能|能力|掌握|熟悉|精通|了解|熟练|擅长/.test(t);
-    const hasSelf = /自我评价|个人简介|自我介绍|关于我|个人总结/.test(t);
-    const structScore = (hasContact ? 20 : 0) + (hasWork ? 30 : 0) + (hasEdu ? 20 : 0) + (hasSkill ? 20 : 0) + (hasSelf ? 10 : 0);
-    result.dimensions.push({
-      name: '结构完整性',
-      icon: 'ri-file-list-3-line',
-      score: structScore,
-      weight: 15,
-      detail: `${5 - [!hasContact,!hasWork,!hasEdu,!hasSkill,!hasSelf].filter(Boolean).length}/5 模块`,
-      color: structScore >= 80 ? '#2ea56a' : structScore >= 50 ? '#d97706' : '#dc2626'
-    });
-
-    const quantScore = Math.min(100, quantified.length >= 5 ? 90 : quantified.length >= 3 ? 70 : quantified.length >= 1 ? 40 : 10);
-    result.dimensions.push({
-      name: '数据说服力',
-      icon: 'ri-bar-chart-grouped-line',
-      score: quantScore,
-      weight: 20,
-      detail: `${quantified.length} 处量化数据`,
-      color: quantScore >= 70 ? '#2ea56a' : quantScore >= 40 ? '#d97706' : '#dc2626'
-    });
-
-    const profScore = Math.min(100, Math.max(10, 50 + strongHits.length * 8 - weakHits.length * 12));
-    result.dimensions.push({
-      name: '动词力度',
-      icon: 'ri-quill-pen-line',
-      score: profScore,
-      weight: 15,
-      detail: `${strongHits.length} 强 / ${weakHits.length} 弱`,
-      color: profScore >= 70 ? '#2ea56a' : profScore >= 40 ? '#d97706' : '#dc2626'
-    });
-
-    const kwScore = Math.min(100, hitKeywords.length * 8);
-    result.dimensions.push({
-      name: '关键词覆盖',
-      icon: 'ri-key-2-line',
-      score: kwScore,
-      weight: 15,
-      detail: `匹配 ${hitKeywords.length}/${skillKeywords.length}`,
-      color: kwScore >= 70 ? '#2ea56a' : kwScore >= 40 ? '#d97706' : '#dc2626'
-    });
-
-    const densityScore = Math.min(100, charCount < 200 ? 20 : charCount < 400 ? 40 : charCount < 1500 ? 80 : charCount < 2500 ? 70 : 50);
-    result.dimensions.push({
-      name: '信息密度',
-      icon: 'ri-article-line',
-      score: densityScore,
-      weight: 15,
-      detail: `约${wordCountApprox}字 / ${lineCount}行`,
-      color: densityScore >= 70 ? '#2ea56a' : densityScore >= 40 ? '#d97706' : '#dc2626'
-    });
-
-    // 总分
+    const found = {};
     let total = 0;
-    for (const d of result.dimensions) total += d.score * (d.weight / 100);
-    result.totalScore = Math.round(total);
+    for (const [cat, regex] of Object.entries(skillCategories)) {
+      if (regex.test(text)) {
+        found[cat] = true;
+        total++;
+      }
+    }
 
-    // ==================== 新结构化输出 ====================
+    // 检测通用技能（减分项）
+    const genericSkills = /Office|Word|Excel|PPT|普通话|英语四级|英语六级|计算机二级/;
+    const hasGenericOnly = total <= 1 && genericSkills.test(text);
 
-    // 等级
-    if (total >= 90) result.level = '优秀';
-    else if (total >= 75) result.level = '良好';
-    else if (total >= 60) result.level = '一般';
-    else if (total >= 40) result.level = '较差';
-    else result.level = '很差';
+    return { found, total, hasGenericOnly };
+  }
 
-    // 总体评价
-    if (total >= 90) result.summary = '简历无明显硬伤，职业路径清晰，量化成果充分，目标岗位匹配度高。';
-    else if (total >= 75) result.summary = '简历整体不错，有1-2处小瑕疵，但不影响整体竞争力。';
-    else if (total >= 60) result.summary = '简历存在明显问题，需要中等程度的修改。';
-    else if (total >= 40) result.summary = '简历存在多项硬伤，需要大幅修改。';
-    else result.summary = '简历存在致命问题，几乎需要重写。';
+  // 提取成果/数据
+  function extractAchievements(text) {
+    // 量化数据
+    const quantifyMatches = text.match(/\d+[%％万元人天次个月年项目个]/g) || [];
+    const hasQuantify = quantifyMatches.length > 0;
 
-    // 优点
-    result.strengths = [];
-    if (quantified.length >= 5) result.strengths.push(`包含 ${quantified.length} 处量化数据，数据说服力较强`);
-    if (strongHits.length >= 3) result.strengths.push(`使用了「${strongHits.slice(0,3).join('、')}」等专业动词，表述力度好`);
-    if (structScore >= 80) result.strengths.push('简历结构完整，包含联系方式、工作经历、教育背景、技能和自我评价');
-    if (hitKeywords.length >= 10) result.strengths.push(`覆盖 ${hitKeywords.length} 个核心关键词，ATS通过率较高`);
-    if (charCount >= 500 && charCount <= 1500) result.strengths.push('篇幅适中，信息密度合理');
-    if (ageBias.issues.length === 0) result.strengths.push('未发现年龄歧视风险表述');
-    if (result.strengths.length === 0) result.strengths.push('简历有基本框架，具备改进基础');
+    // 动作动词
+    const actionVerbs = {
+      strong: ['主导', '统筹', '推动', '搭建', '从0到1', '突破', '达成', '荣获', '超额', '提前', '零'],
+      medium: ['负责', '管理', '领导', '策划', '设计', '开发', '优化', '提升'],
+      weak: ['参与', '协助', '配合', '帮忙', '做过', '负责过', '打杂']
+    };
 
-    // 风险点
-    result.risks = [];
+    const strongFound = actionVerbs.strong.filter(v => text.includes(v));
+    const mediumFound = actionVerbs.medium.filter(v => text.includes(v));
+    const weakFound = actionVerbs.weak.filter(v => text.includes(v));
+
+    // 成果句式检测
+    const resultPatterns = [
+      /将.+从.+提升|优化|降低|缩短|节省/,
+      /实现.+从0到1|从无到有|从零开始/,
+      /达成.+目标|指标|业绩|销售额/,
+      /带领.+团队.+完成|达成|实现/,
+      /获得.+奖项|荣誉|认证|好评/
+    ];
+    const resultCount = resultPatterns.filter(p => p.test(text)).length;
+
+    return {
+      quantifyCount: quantifyMatches.length,
+      hasQuantify,
+      strongVerbs: strongFound,
+      mediumVerbs: mediumFound,
+      weakVerbs: weakFound,
+      resultCount,
+      quality: quantifyMatches.length >= 5 && strongFound.length >= 3 ? 'high'
+             : quantifyMatches.length >= 2 && (strongFound.length + mediumFound.length) >= 2 ? 'medium'
+             : 'low'
+    };
+  }
+
+  // 提取弱化表述
+  function extractWeakPhrases(text) {
+    const patterns = [
+      { regex: /负责过|做过|参与了|帮忙|打杂|还行|还可以|一般|普通|基本|协助|配合/g, type: '弱动词' },
+      { regex: /熟练使用Office|精通Word|熟悉Excel/g, type: '通用技能' },
+      { regex: /性格开朗|工作认真|团队精神|吃苦耐劳|学习能力强/g, type: '套话' },
+      { regex: /提高了效率|优化了流程|完成了任务/g, type: '无数据成果' }
+    ];
+
+    const found = [];
+    for (const p of patterns) {
+      const matches = text.match(p.regex) || [];
+      for (const m of matches) {
+        found.push({ phrase: m, type: p.type });
+      }
+    }
+    return found;
+  }
+
+  // 提取强表述
+  function extractStrongPhrases(text) {
+    const patterns = [
+      { regex: /从0到1|从无到有|从零开始/g, type: '开创性' },
+      { regex: /主导|统筹|推动|搭建|突破|达成|荣获|超额|提前|零/g, type: '强动词' },
+      { regex: /提升\d+%|节省\d+万|增长\d+%|优化\d+%/g, type: '量化成果' },
+      { regex: /带领\d+人团队|管理\d+人|负责\d+万/g, type: '规模感' }
+    ];
+
+    const found = [];
+    for (const p of patterns) {
+      const matches = text.match(p.regex) || [];
+      for (const m of matches) {
+        found.push({ phrase: m, type: p.type });
+      }
+    }
+    return found;
+  }
+
+  // ==================== 评分系统 ====================
+
+  function calculateDimensionScores(data) {
+    const { sections, timeline, contacts, skills, achievements, weakPhrases, strongPhrases, text, lines } = data;
+
+    // 1. 结构完整性 (0-100)
+    const structScore = Math.min(100,
+      (sections.found.header ? 20 : 0) +
+      (sections.found.contact ? 15 : 0) +
+      (sections.found.work ? 30 : 0) +
+      (sections.found.education ? 15 : 0) +
+      (sections.found.skills ? 15 : 0) +
+      (sections.found.projects ? 5 : 0)
+    );
+
+    // 2. 数据说服力 (0-100)
+    const quantScore = Math.min(100,
+      achievements.quantifyCount >= 8 ? 95 :
+      achievements.quantifyCount >= 5 ? 80 :
+      achievements.quantifyCount >= 3 ? 60 :
+      achievements.quantifyCount >= 1 ? 35 : 10
+    );
+
+    // 3. 表述力度 (0-100)
+    const verbScore = Math.min(100, Math.max(10,
+      50 + achievements.strongVerbs.length * 12
+      - achievements.weakVerbs.length * 15
+      + (achievements.resultCount * 5)
+    ));
+
+    // 4. 职业路径 (0-100)
+    let pathScore = 70;  // 基础分
+    if (timeline.gaps.length > 0) {
+      const hasExplanation = /学习|进修|考证|培训|照顾|育儿|自由职业|创业|兼职|全职妈妈|家庭|自由/.test(text);
+      pathScore -= timeline.gaps.length * 10;
+      if (hasExplanation) pathScore += 5;  // 有解释稍微加回
+    }
+    if (timeline.jobHops) pathScore -= 15;
+    if (timeline.dates.length >= 3 && !timeline.jobHops) pathScore += 10;
+    pathScore = Math.max(0, Math.min(100, pathScore));
+
+    // 5. 关键词覆盖 (0-100)
+    const keywordCategories = {
+      management: /管理|领导|统筹|带团队/,
+      execution: /执行|落地|实施|推进/,
+      results: /提升|增长|节省|优化|达成|突破/,
+      skills: /技能|能力|掌握|熟悉|精通/,
+      communication: /沟通|协调|汇报|协作/,
+      problem: /问题|解决|分析|优化|改进/,
+      industry: /行业|领域|市场|客户|用户/,
+      data: /数据|分析|报表|指标|KPI/
+    };
+    let kwHit = 0;
+    for (const [, regex] of Object.entries(keywordCategories)) {
+      if (regex.test(text)) kwHit++;
+    }
+    const kwScore = Math.min(100, kwHit * 14);
+
+    // 6. 信息密度 (0-100)
+    const charCount = text.replace(/\s/g, '').length;
+    const densityScore = Math.min(100,
+      charCount < 100 ? 15 :
+      charCount < 300 ? 35 :
+      charCount < 500 ? 55 :
+      charCount < 800 ? 75 :
+      charCount < 1500 ? 85 :
+      charCount < 2500 ? 70 : 50
+    );
+
+    // 7. 年龄风险 (0-100，越高越安全)
+    const ageBias = detectAgeBias(text);
+    const ageScore = Math.max(0, 100 - ageBias.score);
+
+    // 8. 联系方式 (0-100)
+    const contactScore = contacts.complete ? 95 : (contacts.hasEmail || contacts.hasPhone) ? 60 : 20;
+
+    // 加权总分
+    const weights = {
+      struct: 12, quant: 20, verb: 18, path: 15,
+      kw: 12, density: 8, age: 10, contact: 5
+    };
+    const total = Math.round(
+      structScore * weights.struct / 100 +
+      quantScore * weights.quant / 100 +
+      verbScore * weights.verb / 100 +
+      pathScore * weights.path / 100 +
+      kwScore * weights.kw / 100 +
+      densityScore * weights.density / 100 +
+      ageScore * weights.age / 100 +
+      contactScore * weights.contact / 100
+    );
+
+    return {
+      total,
+      struct: structScore,
+      quant: quantScore,
+      verb: verbScore,
+      path: pathScore,
+      kw: kwScore,
+      density: densityScore,
+      age: ageScore,
+      contact: contactScore
+    };
+  }
+
+  function getLevel(score) {
+    if (score >= 90) return '优秀';
+    if (score >= 75) return '良好';
+    if (score >= 60) return '一般';
+    if (score >= 40) return '较差';
+    return '很差';
+  }
+
+  function generateSummary(scores, sections, timeline, achievements) {
+    const parts = [];
+    if (scores.total >= 80) parts.push('简历整体质量较高');
+    else if (scores.total >= 60) parts.push('简历有基础框架');
+    else parts.push('简历存在明显问题');
+
+    if (scores.quant < 40) parts.push('数据说服力不足');
+    if (scores.verb < 40) parts.push('表述力度偏弱');
+    if (scores.path < 50) parts.push('职业路径有待梳理');
+    if (scores.kw < 50) parts.push('关键词覆盖不够');
+    if (scores.age < 60) parts.push('存在年龄歧视风险');
+
+    return parts.join('，') + '。';
+  }
+
+  // ==================== 诊断分析 ====================
+
+  function findStrengths(scores, sections, achievements, skills) {
+    const strengths = [];
+
+    if (achievements.quantifyCount >= 5) strengths.push('包含 ' + achievements.quantifyCount + ' 处量化数据，数据说服力较强');
+    if (achievements.strongVerbs.length >= 3) strengths.push('使用了「' + achievements.strongVerbs.slice(0,3).join('、') + '」等强动词，表述有力');
+    if (scores.struct >= 80) strengths.push('简历结构完整，各模块齐全');
+    if (scores.kw >= 70) strengths.push('关键词覆盖较广，ATS通过率高');
+    if (scores.age >= 80) strengths.push('未发现年龄歧视风险表述');
+    if (skills.total >= 4) strengths.push('技能覆盖面广，具备复合能力');
+    if (achievements.resultCount >= 3) strengths.push('有多处成果描述，体现价值输出');
+    if (scores.density >= 70 && scores.density <= 85) strengths.push('篇幅适中，信息密度合理');
+
+    if (strengths.length === 0) strengths.push('简历有基本框架，具备改进基础');
+
+    return strengths.slice(0, 5);
+  }
+
+  function findRisks(scores, sections, timeline, achievements, weakPhrases, contacts, skills, text) {
+    const risks = [];
 
     // 年龄风险
-    if (ageBias.issues.length > 0) {
-      ageBias.issues.forEach(issue => {
-        result.risks.push({
-          type: '年龄歧视风险',
-          severity: '高危',
-          detail: `「${issue.word}」——${issue.desc}`,
-          consequence: '可能触发ATS系统自动筛除，HR直接跳过简历',
-          suggestion: `改为：${issue.suggestion}`
-        });
+    if (scores.age < 70) {
+      risks.push({
+        type: '年龄歧视风险',
+        severity: scores.age < 40 ? '高危' : '中危',
+        detail: '简历中存在可能触发ATS系统或HR自动筛除的年龄相关表述',
+        consequence: '简历在系统层面被过滤，HR根本看不到',
+        suggestion: '删除毕业年份、年龄相关词汇，突出经验和成果而非资历'
       });
     }
 
     // 弱化动词
-    if (weakHits.length > 0) {
-      result.risks.push({
+    const weakVerbs = weakPhrases.filter(p => p.type === '弱动词');
+    if (weakVerbs.length > 0) {
+      risks.push({
         type: '表述力度',
-        severity: weakHits.length > 3 ? '高危' : '中危',
-        detail: `使用了 ${weakHits.length} 处弱化动词（如「${weakFound.slice(0,3).map(w=>w.word).join('、')}」），HR判断你可能是配角而非主角`,
+        severity: weakVerbs.length > 3 ? '高危' : '中危',
+        detail: '使用了 ' + weakVerbs.length + ' 处弱化动词（如「' + weakVerbs.slice(0,3).map(w=>w.phrase).join('、') + '」），HR判断你可能是执行者而非决策者',
         consequence: '降低HR对你能力的预期，面试邀约率下降',
-        suggestion: '将「负责/参与/协助」全部替换为「主导/统筹/推动/搭建/优化」'
+        suggestion: '将「负责/参与/协助」替换为「主导/统筹/推动/搭建/优化」'
       });
     }
 
     // 数据不足
-    if (quantified.length < 3) {
-      result.risks.push({
+    if (achievements.quantifyCount < 3) {
+      risks.push({
         type: '数据说服力',
-        severity: quantified.length === 0 ? '高危' : '中危',
-        detail: quantified.length === 0 ? '整篇简历无任何量化数据，HR无法判断你的实际能力水平' : `仅 ${quantified.length} 处量化数据，信息量不足`,
+        severity: achievements.quantifyCount === 0 ? '高危' : '中危',
+        detail: achievements.quantifyCount === 0
+          ? '整篇简历无任何量化数据，HR无法判断你的实际能力水平'
+          : '仅 ' + achievements.quantifyCount + ' 处量化数据，信息量不足',
         consequence: '没有数据支撑的工作经历在HR眼里约等于「没做过」',
         suggestion: '回顾每段工作：管了多少人？花了多少钱？产出了多少？把数字写出来'
       });
     }
 
-    // 模糊工作经历
-    if (vagueWorkLines.length > 0) {
-      result.risks.push({
+    // 模糊成果
+    if (achievements.resultCount < 2 && achievements.quantifyCount > 0) {
+      risks.push({
         type: '成果说服力',
-        severity: vagueWorkLines.length > 2 ? '高危' : '中危',
-        detail: `${vagueWorkLines.length} 条工作经历只写了「做了什么」，没写「做出了什么结果」，把职责当成果`,
-        consequence: 'HR无法区分你的实际贡献，简历竞争力大幅下降',
-        suggestion: '用「动作动词+具体事项+量化结果」公式重写，如：主导3个项目交付，按时交付率从70%提升至95%'
+        severity: '中危',
+        detail: '虽然有量化数据，但缺乏「从A到B」的成果对比描述',
+        consequence: '数据显得零散，缺乏故事性和说服力',
+        suggestion: '用「从...提升/优化到...」句式，让数据有对比感和成长感'
       });
     }
 
-    // 关键词不足
-    if (hitKeywords.length < 8) {
-      const missingKw = skillKeywords.filter(k => !t.includes(k));
-      result.risks.push({
-        type: 'ATS关键词',
-        severity: hitKeywords.length < 5 ? '高危' : '中危',
-        detail: `仅匹配 ${hitKeywords.length}/${skillKeywords.length} 个核心关键词，缺失：${missingKw.slice(0,5).join('、')}`,
-        consequence: '70%+企业使用ATS自动筛选，关键词不足会在系统层被直接过滤',
-        suggestion: '在描述工作经历时自然带入关键词，不需要生硬堆砌'
-      });
-    }
-
-    // 空窗期
-    if (years.length >= 2) {
-      const gaps = [];
-      for (let i = 1; i < years.length; i++) {
-        const diff = years[i] - years[i - 1];
-        if (diff > 1) gaps.push({ from: years[i - 1], to: years[i], months: diff * 12 });
-      }
-      const hasExplanation = /学习|进修|考证|培训|照顾|育儿|自由职业|创业|兼职|全职妈妈|家庭/.test(t);
-      if (gaps.length > 0 && !hasExplanation) {
-        result.risks.push({
+    // 职业路径
+    if (timeline.gaps.length > 0) {
+      const hasExplanation = /学习|进修|考证|培训|照顾|育儿|自由职业|创业|兼职|全职妈妈|家庭|自由/.test(text);
+      if (!hasExplanation) {
+        risks.push({
           type: '职业路径',
           severity: '中危',
-          detail: `存在 ${gaps.length} 段职业空白期（如 ${gaps[0].from}-${gaps[0].to} 年），且无合理解释`,
+          detail: '存在 ' + timeline.gaps.length + ' 段职业空白期（如 ' + timeline.gaps[0].from + '-' + timeline.gaps[0].to + ' 年），且无合理解释',
           consequence: 'HR会怀疑：是否被裁？能力不行找不到工作？',
           suggestion: '正面解释空白期，如「期间全职照顾家人，同时完成了PMP认证和Python课程」'
         });
       }
     }
 
-    // 自我评价
-    if (selfContent) {
-      const genericWords = selfContent.match(/热爱|喜欢|积极|乐观|认真|负责|团队|学习|抗压|沟通|踏实|勤奋|细心/g) || [];
-      if (genericWords.length >= 3) {
-        result.risks.push({
-          type: '自我评价',
-          severity: '低危',
-          detail: `自我评价使用了「${[...new Set(genericWords)].slice(0,3).join('、')}」等套话，90%简历都在用`,
-          consequence: 'HR看了等于没看，错过展示核心竞争力的机会',
-          suggestion: '用一句话概括最大竞争力，如「10年供应链管理经验，主导3次系统迁移，累计节省200万+」'
-        });
-      }
+    if (timeline.jobHops) {
+      risks.push({
+        type: '职业稳定性',
+        severity: '中危',
+        detail: '近3年工作变动频繁，HR可能质疑你的稳定性',
+        consequence: '雇主担心你入职后很快离职，招聘成本打水漂',
+        suggestion: '在简历中说明每次变动的合理性（如公司倒闭、业务调整、职业升级）'
+      });
     }
 
-    // 技能描述
-    if (skillLines.length > 0) {
-      const skillGeneric = skillLines.filter(l => /Office|Word|Excel|PPT|普通话|英语|计算机/.test(l));
-      if (skillGeneric.length > 0 && skillLines.length <= 4) {
-        result.risks.push({
-          type: '技能匹配',
-          severity: '低危',
-          detail: '技能模块主要列的是Office/英语等通用技能，这些是35+求职者标配，不是加分项',
-          consequence: '无法体现不可替代性，和年轻候选人没有差异化',
-          suggestion: '突出行业Know-how、特定系统经验、管理能力等35+专属优势'
-        });
-      }
+    // 联系方式
+    if (!contacts.complete) {
+      risks.push({
+        type: '基础信息',
+        severity: contacts.hasEmail || contacts.hasPhone ? '低危' : '高危',
+        detail: contacts.hasEmail && !contacts.hasPhone ? '缺少手机号码' : contacts.hasPhone && !contacts.hasEmail ? '缺少邮箱' : '联系方式严重不完整',
+        consequence: 'HR无法联系到你，简历等于白投',
+        suggestion: '确保至少有手机号和邮箱，并保持畅通'
+      });
     }
 
-    // 目标岗位匹配度（基于简历内容推断）
-    result.match_analysis = {
-      target_position: '未明确（简历未指定目标岗位）',
-      match_level: '未评估',
-      gap_description: '简历中未明确求职意向，无法评估匹配度。建议在简历顶部添加明确的求职目标。',
-      key_missing_skills: []
+    // 技能
+    if (skills.hasGenericOnly) {
+      risks.push({
+        type: '技能匹配',
+        severity: '低危',
+        detail: '技能模块主要列的是Office/英语等通用技能，这些是35+求职者标配，不是加分项',
+        consequence: '无法体现不可替代性，和年轻候选人没有差异化',
+        suggestion: '突出行业Know-how、特定系统经验、管理能力等35+专属优势'
+      });
+    }
+
+    // 套话
+    const genericPhrases = weakPhrases.filter(p => p.type === '套话');
+    if (genericPhrases.length > 0) {
+      risks.push({
+        type: '自我评价',
+        severity: '低危',
+        detail: '自我评价使用了「' + genericPhrases.slice(0,3).map(p=>p.phrase).join('、') + '」等套话，90%简历都在用',
+        consequence: 'HR看了等于没看，错过展示核心竞争力的机会',
+        suggestion: '用一句话概括最大竞争力，如「10年供应链管理经验，主导3次系统迁移，累计节省200万+」'
+      });
+    }
+
+    // 按严重程度排序
+    const severityOrder = { '高危': 0, '中危': 1, '低危': 2 };
+    risks.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+
+    return risks.slice(0, 8);
+  }
+
+  function analyzeMatch(text, skills, sections) {
+    // 从简历推断可能的目标岗位类型
+    const jobHints = {
+      '管理': /管理|领导|统筹|带团队|部门/,
+      '技术': /开发|编程|Python|Java|SQL|测试|运维/,
+      '运营': /运营|推广|营销|活动|内容/,
+      '行政人事': /行政|人事|HR|招聘|薪酬/,
+      '财务': /财务|会计|审计|出纳|报表/,
+      '销售': /销售|客户|业绩|签单|回款/,
+      '设计': /设计|UI|UX|视觉|美工/,
+      '教育': /教学|培训|课程|学生|教务/,
+      '医疗': /医疗|护理|临床|医院|患者/
     };
 
-    // 优化建议
-    result.optimization_tips = [];
-    if (quantified.length < 5) result.optimization_tips.push('给每段工作经历补充1-2个量化成果（人数、金额、百分比、时间缩短等）');
-    if (weakHits.length > 0) result.optimization_tips.push('将所有弱化动词替换为高强度动词：主导/统筹/推动/搭建/优化/达成/突破');
-    if (hitKeywords.length < 10) result.optimization_tips.push('在工作经历描述中自然融入更多行业关键词，提升ATS通过率');
-    if (vagueWorkLines.length > 0) result.optimization_tips.push('用「动作动词+具体事项+量化结果」公式重写模糊的工作描述');
-    if (ageBias.issues.length > 0) result.optimization_tips.push('删除或替换可能触发年龄歧视的表述（如毕业年份、年龄相关词汇）');
-    if (selfContent && /热爱|喜欢|积极|乐观|认真|负责/.test(selfContent)) result.optimization_tips.push('重写自我评价，用一句话概括核心竞争力，避免套话');
-    if (result.optimization_tips.length === 0) result.optimization_tips.push('简历质量较高，可针对目标岗位做定制化微调');
+    const matched = [];
+    for (const [job, regex] of Object.entries(jobHints)) {
+      if (regex.test(text)) matched.push(job);
+    }
 
-    return result;
+    const primaryJob = matched.length > 0 ? matched[0] : '未明确';
+
+    let matchLevel = '中';
+    let gapDescription = '';
+
+    if (skills.total >= 4 && skills.found.management) {
+      matchLevel = '高';
+      gapDescription = '简历展现了较强的综合能力，技能覆盖面广，管理经验突出。';
+    } else if (skills.total <= 2 || !skills.found.management) {
+      matchLevel = '低';
+      gapDescription = '简历的技能展示较为单一，管理能力和综合能力体现不足。';
+    } else {
+      gapDescription = '简历具备一定竞争力，但在某些维度有优化空间。';
+    }
+
+    const missing = [];
+    if (!skills.found.management) missing.push('管理能力');
+    if (!skills.found.communication) missing.push('沟通协调');
+    if (!skills.found.results) missing.push('成果量化');
+    if (!skills.found.data) missing.push('数据分析');
+
+    return {
+      target_position: matched.length > 0 ? '可能适合' + matched.join('、') + '类岗位' : '未明确（简历未指定求职目标）',
+      match_level: matchLevel,
+      gap_description: gapDescription,
+      key_missing_skills: missing
+    };
+  }
+
+  function generateTips(scores, sections, achievements, weakPhrases, skills) {
+    const tips = [];
+
+    if (achievements.quantifyCount < 5) tips.push('给每段工作经历补充1-2个量化成果（人数、金额、百分比、时间缩短等）');
+    if (achievements.weakVerbs.length > 0) tips.push('将弱化动词替换为高强度动词：主导/统筹/推动/搭建/优化/达成/突破');
+    if (scores.kw < 70) tips.push('在工作经历描述中自然融入更多行业关键词，提升ATS通过率');
+    if (achievements.resultCount < 2) tips.push('用「从...提升/优化到...」句式描述成果，增加对比感和说服力');
+    if (scores.age < 70) tips.push('删除或替换可能触发年龄歧视的表述（如毕业年份、年龄相关词汇）');
+    if (skills.hasGenericOnly) tips.push('技能模块突出35+专属优势：行业经验、管理能力、特定系统等');
+    if (weakPhrases.filter(p => p.type === '套话').length > 0) tips.push('重写自我评价，用一句话概括核心竞争力，避免套话');
+    if (!sections.found.projects) tips.push('如有项目经验，单独列出「项目经历」模块，突出个人贡献');
+    if (scores.density < 50) tips.push('简历内容过少，建议补充工作细节、项目经历、技能描述等');
+
+    return tips.slice(0, 6);
+  }
+
+  function buildDimensions(scores) {
+    return [
+      { name: '结构完整性', icon: 'ri-file-list-3-line', score: scores.struct, weight: 12, detail: '模块完整度', color: scores.struct >= 70 ? '#2ea56a' : scores.struct >= 40 ? '#d97706' : '#dc2626' },
+      { name: '数据说服力', icon: 'ri-bar-chart-grouped-line', score: scores.quant, weight: 20, detail: '量化数据密度', color: scores.quant >= 70 ? '#2ea56a' : scores.quant >= 40 ? '#d97706' : '#dc2626' },
+      { name: '表述力度', icon: 'ri-quill-pen-line', score: scores.verb, weight: 18, detail: '动词强度', color: scores.verb >= 70 ? '#2ea56a' : scores.verb >= 40 ? '#d97706' : '#dc2626' },
+      { name: '职业路径', icon: 'ri-route-line', score: scores.path, weight: 15, detail: '连贯性与稳定性', color: scores.path >= 70 ? '#2ea56a' : scores.path >= 40 ? '#d97706' : '#dc2626' },
+      { name: '关键词覆盖', icon: 'ri-key-2-line', score: scores.kw, weight: 12, detail: 'ATS通过率', color: scores.kw >= 70 ? '#2ea56a' : scores.kw >= 40 ? '#d97706' : '#dc2626' },
+      { name: '信息密度', icon: 'ri-article-line', score: scores.density, weight: 8, detail: '篇幅合理性', color: scores.density >= 70 ? '#2ea56a' : scores.density >= 40 ? '#d97706' : '#dc2626' },
+      { name: '年龄风险', icon: 'ri-shield-check-line', score: scores.age, weight: 10, detail: scores.age >= 70 ? '安全' : '有风险', color: scores.age >= 70 ? '#2ea56a' : scores.age >= 40 ? '#d97706' : '#dc2626' },
+      { name: '联系方式', icon: 'ri-phone-line', score: scores.contact, weight: 5, detail: scores.contact >= 80 ? '完整' : '不完整', color: scores.contact >= 80 ? '#2ea56a' : '#d97706' }
+    ];
   }
 
   // ==================== 测评深度分析引擎 ====================
