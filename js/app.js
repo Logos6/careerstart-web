@@ -884,95 +884,112 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     const scoreColor = result.totalScore >= 70 ? '#2ea56a' : result.totalScore >= 50 ? '#0284c7' : result.totalScore >= 30 ? '#d97706' : '#dc2626';
     const scoreLabel = result.totalScore >= 70 ? '优秀' : result.totalScore >= 50 ? '良好' : result.totalScore >= 30 ? '一般' : '需改进';
 
-    // 统计问题数
-    const dangerCount = result.textAnalysis.filter(t => t.level === 'danger').length;
-    const warnCount = result.textAnalysis.filter(t => t.level === 'warn').length;
-    const safeCount = result.textAnalysis.filter(t => t.level === 'safe').length;
+    // 按严重程度排序，找出最弱的维度
+    const sorted = [...result.dimensions].sort((a, b) => a.score - b.score);
+    const weakest = sorted[0];
+    const strongest = sorted[sorted.length - 1];
 
     box.style.display = 'block';
     box.innerHTML = `
       <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; overflow:hidden; animation: slideUp 0.4s ease;">
 
-        <!-- ========== 第一部分：总评 ========== -->
-        <div style="background:linear-gradient(135deg,#f8f5ff,#eef2ff); padding:28px 24px; border-bottom:1px solid var(--border-color);">
-          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
-            <div style="display:flex; align-items:center; gap:20px;">
-              <div style="width:80px; height:80px; border-radius:50%; background:${scoreColor}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <span style="font-size:28px; font-weight:900; color:#fff;">${result.totalScore}</span>
-              </div>
-              <div>
-                <div style="font-size:20px; font-weight:800; color:var(--text-main);">简历综合评分：${scoreLabel}</div>
-                <div style="font-size:14px; color:var(--text-muted); margin-top:4px;">${result.summary}</div>
-              </div>
+        <!-- ========== 顶部：评分环 ========== -->
+        <div style="padding:28px 24px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; border-bottom:1px solid var(--border-color);">
+          <div style="width:90px; height:90px; border-radius:50%; background:conic-gradient(${scoreColor} ${result.totalScore * 3.6}deg, #e2e8f0 0deg); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <div style="width:72px; height:72px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center;">
+              <span style="font-size:26px; font-weight:900; color:${scoreColor};">${result.totalScore}</span>
             </div>
-            <div style="display:flex; gap:12px; flex-wrap:wrap;">
-              <span style="background:#fef2f2; color:#991b1b; font-size:12px; padding:4px 12px; border-radius:10px; font-weight:600;">${dangerCount} 项需修正</span>
-              <span style="background:#fffbeb; color:#92400e; font-size:12px; padding:4px 12px; border-radius:10px; font-weight:600;">${warnCount} 项待优化</span>
-              <span style="background:#f0fdf4; color:#166534; font-size:12px; padding:4px 12px; border-radius:10px; font-weight:600;">${safeCount} 项达标</span>
-            </div>
+          </div>
+          <div style="flex:1; min-width:200px;">
+            <div style="font-size:18px; font-weight:800; color:var(--text-main);">简历诊断结果：${scoreLabel}</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-top:4px; line-height:1.6;">${result.summary}</div>
           </div>
         </div>
 
-        <!-- ========== 第二部分：文字诊断建议（逐条） ========== -->
+        <!-- ========== 第一部分：诊断结论 ========== -->
         <div style="padding:24px;">
-          <h4 style="font-size:17px; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:8px; color:var(--text-main);">
-            <i class="ri-file-text-line" style="color:var(--primary);"></i> 文字诊断报告
+          <h4 style="font-size:16px; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+            <i class="ri-stethoscope-line" style="color:var(--primary);"></i> 诊断结论
           </h4>
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            ${result.textAnalysis.map(item => {
-              const borderColor = item.level === 'danger' ? '#ef4444' : item.level === 'warn' ? '#f59e0b' : '#22c55e';
-              const bgColor = item.level === 'danger' ? '#fef2f2' : item.level === 'warn' ? '#fffbeb' : '#f0fdf4';
-              const iconBg = item.level === 'danger' ? '#ef4444' : item.level === 'warn' ? '#f59e0b' : '#22c55e';
-              const levelText = item.level === 'danger' ? '需修正' : item.level === 'warn' ? '待优化' : '已达标';
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px;">
+            <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; text-align:center;">
+              <div style="font-size:28px; font-weight:900; color:#dc2626;">${result.textAnalysis.filter(t => t.level === 'danger').length}</div>
+              <div style="font-size:12px; color:#991b1b; margin-top:4px;">必须修正</div>
+            </div>
+            <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:14px; text-align:center;">
+              <div style="font-size:28px; font-weight:900; color:#d97706;">${result.textAnalysis.filter(t => t.level === 'warn').length}</div>
+              <div style="font-size:12px; color:#92400e; margin-top:4px;">建议优化</div>
+            </div>
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px; text-align:center;">
+              <div style="font-size:28px; font-weight:900; color:#16a34a;">${result.textAnalysis.filter(t => t.level === 'safe').length}</div>
+              <div style="font-size:12px; color:#166534; margin-top:4px;">表现良好</div>
+            </div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; font-size:13px; color:#475569; line-height:1.8;">
+            <strong>核心判断：</strong>你的简历在 <span style="color:${strongest.color}; font-weight:700;">${strongest.name}</span> 上表现最好（${strongest.score}分），但在 <span style="color:${weakest.color}; font-weight:700;">${weakest.name}</span> 上存在明显短板（${weakest.score}分）。
+            ${result.totalScore < 60 ? `当前简历在求职市场中竞争力偏弱，如果不做针对性优化，HR看到这份简历后主动联系你的概率较低。` : `整体质量尚可，重点补强薄弱环节后，面试邀约率将显著提升。`}
+          </div>
+        </div>
+
+        <!-- ========== 第二部分：具体问题与修复建议 ========== -->
+        <div style="padding:0 24px 24px;">
+          <h4 style="font-size:16px; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+            <i class="ri-tools-line" style="color:var(--primary);"></i> 问题诊断与修复方案
+          </h4>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            ${result.textAnalysis.filter(t => t.level !== 'safe').map((item, idx) => {
+              const borderColor = item.level === 'danger' ? '#ef4444' : '#f59e0b';
+              const bgColor = item.level === 'danger' ? '#fff5f5' : '#fffdf5';
+              const badgeBg = item.level === 'danger' ? '#dc2626' : '#d97706';
+              const badgeText = item.level === 'danger' ? '严重' : '建议';
               return `
-              <div style="border:1px solid ${borderColor}33; border-left:4px solid ${borderColor}; border-radius:10px; padding:16px 18px; background:${bgColor};">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                  <span style="font-size:15px; font-weight:700; color:var(--text-main);">${item.title}</span>
-                  <span style="font-size:11px; background:${iconBg}; color:#fff; padding:2px 10px; border-radius:8px; font-weight:600;">${levelText}</span>
+              <div style="border:1px solid ${borderColor}30; border-radius:12px; overflow:hidden;">
+                <div style="background:${bgColor}; padding:14px 18px; border-bottom:1px solid ${borderColor}20;">
+                  <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+                    <span style="background:${badgeBg}; color:#fff; font-size:11px; padding:2px 10px; border-radius:8px; font-weight:700;">${badgeText}</span>
+                    <span style="font-size:15px; font-weight:700; color:var(--text-main);">${item.title.replace(/^[⚠✓]\s*/, '')}</span>
+                  </div>
+                  <p style="font-size:13px; color:#475569; margin:0; line-height:1.7;">${item.content}</p>
                 </div>
-                <p style="font-size:13px; color:#475569; margin:0 0 8px; line-height:1.7;">${item.content}</p>
-                ${item.fix ? `<div style="font-size:12px; color:#6d28d9; background:#f5f3ff; padding:8px 12px; border-radius:8px; line-height:1.6;"><strong>建议修改：</strong>${item.fix}</div>` : ''}
+                ${item.fix ? `
+                <div style="padding:12px 18px; background:#fff;">
+                  <div style="font-size:12px; font-weight:700; color:#6d28d9; margin-bottom:4px;">怎么改：</div>
+                  <div style="font-size:12px; color:#6b21a8; line-height:1.7;">${item.fix}</div>
+                </div>` : ''}
               </div>`;
             }).join('')}
+            ${result.textAnalysis.filter(t => t.level !== 'safe').length === 0 ? `
+              <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:20px; text-align:center;">
+                <div style="font-size:36px; margin-bottom:8px;">🎉</div>
+                <div style="font-size:15px; font-weight:700; color:#166534;">恭喜！未发现需要修正的问题</div>
+                <div style="font-size:13px; color:#15803d; margin-top:4px;">你的简历质量较高，可以放心投递</div>
+              </div>
+            ` : ''}
           </div>
         </div>
 
-        <!-- ========== 第三部分：六维度图表 ========== -->
+        <!-- ========== 第三部分：六维度量化分析 ========== -->
         <div style="padding:0 24px 24px;">
-          <h4 style="font-size:17px; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:8px; color:var(--text-main);">
-            <i class="ri-bar-chart-grouped-line" style="color:var(--primary);"></i> 六维度量化分析
+          <h4 style="font-size:16px; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+            <i class="ri-bar-chart-box-line" style="color:var(--primary);"></i> 六维度量化分析
           </h4>
           <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
             ${result.dimensions.map(d => `
               <div style="background:#f8fafc; border-radius:12px; padding:16px; border:1px solid #e2e8f0; text-align:center;">
-                <i class="${d.icon}" style="font-size:24px; color:${d.color}; margin-bottom:8px; display:block;"></i>
-                <div style="font-size:13px; font-weight:700; color:var(--text-main); margin-bottom:6px;">${d.name}</div>
-                <div style="font-size:32px; font-weight:900; color:${d.color}; line-height:1; margin-bottom:6px;">${d.score}</div>
-                <div style="background:#e2e8f0; height:6px; border-radius:3px; overflow:hidden; margin-bottom:6px;">
+                <i class="${d.icon}" style="font-size:22px; color:${d.color}; margin-bottom:6px; display:block;"></i>
+                <div style="font-size:12px; font-weight:700; color:var(--text-main); margin-bottom:6px;">${d.name}</div>
+                <div style="font-size:30px; font-weight:900; color:${d.color}; line-height:1; margin-bottom:6px;">${d.score}</div>
+                <div style="background:#e2e8f0; height:5px; border-radius:3px; overflow:hidden; margin-bottom:4px;">
                   <div style="background:${d.color}; height:100%; width:${d.score}%; border-radius:3px;"></div>
                 </div>
-                <div style="font-size:11px; color:var(--text-muted);">${d.detail}</div>
+                <div style="font-size:10px; color:var(--text-muted);">${d.detail}</div>
               </div>
             `).join('')}
           </div>
         </div>
 
-        <!-- ========== 第四部分：优化清单 ========== -->
-        ${result.suggestions.length ? `
-        <div style="padding:0 24px 24px;">
-          <h4 style="font-size:17px; font-weight:800; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--text-main);">
-            <i class="ri-lightbulb-flash-line" style="color:#f59e0b;"></i> 优化行动清单
-          </h4>
-          <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7); border:1px solid #fde68a; border-radius:12px; padding:18px;">
-            <ol style="padding-left:20px; margin:0; font-size:13px; color:#92400e; line-height:2.2;">
-              ${result.suggestions.map(s => `<li>${s}</li>`).join('')}
-            </ol>
-          </div>
-        </div>
-        ` : ''}
-
-        <!-- 底部 -->
-        <div style="padding:12px 24px; border-top:1px solid var(--border-color); font-size:12px; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
+        <!-- ========== 底部 ========== -->
+        <div style="padding:14px 24px; border-top:1px solid var(--border-color); font-size:12px; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
           <span><i class="ri-history-line"></i> 已保存至诊断历史 (共 ${this.userData.resumeHistory.length} 条记录)</span>
           <button class="btn btn-outline-primary" style="font-size:12px; padding:4px 12px;" onclick="document.getElementById('resume-result-box').style.display='none'">收起报告</button>
         </div>
