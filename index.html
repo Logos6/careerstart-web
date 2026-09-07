@@ -335,8 +335,8 @@
         <!-- 简历诊断卡片 -->
         <div class="tool-card-box">
           <div class="t-box-header">
-            <h3><i class="ri-file-shield-line"></i> AI 简历年龄隐形门槛扫描</h3>
-            <p>粘贴简历或招聘要求文本，秒级排查年龄歧视与隐形扣分点。</p>
+            <h3><i class="ri-file-shield-line"></i> AI 简历深度诊断</h3>
+            <p>粘贴简历，秒级排查年龄歧视、弱动词、缺数据等 7 大维度问题。免费查看前 2 项。</p>
           </div>
           <div class="t-box-body">
             <textarea id="resume-input" class="pc-textarea" placeholder="请在此粘贴你的简历内容或目标岗位描述..."></textarea>
@@ -351,17 +351,24 @@
         <div class="tool-card-box">
           <div class="t-box-header">
             <h3><i class="ri-user-voice-line"></i> AI 35+ 模拟面试对话演练</h3>
-            <p>针对职业空白期、工时安排与薪资预期进行对话挑战。</p>
+            <p>针对 35+ 求职者高频面试题进行实战演练，免费体验前 2 题。</p>
           </div>
           <div class="t-box-body">
             <div class="pc-chat-window" id="interview-chat-box">
-              <div class="chat-msg system">
-                <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-                <div class="msg-content">你好！我是启航 AI 面试官。请告诉我你准备面试的岗位（例如：物业主管 / 数据分析 / 托管助教）：</div>
+              <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+                <div class="msg-avatar" style="background:var(--primary); color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ri-robot-fill"></i></div>
+                <div class="msg-content" style="background:linear-gradient(135deg,#f5f3ff,#ede9fe); color:var(--text-main); padding:14px 18px; border-radius:14px; max-width:80%; font-size:14px; line-height:1.7; border:1px solid #e0e7ff;">
+                  <div style="font-weight:700; margin-bottom:6px;">🎯 启航 AI 面试官</div>
+                  <div>我会针对你的目标岗位问 <strong>12 个问题</strong>，覆盖自我介绍、动机匹配、问题解决、薪资谈判等全维度。</div>
+                  <div style="margin-top:8px; padding:8px 12px; background:#fff; border-radius:8px; font-size:12px; color:var(--text-muted); border:1px solid #e2e8f0;">
+                    <i class="ri-gift-line" style="color:var(--primary);"></i> <strong>免费体验前 2 题</strong>，解锁完整面试 ¥39.9
+                  </div>
+                  <div style="margin-top:10px;">请先告诉我你准备面试的岗位（例如：物业主管 / 数据分析 / 托管助教）：</div>
+                </div>
               </div>
             </div>
             <div class="pc-chat-input-bar">
-              <input type="text" id="interview-input" placeholder="输入岗位或回答内容..." onkeypress="if(event.key==='Enter') app.sendInterviewMsg()">
+              <input type="text" id="interview-input" placeholder="输入岗位名称开始面试..." onkeypress="if(event.key==='Enter') app.sendInterviewMsg()">
               <button class="btn btn-primary" onclick="app.sendInterviewMsg()"><i class="ri-send-plane-fill"></i> 发送</button>
             </div>
           </div>
