@@ -238,14 +238,39 @@ const app = {
     }
   },
 
-  openCoachingModal() {
+  openCoachingModal(tier) {
     const modal = document.getElementById('coaching-modal');
     if (modal) {
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
+      // 设置默认选中版本
+      if (tier) {
+        const input = document.getElementById('coaching-tier');
+        if (input) input.value = tier;
+        document.querySelectorAll('.tier-option').forEach(el => {
+          el.style.borderColor = 'var(--border-color)';
+          el.style.background = 'none';
+        });
+        const labels = document.querySelectorAll('.tier-option');
+        const map = { light: 0, standard: 1, premium: 2 };
+        if (labels[map[tier]]) {
+          labels[map[tier]].style.borderColor = 'var(--primary)';
+          labels[map[tier]].style.background = 'linear-gradient(135deg,#f8f5ff,#eef2ff)';
+        }
+      }
     } else {
       this.openVipModal();
     }
+  },
+
+  selectTier(el, tier) {
+    document.getElementById('coaching-tier').value = tier;
+    document.querySelectorAll('.tier-option').forEach(e => {
+      e.style.borderColor = 'var(--border-color)';
+      e.style.background = 'none';
+    });
+    el.style.borderColor = 'var(--primary)';
+    el.style.background = 'linear-gradient(135deg,#f8f5ff,#eef2ff)';
   },
 
   getPlanName(plan) {
@@ -943,9 +968,11 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     const name = document.getElementById('coaching-name')?.value.trim();
     const phone = document.getElementById('coaching-phone')?.value.trim();
     const desc = document.getElementById('coaching-desc')?.value.trim();
+    const tier = document.getElementById('coaching-tier')?.value || 'standard';
+    const tierMap = { light: '轻量版 ¥99/次', standard: '标准版 ¥499/月', premium: '尊享版 ¥999/月' };
     if (!name) { alert('请填写你的称呼'); return; }
     if (!phone) { alert('请填写手机号或微信号'); return; }
-    alert(`预约成功！\n\n${name}，导师将在24小时内通过微信联系你。\n\n服务内容：一对一职业重启陪跑（¥599）\n如有紧急问题，可提前添加导师微信咨询。`);
+    alert(`预约成功！\n\n${name}，你选择的是：${tierMap[tier]}\n导师将在24小时内通过微信联系你。\n\n如有紧急问题，可提前添加导师微信咨询。`);
     document.getElementById('coaching-modal').style.display = 'none';
     document.body.style.overflow = 'auto';
   },
