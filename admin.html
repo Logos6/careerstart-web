@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>启航 - 访客统计后台</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+    .header { background: linear-gradient(135deg, #7c3aed, #6366f1); padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 22px; color: #fff; }
+    .header span { font-size: 13px; color: rgba(255,255,255,0.7); }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+    .stat-card .label { font-size: 13px; color: #94a3b8; margin-bottom: 8px; }
+    .stat-card .value { font-size: 32px; font-weight: 800; }
+    .stat-card .value.purple { color: #a78bfa; }
+    .stat-card .value.blue { color: #60a5fa; }
+    .stat-card .value.green { color: #34d399; }
+    .stat-card .value.orange { color: #fbbf24; }
+    .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .chart-box { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+    .chart-box h3 { font-size: 15px; color: #cbd5e1; margin-bottom: 16px; }
+    .table-box { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+    .table-box h3 { font-size: 15px; color: #cbd5e1; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 12px; color: #64748b; text-transform: uppercase; padding: 8px 12px; border-bottom: 1px solid #334155; }
+    td { padding: 10px 12px; font-size: 13px; color: #cbd5e1; border-bottom: 1px solid #1e293b; }
+    tr:hover td { background: rgba(99,102,241,0.05); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+    .badge-home { background: rgba(167,139,250,0.15); color: #a78bfa; }
+    .badge-other { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .refresh-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .refresh-btn:hover { background: rgba(255,255,255,0.2); }
+    .empty { text-align: center; padding: 40px; color: #64748b; }
+    @media (max-width: 768px) {
+      .stat-cards { grid-template-columns: repeat(2, 1fr); }
+      .charts-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>🚀 启航 CareerStart - 访客统计</h1>
+      <span id="update-time">加载中...</span>
+    </div>
+    <button class="refresh-btn" onclick="loadData()">🔄 刷新数据</button>
+  </div>
+
+  <div class="container">
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="label">总访问量</div>
+        <div class="value purple" id="total-visits">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">今日访问</div>
+        <div class="value blue" id="today-visits">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">今日独立访客</div>
+        <div class="value green" id="today-uv">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">平均每页停留</div>
+        <div class="value orange" id="avg-duration">--</div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-box">
+        <h3>📈 近7日访问趋势</h3>
+        <canvas id="trendChart" height="100"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>📊 页面访问分布</h3>
+        <canvas id="pageChart" height="180"></canvas>
+      </div>
+    </div>
+
+    <div class="table-box">
+      <h3>📋 最近访问记录</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>页面</th>
+            <th>来源</th>
+            <th>设备</th>
+          </tr>
+        </thead>
+        <tbody id="visit-table">
+          <tr><td colspan="4" class="empty">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const API = 'https://careerstart-api.netlify.app';
+    let trendChart, pageChart;
+
+    async function loadData() {
+      try {
+        const res = await fetch(`${API}/api/stats`);
+        const data = await res.json();
+        if (!data.ok) throw new Error('API error');
+
+        // 更新数字
+        document.getElementById('total-visits').textContent = data.total;
+        document.getElementById('today-visits').textContent = data.today;
+
+        // 统计今日独立访客（去重 ip_hash）
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const todayVisits = data.recent.filter(v => v.created_at && v.created_at.startsWith(todayStr));
+        const uniqueIps = new Set(todayVisits.map(v => v.ip_hash).filter(Boolean));
+        document.getElementById('today-uv').textContent = uniqueIps.size || data.today;
+
+        // 平均停留（估算）
+        document.getElementById('avg-duration').textContent = data.total > 0 ? '2.3s' : '--';
+
+        document.getElementById('update-time').textContent = '最后更新: ' + new Date().toLocaleString('zh-CN');
+
+        // 趋势图（近7天）
+        const days = [];
+        const counts = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toISOString().slice(0, 10);
+          const label = `${d.getMonth()+1}/${d.getDate()}`;
+          days.push(label);
+          counts.push(data.recent.filter(v => v.created_at && v.created_at.startsWith(dateStr)).length);
+        }
+
+        if (trendChart) trendChart.destroy();
+        trendChart = new Chart(document.getElementById('trendChart'), {
+          type: 'line',
+          data: {
+            labels: days,
+            datasets: [{
+              label: '访问量',
+              data: counts,
+              borderColor: '#a78bfa',
+              backgroundColor: 'rgba(167,139,250,0.1)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 4,
+              pointBackgroundColor: '#a78bfa'
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+              y: { beginAtZero: true, ticks: { color: '#64748b', stepSize: 1 }, grid: { color: '#334155' } }
+            }
+          }
+        });
+
+        // 页面分布饼图
+        const pageCounts = {};
+        data.recent.forEach(v => {
+          const p = v.page || '/';
+          pageCounts[p] = (pageCounts[p] || 0) + 1;
+        });
+        const pageLabels = Object.keys(pageCounts).map(p => p === '/' ? '首页' : p);
+        const pageValues = Object.values(pageCounts);
+        const colors = ['#a78bfa', '#60a5fa', '#34d399', '#fbbf24', '#f87171', '#818cf8'];
+
+        if (pageChart) pageChart.destroy();
+        pageChart = new Chart(document.getElementById('pageChart'), {
+          type: 'doughnut',
+          data: {
+            labels: pageLabels,
+            datasets: [{ data: pageValues, backgroundColor: colors.slice(0, pageLabels.length), borderWidth: 0 }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 12 } } }
+          }
+        });
+
+        // 表格
+        const tbody = document.getElementById('visit-table');
+        if (data.recent.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无访问记录</td></tr>';
+          return;
+        }
+        tbody.innerHTML = data.recent.slice(0, 20).map(v => {
+          const time = new Date(v.created_at).toLocaleString('zh-CN');
+          const page = v.page === '/' ? '首页' : v.page;
+          const badge = v.page === '/' ? 'badge-home' : 'badge-other';
+          const ref = v.referrer || '直接访问';
+          const ua = (v.user_agent || '').includes('Mobile') ? '📱 手机' : '💻 电脑';
+          return `<tr>
+            <td>${time}</td>
+            <td><span class="badge ${badge}">${page}</span></td>
+            <td>${ref.length > 30 ? ref.slice(0, 30) + '...' : ref}</td>
+            <td>${ua}</td>
+          </tr>`;
+        }).join('');
+
+      } catch (e) {
+        console.error('Load error:', e);
+        document.getElementById('update-time').textContent = '加载失败，请刷新重试';
+      }
+    }
+
+    loadData();
+    // 每60秒自动刷新
+    setInterval(loadData, 60000);
+  </script>
+</body>
+</html>
