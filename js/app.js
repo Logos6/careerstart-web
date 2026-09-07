@@ -17,7 +17,12 @@ const app = {
     vipExpiry: null,
     assessmentHistory: [],
     resumeHistory: [],
-    lastAssessment: null
+    interviewHistory: [],
+    lastAssessment: null,
+    usage: {
+      resumeCheck: 0,  // 已使用简历诊断次数
+      interview: 0     // 已使用模拟面试次数
+    }
   },
 
   init() {
@@ -1109,6 +1114,12 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     const box = document.getElementById('resume-result-box');
     if (!text.trim()) { alert("请先输入简历文本"); return; }
 
+    // 检查登录和使用次数
+    if (!this.checkUsage('resumeCheck')) return;
+
+    // 记录使用次数
+    this.recordUsage('resumeCheck');
+
     // 先执行诊断获取结果
     const result = CareerEngine.diagnoseResume(text);
     if (!result) return;
@@ -1300,6 +1311,12 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     const chatBox = document.getElementById('interview-chat-box');
     const txt = input.value.trim();
     if (!txt) { alert('请输入目标岗位名称'); return; }
+
+    // 检查登录和使用次数
+    if (!this.checkUsage('interview')) return;
+
+    // 记录使用次数
+    this.recordUsage('interview');
 
     // 显示加载动画
     chatBox.innerHTML = `
@@ -1553,6 +1570,75 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     `;
   },
 
+  // 套餐次数限制
+  planLimits: {
+    month: { resumeCheck: 10, interview: 5 },
+    quarter: { resumeCheck: 20, interview: 10 },
+    year: { resumeCheck: Infinity, interview: Infinity }
+  },
+
+  // 检查登录状态
+  checkLogin() {
+    if (!this.userData.phone) {
+      if (confirm('登录后可享受更多服务，是否立即登录？')) {
+        this.showAuthModal();
+      }
+      return false;
+    }
+    return true;
+  },
+
+  // 检查使用次数
+  checkUsage(type) {
+    // 未登录 - 简历诊断可免费1次，面试必须登录
+    if (!this.userData.phone) {
+      if (type === 'resumeCheck' && this.userData.usage.resumeCheck < 1) {
+        return true; // 免费1次
+      }
+      if (confirm('登录后可享受更多服务，是否立即登录？')) {
+        this.showAuthModal();
+      }
+      return false;
+    }
+
+    // 已登录但非VIP
+    if (!this.userData.isVip) {
+      if (confirm('开通会员解锁更多次数，是否查看会员方案？')) {
+        this.openVipModal();
+      }
+      return false;
+    }
+
+    // VIP用户检查次数
+    const limits = this.planLimits[this.userData.vipPlan] || this.planLimits.month;
+    const used = this.userData.usage[type] || 0;
+    const limit = limits[type];
+
+    if (used >= limit) {
+      alert(`您的${type === 'resumeCheck' ? '简历诊断' : '模拟面试'}次数已用完（${limit}次），请升级套餐或等待下个周期。`);
+      return false;
+    }
+
+    return true;
+  },
+
+  // 记录使用次数
+  recordUsage(type) {
+    this.userData.usage[type] = (this.userData.usage[type] || 0) + 1;
+    this.saveUserData();
+  },
+
+  // 登录弹窗
+  showAuthModal() {
+    document.getElementById('auth-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  },
+
+  closeAuthModal() {
+    document.getElementById('auth-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+  },
+
   // 会员 Modal
   openVipModal() { document.getElementById('vip-modal').style.display = 'flex'; },
   closeVipModal() { document.getElementById('vip-modal').style.display = 'none'; },
@@ -1576,7 +1662,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('active'));
     document.getElementById(`plan-card-${planKey}`).classList.add('active');
 
-    const prices = { month: '¥29.00', quarter: '¥69.00', year: '¥199.00' };
+    const prices = { month: '¥29.00', quarter: '¥39.00', year: '¥199.00' };
     document.getElementById('pay-final-price').innerText = prices[planKey];
   },
 
