@@ -417,7 +417,7 @@ body {
   flex-shrink: 0;
 }
 .hcb-title {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
   margin: 0 0 2px;
   color: #fff;
@@ -427,25 +427,27 @@ body {
   color: rgba(255,255,255,0.55);
   margin: 0;
 }
-.hcb-center {
+.hcb-features {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
   margin-left: auto;
   margin-right: 20px;
 }
-.hcb-price {
-  font-size: 30px;
-  font-weight: 800;
-  color: #fbbf24;
+.hcb-feat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.08);
+  padding: 6px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
 }
-.hcb-yen {
-  font-size: 15px;
-  font-weight: 600;
-}
-.hcb-note {
-  font-size: 12px;
-  color: rgba(255,255,255,0.5);
+.hcb-feat i {
+  color: #a78bfa;
+  font-size: 14px;
 }
 .hcb-btn {
   flex-shrink: 0;
