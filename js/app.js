@@ -1579,9 +1579,9 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
 
   // 检查登录状态
   checkLogin() {
-    if (!this.userData.phone) {
+    if (!this.currentUser) {
       if (confirm('登录后可享受更多服务，是否立即登录？')) {
-        this.showAuthModal();
+        this.openAuthModal();
       }
       return false;
     }
@@ -1591,12 +1591,12 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
   // 检查使用次数
   checkUsage(type) {
     // 未登录 - 简历诊断可免费1次，面试必须登录
-    if (!this.userData.phone) {
-      if (type === 'resumeCheck' && this.userData.usage.resumeCheck < 1) {
+    if (!this.currentUser) {
+      if (type === 'resumeCheck' && (this.userData.usage.resumeCheck || 0) < 1) {
         return true; // 免费1次
       }
       if (confirm('登录后可享受更多服务，是否立即登录？')) {
-        this.showAuthModal();
+        this.openAuthModal();
       }
       return false;
     }
@@ -1626,17 +1626,6 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
   recordUsage(type) {
     this.userData.usage[type] = (this.userData.usage[type] || 0) + 1;
     this.saveUserData();
-  },
-
-  // 登录弹窗
-  showAuthModal() {
-    document.getElementById('auth-modal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-  },
-
-  closeAuthModal() {
-    document.getElementById('auth-modal').style.display = 'none';
-    document.body.style.overflow = 'auto';
   },
 
   // 会员 Modal
@@ -1764,6 +1753,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
   async login() {
     const phone = document.getElementById('login-phone').value.trim();
     const password = document.getElementById('login-password').value;
+    const btn = document.querySelector('#auth-login-form .btn');
 
     if (!phone || !password) {
       this.showAuthError('请输入手机号和密码');
@@ -1774,6 +1764,11 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       this.showAuthError('请输入正确的手机号');
       return;
     }
+
+    // 显示加载状态
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="ri-loader-4-line" style="animation:spin 1s linear infinite;"></i> 登录中...';
+    btn.disabled = true;
 
     try {
       const res = await fetch(`${this.API_BASE}/api/login`, {
@@ -1802,6 +1797,9 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       this.closeAuthModal();
       this.updateUserDisplay();
 
+      // 显示成功提示
+      alert('登录成功！欢迎回来，' + (data.user.nickname || '启航用户'));
+
     } catch (e) {
       // API 不可用时，用 localStorage 兜底
       const localUsers = JSON.parse(localStorage.getItem('careerstart_local_users') || '{}');
@@ -1817,6 +1815,11 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       this.updateAuthUI();
       this.closeAuthModal();
       this.updateUserDisplay();
+      alert('登录成功！欢迎回来，' + localUser.nickname);
+    } finally {
+      // 恢复按钮状态
+      btn.innerHTML = originalText;
+      btn.disabled = false;
     }
   },
 
@@ -1824,6 +1827,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     const phone = document.getElementById('register-phone').value.trim();
     const nickname = document.getElementById('register-nickname').value.trim();
     const password = document.getElementById('register-password').value;
+    const btn = document.querySelector('#auth-register-form .btn');
 
     if (!phone || !password) {
       this.showAuthError('请输入手机号和密码');
@@ -1839,6 +1843,11 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       this.showAuthError('密码至少需要6位');
       return;
     }
+
+    // 显示加载状态
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="ri-loader-4-line" style="animation:spin 1s linear infinite;"></i> 注册中...';
+    btn.disabled = true;
 
     try {
       const res = await fetch(`${this.API_BASE}/api/register`, {
@@ -1867,6 +1876,9 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       this.closeAuthModal();
       this.updateUserDisplay();
 
+      // 显示成功提示
+      alert('注册成功！欢迎加入启航，' + (data.user.nickname || '启航用户'));
+
     } catch (e) {
       // API 不可用时，用 localStorage 兜底
       const localUsers = JSON.parse(localStorage.getItem('careerstart_local_users') || '{}');
@@ -1883,6 +1895,11 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       this.updateAuthUI();
       this.closeAuthModal();
       this.updateUserDisplay();
+      alert('注册成功！欢迎加入启航，' + localUsers[phone].nickname);
+    } finally {
+      // 恢复按钮状态
+      btn.innerHTML = originalText;
+      btn.disabled = false;
     }
   },
 
