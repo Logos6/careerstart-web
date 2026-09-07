@@ -70,7 +70,6 @@
         <button class="nav-item" data-target="assess" onclick="app.switchTab('assess')"><i class="ri-compass-3-line"></i> 6维AI测评</button>
         <button class="nav-item" data-target="tools" onclick="app.switchTab('tools')"><i class="ri-cpu-line"></i> AI简历/面试</button>
         <button class="nav-item" data-target="coaching" onclick="app.switchTab('coaching')"><i class="ri-user-heart-line"></i> 职业陪跑</button>
-        <button class="nav-item" data-target="jobs" onclick="app.switchTab('jobs')"><i class="ri-briefcase-line"></i> 友好岗位库</button>
         
       </nav>
 
@@ -96,7 +95,6 @@
     <button class="nav-item" data-target="assess" onclick="app.switchTab('assess');app.toggleMobileNav()"><i class="ri-compass-3-line"></i> 6维AI测评</button>
     <button class="nav-item" data-target="tools" onclick="app.switchTab('tools');app.toggleMobileNav()"><i class="ri-cpu-line"></i> AI简历/面试</button>
     <button class="nav-item" data-target="coaching" onclick="app.switchTab('coaching');app.toggleMobileNav()"><i class="ri-user-heart-line"></i> 职业陪跑</button>
-    <button class="nav-item" data-target="jobs" onclick="app.switchTab('jobs');app.toggleMobileNav()"><i class="ri-briefcase-line"></i> 友好岗位库</button>
   </div>
 </header>
 
@@ -182,20 +180,6 @@
         <button class="btn btn-gold hcb-btn" onclick="app.openCoachingModal()">
           <i class="ri-search-line"></i> 查询陪跑方案
         </button>
-      </div>
-
-      <!-- 友好岗位库预览 -->
-      <div class="pc-section-panel">
-        <div class="panel-header">
-          <div>
-            <h2><i class="ri-briefcase-4-line"></i> 35+ / 宝妈友好岗位推荐 (精选)</h2>
-            <p style="font-size:14px; color:var(--text-muted); margin-top:2px;">真实筛选拒绝歧视，突出阅历加分与弹性工时</p>
-          </div>
-          <button class="btn btn-outline-primary" onclick="app.switchTab('jobs')">查看完整 65+ 岗位库 <i class="ri-arrow-right-line"></i></button>
-        </div>
-        <div class="pc-jobs-grid" id="home-jobs-grid">
-          <!-- 动态渲染 -->
-        </div>
       </div>
 
       <!-- 口碑区 -->
@@ -307,23 +291,6 @@
 
         <div class="result-pc-grid" id="result-pc-content">
           <!-- 动态渲染分析结果 -->
-        </div>
-      </div>
-    </section>
-
-    <!-- 3. 完整岗位库 (Jobs) -->
-    <section id="view-jobs" class="page-view">
-      <div class="pc-section-panel">
-        <div class="jobs-filter-bar">
-          <h2 style="font-size:22px;"><i class="ri-briefcase-4-line"></i> 35+ / 宝妈友好岗位库 (65+)</h2>
-          <div class="filter-search-box">
-            <input type="text" id="job-search-input" placeholder="搜索岗位名称或关键词..." onkeyup="app.filterJobs()">
-            <i class="ri-search-line"></i>
-          </div>
-        </div>
-
-        <div class="pc-jobs-grid" id="all-jobs-grid">
-          <!-- 动态渲染所有 65 个岗位 -->
         </div>
       </div>
     </section>
@@ -800,7 +767,6 @@
       <div style="display:flex; gap:20px; font-size:12px; color:#94a3b8;">
         <a href="https://logos6.github.io/careerstart-web/" style="color:#94a3b8; text-decoration:none;">首页</a>
         <a href="javascript:void(0)" onclick="app.switchTab('assess')" style="color:#94a3b8; text-decoration:none;">AI测评</a>
-        <a href="javascript:void(0)" onclick="app.switchTab('jobs')" style="color:#94a3b8; text-decoration:none;">岗位库</a>
       </div>
     </div>
   </footer>
