@@ -35,6 +35,10 @@ const app = {
     this.updateHomeCoaching();
     this.initShareButtons();
 
+    // 移除防闪烁内联样式
+    const antiFlash = document.getElementById('anti-flash');
+    if (antiFlash) antiFlash.remove();
+
     // 刷新后从hash恢复当前页面
     const validTabs = ['home','assess','tools','jobs','coaching','me'];
     const hash = location.hash.replace('#','');
