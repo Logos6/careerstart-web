@@ -1262,7 +1262,7 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     const phone = document.getElementById('coaching-phone')?.value.trim();
     const desc = document.getElementById('coaching-desc')?.value.trim();
     const tier = document.getElementById('coaching-tier')?.value || 'standard';
-    const tierMap = { light: '轻量版 ¥99/次', standard: '标准版 ¥499/月', premium: '尊享版 ¥999/月' };
+    const tierMap = { light: '轻量版 ¥89/次', standard: '标准版 ¥299/次', premium: '尊享版 ¥699/次' };
     if (!name) { alert('请填写你的称呼'); return; }
     if (!phone) { alert('请填写手机号或微信号'); return; }
     alert(`预约成功！\n\n${name}，你选择的是：${tierMap[tier]}\n导师将在24小时内通过微信联系你。\n\n如有紧急问题，可提前添加导师微信咨询。`);
