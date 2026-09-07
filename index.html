@@ -100,9 +100,10 @@
 
     <!-- 1. 首页 (Home) -->
     <section id="view-home" class="page-view active">
-      <!-- 左右双栏 Hero Section -->
-      <div class="pc-hero-grid">
-        <div class="hero-left-content">
+      <!-- 双栏卡片 Hero -->
+      <div class="pc-hero-two-cards">
+        <!-- 左卡：主标题 + CTA -->
+        <div class="hero-card hero-card-main">
           <span class="hero-badge"><i class="ri-shield-user-fill"></i> 专为 35+ 转型女性与宝妈研发</span>
           <h1 class="hero-heading">告别年龄焦虑，发现属于你的<span class="gradient-text">高价值职业路径</span></h1>
           <p class="hero-desc">融合 6 维能力匹配模型、岗位年龄歧视排查与 B 站精准提升技能，帮助 35+ 女性与宝妈轻松重启职场。</p>
@@ -110,7 +111,6 @@
             <button class="btn btn-primary-gradient btn-xl" onclick="app.switchTab('assess')">
               <i class="ri-flashlight-line"></i> 立即进行免费 6维测评
             </button>
-
           </div>
           <div class="hero-stats-bar">
             <div class="h-stat">
@@ -128,23 +128,53 @@
           </div>
         </div>
 
-        <div class="hero-right-preview" id="home-preview-section">
-          <div class="hero-coaching-card">
-            <div class="hc-top">
-              <div class="hc-icon"><i class="ri-user-heart-line"></i></div>
-              <h3 class="hc-title">一对一职业重启陪跑</h3>
+        <!-- 右卡：AI 简历与面试 -->
+        <div class="hero-card hero-card-tools">
+          <div class="hct-header">
+            <div class="hct-icon"><i class="ri-sparkling-2-fill"></i></div>
+            <div>
+              <h3 class="hct-title">AI 简历 & 模拟面试</h3>
+              <p class="hct-sub">一键诊断 + 实战演练，面试通过率提升 3 倍</p>
             </div>
-            <p class="hc-sub">从迷茫到入职，全程有人带</p>
-            <div class="hc-price-row">
-              <span class="hc-price"><span class="hc-yen">¥</span>599</span>
-              <span class="hc-price-note">单次服务 · 找到工作为止</span>
+          </div>
+          <div class="hct-features">
+            <div class="hct-feat">
+              <i class="ri-file-shield-line"></i>
+              <div>
+                <strong>简历隐形门槛扫描</strong>
+                <span>秒级排查年龄歧视与扣分雷区</span>
+              </div>
             </div>
-            <button class="btn btn-gold btn-block hc-btn" onclick="app.openCoachingModal()">
-              <i class="ri-phone-line"></i> 立即预约咨询
-            </button>
-            <p class="hc-social">已有 <strong>327</strong> 位学员成功转型入职</p>
+            <div class="hct-feat">
+              <i class="ri-user-voice-line"></i>
+              <div>
+                <strong>AI 35+ 模拟面试</strong>
+                <span>针对空白期、工时、薪资对话挑战</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary-gradient btn-block hct-btn" onclick="app.switchTab('tools')">
+            <i class="ri-arrow-right-line"></i> 免费体验
+          </button>
+        </div>
+      </div>
+
+      <!-- 全宽陪跑卡片 -->
+      <div class="hero-coaching-bar">
+        <div class="hcb-left">
+          <div class="hcb-icon"><i class="ri-user-heart-line"></i></div>
+          <div>
+            <h3 class="hcb-title">一对一职业重启陪跑</h3>
+            <p class="hcb-sub">从迷茫到入职，全程有人带</p>
           </div>
         </div>
+        <div class="hcb-center">
+          <span class="hcb-price"><span class="hcb-yen">¥</span>599</span>
+          <span class="hcb-note">单次服务 · 找到工作为止</span>
+        </div>
+        <button class="btn btn-gold hcb-btn" onclick="app.openCoachingModal()">
+          <i class="ri-phone-line"></i> 立即预约咨询
+        </button>
       </div>
 
       <!-- 四大核心功能卡片 -->
