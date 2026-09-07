@@ -129,91 +129,35 @@
         </div>
 
         <div class="hero-right-preview" id="home-preview-section">
-          <div class="preview-glass-card">
-            <div class="p-card-header">
-              <i class="ri-radar-fill"></i> <span id="home-preview-label">能力匹配示范</span>
-              <span class="p-match-score" id="home-preview-score">匹配度 96%</span>
-            </div>
-            <div class="p-card-body">
-              <h3 style="margin-bottom:4px;" id="home-preview-job">社区主管 / 物业管家</h3>
-              <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;" id="home-preview-desc">成都 · 灵活工时 · 可接送孩子</p>
-              <div class="tag-row" style="margin-bottom:12px;" id="home-preview-tags">
-                <span class="pc-tag">沟通协调超强</span>
-                <span class="pc-tag">阅历加分项</span>
-                <span class="pc-tag">五险一金</span>
-              </div>
-              <div class="mini-chart-box" id="home-preview-bars">
-                <!-- 静态展示微缩匹配条 -->
-                <div class="m-bar-item"><span>兴趣相符</span><div class="m-bar"><div class="m-fill" style="width:90%"></div></div></div>
-                <div class="m-bar-item"><span>技能覆盖</span><div class="m-bar"><div class="m-fill" style="width:85%"></div></div></div>
-                <div class="m-bar-item"><span>生活偏好</span><div class="m-bar"><div class="m-fill" style="width:100%"></div></div></div>
+          <div class="hero-coaching-card">
+            <div class="hc-badge">限量开放 · 名额有限</div>
+            <div class="hc-top">
+              <div class="hc-icon"><i class="ri-user-heart-line"></i></div>
+              <div>
+                <h3 class="hc-title">一对一职业重启陪跑</h3>
+                <p class="hc-sub">从迷茫到入职，全程有人带</p>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 一对一职业重启陪跑卡片 -->
-      <div class="home-coaching-card" id="home-coaching">
-        <div class="coaching-badge">限量开放 · 名额有限</div>
-        <div class="coaching-main">
-          <div class="coaching-left">
-            <div class="coaching-icon"><i class="ri-user-heart-line"></i></div>
-            <div class="coaching-info">
-              <h2 class="coaching-title">一对一职业重启陪跑</h2>
-              <p class="coaching-subtitle">从迷茫到入职，全程有人带</p>
+            <div class="hc-price-row">
+              <span class="hc-price-label">单次服务价</span>
+              <span class="hc-price"><span class="hc-yen">¥</span>599</span>
+              <span class="hc-price-note">找到工作为止</span>
             </div>
-          </div>
-          <div class="coaching-price-box">
-            <div class="coaching-price-label">单次服务价</div>
-            <div class="coaching-price"><span class="coaching-yen">¥</span>599</div>
-            <div class="coaching-price-note">找到工作为止</div>
-          </div>
-        </div>
-
-        <div class="coaching-features">
-          <div class="coaching-feature">
-            <div class="coaching-feature-icon"><i class="ri-calendar-check-line"></i></div>
-            <div class="coaching-feature-text">
-              <h4>每周一次 · 30分钟深度复盘</h4>
-              <p>每周固定时间一对一视频复盘，梳理本周进展、调整下周策略，确保你始终走在正确的路上</p>
+            <div class="hc-features">
+              <div class="hc-feat"><i class="ri-calendar-check-line"></i><span>每周一次30分钟深度复盘</span></div>
+              <div class="hc-feat"><i class="ri-phone-line"></i><span>不限次数紧急决策支持</span></div>
+              <div class="hc-feat"><i class="ri-file-edit-line"></i><span>简历作品集定向优化</span></div>
+              <div class="hc-feat"><i class="ri-briefcase-4-line"></i><span>全程陪跑到入职</span></div>
             </div>
-          </div>
-          <div class="coaching-feature">
-            <div class="coaching-feature-icon"><i class="ri-phone-line"></i></div>
-            <div class="coaching-feature-text">
-              <h4>不限次数 · 紧急决策支持</h4>
-              <p>面试前紧张、offer选择纠结、薪资谈判拿不准？随时发消息，职业导师实时给你专业建议</p>
+            <div class="hc-plan-mini">
+              <div class="hc-plan-title"><i class="ri-route-line"></i> 配套30天转型行动方案</div>
+              <div id="hero-coaching-phases"></div>
             </div>
+            <button class="btn btn-gold btn-block hc-btn" onclick="app.openCoachingModal()">
+              <i class="ri-whatsapp-line"></i> 立即预约咨询
+            </button>
+            <p class="hc-social">已有 <strong>327</strong> 位学员成功转型入职</p>
           </div>
-          <div class="coaching-feature">
-            <div class="coaching-feature-icon"><i class="ri-file-edit-line"></i></div>
-            <div class="coaching-feature-text">
-              <h4>简历作品集 · 定向优化指导</h4>
-              <p>针对目标岗位逐行打磨简历，打造面试级作品集，让你的简历不再被年龄门槛筛掉</p>
-            </div>
-          </div>
-          <div class="coaching-feature">
-            <div class="coaching-feature-icon"><i class="ri-briefcase-4-line"></i></div>
-            <div class="coaching-feature-text">
-              <h4>工作待找 · 全程陪跑到入职</h4>
-              <p>不限时长，从投递到面试到拿offer，全程陪伴直到你成功上岸，不达目标不散场</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="coaching-plan-section">
-          <h3 class="coaching-plan-title"><i class="ri-route-line"></i> 配套专属·30天转型行动方案</h3>
-          <div class="coaching-plan-phases" id="coaching-plan-phases">
-            <!-- JS 动态渲染 -->
-          </div>
-        </div>
-
-        <div class="coaching-cta">
-          <button class="btn btn-primary-gradient btn-lg coaching-btn" onclick="app.openCoachingModal()">
-            <i class="ri-whatsapp-line"></i> 立即预约咨询
-          </button>
-          <p class="coaching-cta-note">已有 <strong>327</strong> 位学员通过陪跑成功转型入职</p>
         </div>
       </div>
 
