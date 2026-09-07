@@ -175,8 +175,58 @@ const app = {
           `<div class="m-bar-item"><span>${t.job.name}</span><div class="m-bar"><div class="m-fill" style="width:${t.total}%"></div></div></div>`
         ).join('');
       }
+
+      this.updateHomeCourses();
     } catch (e) {
       console.error('[updateHomePreview Error]', e);
+    }
+  },
+
+  updateHomeCourses() {
+    try {
+      const card = document.getElementById('home-course-rec');
+      const grid = document.getElementById('course-rec-grid');
+      if (!card || !grid) return;
+
+      if (!this.userData.assessmentHistory || this.userData.assessmentHistory.length === 0) {
+        card.style.display = 'none';
+        return;
+      }
+
+      const latest = this.userData.assessmentHistory[this.userData.assessmentHistory.length - 1];
+      const report = CareerEngine.buildReport(latest.answers || {});
+      const missing = CareerEngine.gapSkills(report);
+      const courses = CareerEngine.gapCoursePlan(missing);
+
+      if (!courses || courses.length === 0) {
+        card.style.display = 'none';
+        return;
+      }
+
+      const topJob = report.top[0] ? report.top[0].job.name : '目标岗位';
+      document.getElementById('course-rec-sub').textContent =
+        `根据你的「${topJob}」匹配方向，为你精选 ${courses.length} 门提升课程`;
+
+      grid.innerHTML = courses.map(c => `
+        <div class="course-rec-item" onclick="window.open('${c.url}','_blank')" style="position:relative;">
+          <div class="course-rec-item-top">
+            <div class="course-rec-item-icon" style="background:${c.bg};"><i class="${c.icon}"></i></div>
+            <div>
+              <h4 class="course-rec-item-title">${c.title}</h4>
+              <p class="course-rec-item-sub">${c.sub}</p>
+            </div>
+          </div>
+          <div class="course-rec-item-meta">
+            <span><i class="ri-play-circle-line"></i> ${c.lessons} 节</span>
+            <span><i class="ri-time-line"></i> ${c.hours} 小时</span>
+            <span><i class="ri-star-line"></i> +${c.xp} 经验</span>
+          </div>
+        </div>
+      `).join('');
+
+      card.style.display = 'block';
+    } catch (e) {
+      console.error('[updateHomeCourses Error]', e);
     }
   },
 
