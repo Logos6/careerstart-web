@@ -634,7 +634,7 @@ const app = {
           `).join('')}
         </div>
         <div style="display:flex; gap:12px; margin-top:24px;">
-          <button class="btn btn-primary-gradient btn-lg" onclick="location.reload()">
+          <button class="btn btn-primary-gradient btn-lg" onclick="app.startNewAssessment(); app.switchTab('assess');">
             <i class="ri-refresh-line"></i> 重新测试
           </button>
           <button class="btn btn-outline-primary btn-lg" onclick="app.exportReport()">
