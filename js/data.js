@@ -298,9 +298,9 @@ var COURSES = [
 
 /* ---------- 任务系统（三层递进） ---------- */
 var TASKS = [
-  { id: "t-assess",  icon: "i-compass", title: "盘点你的职场优势", sub: "把多年经验，变成清晰的重启方向", xp: 40, tier: 1 },
+  { id: "t-assess",  icon: "i-compass", title: "盘点你的职场优势", sub: "把多年经验，变成清晰的启航方向", xp: 40, tier: 1 },
   { id: "t-detail",  icon: "i-target",  title: "查看 1 个目标岗位", sub: "看清它到底要什么，值不值得去", xp: 15, tier: 1 },
-  { id: "t-fav",     icon: "i-star",    title: "锁定 1 个心仪岗位", sub: "放进你的重启清单", xp: 15, tier: 1 },
+  { id: "t-fav",     icon: "i-star",    title: "锁定 1 个心仪岗位", sub: "放进你的启航清单", xp: 15, tier: 1 },
   { id: "t-tab",     icon: "i-layers",  title: "浏览职位库", sub: "看看现在有哪些机会适合你", xp: 10, tier: 1 },
   { id: "t-course",  icon: "i-book",    title: "开始 1 门技能课", sub: "为转型补上关键一环", xp: 20, tier: 1 },
   { id: "t-gap1",    icon: "i-trend",   title: "掌握 1 项新技能", sub: "完成任意课程的 50%", xp: 50, tier: 2 },
