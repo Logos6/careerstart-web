@@ -247,22 +247,7 @@ body {
 }
 
 /* PC Hero 左右双栏结构 */
-.pc-hero-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 48px;
-  align-items: center;
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-  color: #fff;
-  border-radius: var(--radius-lg);
-  padding: 48px;
-  margin-bottom: 32px;
-  box-shadow: var(--shadow-lg);
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-left-content { z-index: 2; }
+/* ===== Hero 双栏卡片 ===== */
 .hero-badge {
   display: inline-flex;
   align-items: center;
@@ -271,50 +256,208 @@ body {
   backdrop-filter: blur(8px);
   padding: 6px 16px;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 13px;
   margin-bottom: 16px;
   color: #c7d2fe;
 }
-
+.pc-hero-two-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.hero-card {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  color: #fff;
+  border-radius: 18px;
+  padding: 36px 32px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-card-main { display: flex; flex-direction: column; }
 .hero-heading {
-  font-size: 38px;
+  font-size: 34px;
   font-weight: 800;
   line-height: 1.25;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
-
 .gradient-text {
   background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-
 .hero-desc {
-  font-size: 16px;
-  color: #e0e7ff;
-  opacity: 0.9;
-  margin-bottom: 28px;
-  max-width: 580px;
+  font-size: 15px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.7;
+  margin-bottom: 20px;
 }
-
-.hero-btns {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 36px;
-}
-
+.hero-btns { margin-bottom: 24px; }
 .hero-stats-bar {
   display: flex;
-  gap: 32px;
-  border-top: 1px solid rgba(255,255,255,0.15);
-  padding-top: 20px;
+  gap: 24px;
+  margin-top: auto;
+}
+.h-stat .num {
+  display: block;
+  font-size: 24px;
+  font-weight: 800;
+  color: #fbbf24;
+}
+.h-stat .lbl {
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
 }
 
-.h-stat .num {
-  font-size: 26px;
+/* 右卡：AI 简历与面试 */
+.hero-card-tools {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.hct-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.hct-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.hct-title {
+  font-size: 20px;
   font-weight: 800;
-  color: #38bdf8;
+  margin: 0 0 4px;
+  color: #fff;
+}
+.hct-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  margin: 0;
+}
+.hct-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.hct-feat {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.hct-feat i {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(139,92,246,0.15);
+  color: #a78bfa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.hct-feat strong {
   display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-bottom: 2px;
+}
+.hct-feat span {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+.hct-btn {
+  margin-top: auto;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 12px;
+}
+
+/* ===== 全宽陪跑长条卡片 ===== */
+.hero-coaching-bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 40%, #2d1b69 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 20px 32px;
+  margin-bottom: 32px;
+}
+.hcb-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.hcb-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #fff;
+  flex-shrink: 0;
+}
+.hcb-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0 0 2px;
+  color: #fff;
+}
+.hcb-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  margin: 0;
+}
+.hcb-center {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-left: auto;
+  margin-right: 20px;
+}
+.hcb-price {
+  font-size: 30px;
+  font-weight: 800;
+  color: #fbbf24;
+}
+.hcb-yen {
+  font-size: 15px;
+  font-weight: 600;
+}
+.hcb-note {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+.hcb-btn {
+  flex-shrink: 0;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.hcb-btn:hover { transform: scale(1.03); }
 }
 
 .h-stat .lbl {
@@ -661,91 +804,10 @@ body {
 .f-link { display: none; }
 
 /* Hero 右侧陪跑卡片 */
-.hero-coaching-card {
-  background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 40%, #2d1b69 100%);
-  border-radius: 18px;
-  padding: 28px 24px;
-  color: #fff;
-  width: 100%;
-  max-width: 380px;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-}
-.hc-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-.hc-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
-}
-.hc-title {
-  font-size: 20px;
-  font-weight: 800;
-  margin: 0;
-  background: linear-gradient(135deg, #fff 0%, #c4b5fd 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.hc-sub {
-  font-size: 13px;
-  color: rgba(255,255,255,0.6);
-  margin: 0 0 16px;
-}
-.hc-price-row {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 18px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 10px;
-  padding: 12px 16px;
-}
-.hc-price {
-  font-size: 32px;
-  font-weight: 800;
-  color: #fbbf24;
-}
-.hc-yen {
-  font-size: 16px;
-  font-weight: 600;
-}
-.hc-price-note {
-  font-size: 12px;
-  color: rgba(255,255,255,0.5);
-}
-.hc-btn {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  font-weight: 700;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.hc-btn:hover {
-  transform: scale(1.02);
-}
-.hc-social {
-  text-align: center;
-  font-size: 12px;
-  color: rgba(255,255,255,0.5);
-  margin-top: 12px;
-}
-.hc-social strong {
-  color: #fbbf24;
-}
 @media (max-width: 768px) {
+  .pc-hero-two-cards { grid-template-columns: 1fr; }
+  .hero-coaching-bar { flex-wrap: wrap; gap: 16px; padding: 20px; }
+  .hcb-center { margin-left: 0; }
   .pc-feature-cards-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .feature-card { padding: 12px; }
   .f-icon { width: 34px; height: 34px; font-size: 17px; }
