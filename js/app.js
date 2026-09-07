@@ -704,12 +704,37 @@ const app = {
     this.userAnswers = { persona: '', interests: [], skills: [], traits: { logic: 0, creative: 0, social: 0, exec: 0, leader: 0, handcraft: 0 }, prefs: [] };
     this.assessStep = 0;
     this.saveUserData();
+
+    // 强制清空实时匹配面板 DOM
+    const matchScoreEl = document.getElementById('realtime-match-score');
+    if (matchScoreEl) matchScoreEl.textContent = '--';
+    const items = document.querySelectorAll('.competitive-item');
+    items.forEach(item => {
+      const fill = item.querySelector('.competitive-bar-fill');
+      const valueEl = item.querySelector('.competitive-value');
+      if (fill) { fill.style.width = '0%'; fill.style.transition = 'none'; }
+      if (valueEl) valueEl.textContent = '--';
+    });
+
+    // 强制清空首页预览卡片
+    const scoreEl = document.getElementById('home-preview-score');
+    const jobEl = document.getElementById('home-preview-job');
+    const descEl = document.getElementById('home-preview-desc');
+    const tagsEl = document.getElementById('home-preview-tags');
+    const labelEl = document.getElementById('home-preview-label');
+    const barsEl = document.getElementById('home-preview-bars');
+    if (scoreEl) scoreEl.innerText = '匹配度 --';
+    if (jobEl) jobEl.innerText = '完成测评后查看';
+    if (descEl) descEl.innerText = '点击左侧「一键精准匹配」开始6维AI测评';
+    if (labelEl) labelEl.innerText = '你的测评结果';
+    if (tagsEl) tagsEl.innerHTML = '';
+    if (barsEl) barsEl.innerHTML = '';
+
     const resultView = document.getElementById('assess-result-view');
     const pcLayout = document.querySelector('.assess-pc-layout');
     if (resultView) resultView.style.display = 'none';
     if (pcLayout) pcLayout.style.display = 'grid';
     this.renderAssessStep();
-    this.updateCompetitiveAnalysis();
   },
 
   // 导出报告
