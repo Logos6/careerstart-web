@@ -34,6 +34,19 @@ const app = {
     this.updateHomePreview();
     this.updateHomeCoaching();
     this.initShareButtons();
+
+    // 刷新后从hash恢复当前页面
+    const validTabs = ['home','assess','tools','jobs','coaching','me'];
+    const hash = location.hash.replace('#','');
+    const initialTab = validTabs.includes(hash) ? hash : 'home';
+    this.switchTab(initialTab);
+
+    // 监听浏览器前进/后退
+    window.addEventListener('hashchange', () => {
+      const h = location.hash.replace('#','');
+      const tab = validTabs.includes(h) ? h : 'home';
+      if (tab !== this.currentTab) this.switchTab(tab);
+    });
   },
 
   // 初始化分享按钮
@@ -255,6 +268,10 @@ const app = {
 
   switchTab(tabName) {
     this.currentTab = tabName;
+    // 同步URL hash，刷新后可恢复
+    if (location.hash !== '#' + tabName) {
+      history.replaceState(null, '', '#' + tabName);
+    }
     document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
     const targetView = document.getElementById(`view-${tabName}`);
     if (targetView) targetView.classList.add('active');
