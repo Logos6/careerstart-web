@@ -706,7 +706,6 @@
         <a href="javascript:void(0)" onclick="app.switchTab('assess')" style="color:#94a3b8; text-decoration:none;">AI测评</a>
         <a href="javascript:void(0)" onclick="app.switchTab('jobs')" style="color:#94a3b8; text-decoration:none;">岗位库</a>
         <a href="javascript:void(0)" onclick="app.switchTab('courses')" style="color:#94a3b8; text-decoration:none;">充电站</a>
-        <span style="color:#94a3b8;">👁 <span id="busuanzi_value_site_pv"></span> 次访问</span>
       </div>
     </div>
   </footer>
@@ -715,7 +714,17 @@
   <script src="js/data.js?v=5"></script>
   <script src="js/engine.js?v=5"></script>
   <script src="js/app.js?v=9"></script>
-  <!-- 不蒜子访客统计 -->
-  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <!-- 后端访客统计 -->
+  <script>
+    fetch('https://careerstart-api.netlify.app/api/hit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        page: location.pathname,
+        referrer: document.referrer,
+        user_agent: navigator.userAgent
+      })
+    }).catch(() => {});
+  </script>
 </body>
 </html>
