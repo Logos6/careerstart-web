@@ -377,6 +377,126 @@ body {
 .m-bar { flex: 1; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
 .m-fill { height: 100%; background: var(--primary-gradient); }
 
+/* 测评推荐课程卡片 */
+.home-course-rec-card {
+  background: linear-gradient(135deg, #f8f5ff 0%, #eef2ff 100%);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 32px;
+}
+.course-rec-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.course-rec-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  color: #fff;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.course-rec-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin: 0 0 4px;
+}
+.course-rec-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+.course-rec-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.course-rec-item {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+.course-rec-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.12);
+}
+.course-rec-item-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.course-rec-item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #fff;
+  flex-shrink: 0;
+}
+.course-rec-item-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin: 0 0 2px;
+}
+.course-rec-item-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+.course-rec-item-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #8b5cf6;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f3f0ff;
+}
+.course-rec-item-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.course-rec-item-match {
+  background: linear-gradient(135deg, #ede9fe, #f5f3ff);
+  border: 1px solid #c4b5fd;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6d28d9;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+.course-rec-more {
+  display: block;
+  margin: 0 auto;
+}
+@media (max-width: 768px) {
+  .course-rec-grid { grid-template-columns: 1fr; }
+  .home-course-rec-card { padding: 20px; }
+}
+
 /* 四大核心卡片 */
 .pc-feature-cards-grid {
   display: grid;
