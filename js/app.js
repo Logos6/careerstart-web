@@ -867,41 +867,73 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
   runResumeCheck() {
     const text = document.getElementById('resume-input').value;
     const box = document.getElementById('resume-result-box');
-    if (!text.trim()) { alert("请先输入简历或岗位要求文本"); return; }
+    if (!text.trim()) { alert("请先输入简历文本"); return; }
 
-    const result = CareerEngine.detectAgeBias(text);
+    const result = CareerEngine.diagnoseResume(text);
+    if (!result) return;
     
     // 保存诊断历史
     this.userData.resumeHistory.push({
       date: new Date().toISOString(),
       text: text.substring(0, 100),
-      score: result.score,
-      riskLevel: result.riskLevel
+      score: result.totalScore,
+      riskLevel: result.totalScore >= 70 ? '优秀' : result.totalScore >= 50 ? '良好' : result.totalScore >= 30 ? '一般' : '需改进'
     });
     this.saveUserData();
 
+    const scoreColor = result.totalScore >= 70 ? '#2ea56a' : result.totalScore >= 50 ? '#0284c7' : result.totalScore >= 30 ? '#d97706' : '#dc2626';
+
     box.style.display = 'block';
     box.innerHTML = `
-      <div style="background:#fff; border:1px solid var(--border-color); padding:20px; border-radius:14px; animation: slideUp 0.4s ease;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <h4 style="font-size:18px;">诊断结果</h4>
-          <span style="background:${result.riskColor}; color:#fff; font-size:13px; padding:3px 12px; border-radius:12px; font-weight:600;">${result.riskLevel} (${result.score}分)</span>
+      <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; overflow:hidden; animation: slideUp 0.4s ease;">
+        <!-- 总分头部 -->
+        <div style="background:linear-gradient(135deg,#f8f5ff,#eef2ff); padding:24px; text-align:center; border-bottom:1px solid var(--border-color);">
+          <div style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">简历综合评分</div>
+          <div style="font-size:52px; font-weight:900; color:${scoreColor}; line-height:1;">${result.totalScore}</div>
+          <div style="font-size:14px; color:${scoreColor}; font-weight:600; margin-top:4px;">${result.totalScore >= 70 ? '优秀' : result.totalScore >= 50 ? '良好' : result.totalScore >= 30 ? '一般' : '需改进'}</div>
+          <div style="font-size:13px; color:var(--text-muted); margin-top:10px; max-width:500px; margin-left:auto; margin-right:auto;">${result.summary}</div>
         </div>
-        <p style="font-size:14px; color:var(--text-muted); margin-bottom:12px;">${result.summary}</p>
-        ${result.issues.length ? `
-          <div style="background:#fef2f2; border:1px solid #fecaca; padding:14px; border-radius:10px; font-size:13px;">
-            <strong>检测到的风险扣分项表述：</strong>
-            <ul style="padding-left:18px; margin-top:6px; color:#991b1b; line-height:1.6;">
-              ${result.issues.map(i => `<li><b>「${i.word}」</b>: ${i.desc} (修改建议：${i.suggestion})</li>`).join('')}
-            </ul>
+
+        <!-- 六维度雷达 -->
+        <div style="padding:24px;">
+          <h4 style="font-size:16px; margin-bottom:16px; display:flex; align-items:center; gap:8px;"><i class="ri-radar-line" style="color:var(--primary);"></i> 六维度诊断详情</h4>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:14px;">
+            ${result.dimensions.map(d => `
+              <div style="background:#f8fafc; border-radius:12px; padding:16px; border:1px solid ${d.color}22;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span style="font-size:14px; font-weight:700; display:flex; align-items:center; gap:6px;"><i class="${d.icon}" style="color:${d.color};"></i> ${d.name}</span>
+                  <span style="font-size:18px; font-weight:800; color:${d.color};">${d.score}</span>
+                </div>
+                <div style="background:#e2e8f0; height:6px; border-radius:3px; overflow:hidden; margin-bottom:6px;">
+                  <div style="background:${d.color}; height:100%; width:${d.score}%; border-radius:3px; transition:width 0.6s;"></div>
+                </div>
+                <div style="font-size:12px; color:var(--text-muted);">${d.detail}</div>
+                ${d.issues.length ? `
+                  <div style="margin-top:8px; font-size:12px; color:#991b1b; background:#fef2f2; padding:8px 10px; border-radius:8px;">
+                    ${d.issues.map(i => `<div style="margin-bottom:4px;">• ${i.desc}${i.suggestion ? `<span style="color:#6d28d9;"> → ${i.suggestion}</span>` : ''}</div>`).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
           </div>
-        ` : `
-          <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:10px; font-size:13px; color:#166534;">
-            <i class="ri-checkbox-circle-fill"></i> 未检测到明显年龄歧视风险，简历表述较为规范。
+        </div>
+
+        <!-- 优化建议 -->
+        ${result.suggestions.length ? `
+        <div style="padding:0 24px 24px;">
+          <h4 style="font-size:16px; margin-bottom:12px; display:flex; align-items:center; gap:8px;"><i class="ri-lightbulb-line" style="color:#f59e0b;"></i> 优化建议</h4>
+          <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7); border:1px solid #fde68a; border-radius:12px; padding:16px;">
+            <ol style="padding-left:18px; margin:0; font-size:13px; color:#92400e; line-height:2;">
+              ${result.suggestions.map(s => `<li>${s}</li>`).join('')}
+            </ol>
           </div>
-        `}
-        <div style="margin-top:12px; font-size:12px; color:var(--text-muted);">
-          <i class="ri-history-line"></i> 已保存至诊断历史 (共 ${this.userData.resumeHistory.length} 条记录)
+        </div>
+        ` : ''}
+
+        <!-- 底部 -->
+        <div style="padding:12px 24px; border-top:1px solid var(--border-color); font-size:12px; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
+          <span><i class="ri-history-line"></i> 已保存至诊断历史 (共 ${this.userData.resumeHistory.length} 条记录)</span>
+          <button class="btn btn-outline-primary" style="font-size:12px; padding:4px 12px;" onclick="document.getElementById('resume-result-box').style.display='none'">收起报告</button>
         </div>
       </div>
     `;
