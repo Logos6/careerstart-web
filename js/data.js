@@ -80,7 +80,7 @@ var PREF_ITEMS = [
   { id: "startup", label: "灵活创业 / 自由职业" },
 ];
 
-/* ---------- 职位库 ---------- */
+/* ---------- 职位库（仅供测评引擎匹配使用） ---------- */
 var JOBS = [
   {"id":"pdm","name":"产品经理","icon":"i-compass","cat":"互联网 · 产品","color":"linear-gradient(145deg,#e8f0fe,#d2e3fc)","salary":[15,35],"growth":"晋升路径清晰，3-5 年可带产品线","desc":"连接用户、业务与技术，定义产品要做什么、为什么做，并推动团队把它做出来。","duty":["洞察用户需求，撰写产品方案与原型","协调设计、研发、测试推进项目上线","分析数据与用户反馈，持续迭代产品"],"need":["逻辑清晰，善于结构化思考","同理心强，能站在用户角度想问题","沟通协调与推动力出色"],"fit":{"interests":{"tech":0.8,"business":0.9,"data":0.7,"people":0.7},"traits":{"logic":0.9,"social":0.9,"leader":0.8,"creative":0.7,"exec":0.8},"skills":{"pm":1,"office":0.8,"datatool":0.7,"speaking":0.7,"aitool":0.6},"prefs":{"growth":1,"team":0.9,"highpay":0.7}},"persona":{"student":0.85,"fresh":0.95,"mid":0.55,"mom":0.45}},
   {"id":"fedev","name":"前端开发工程师","icon":"i-code","cat":"互联网 · 技术","color":"linear-gradient(145deg,#e6f4ff,#cbe8ff)","salary":[12,30],"growth":"技术纵深 + 全栈方向，天花板高","desc":"把设计稿变成用户手里真实可用的界面，是离用户最近的工程师。","duty":["使用主流框架开发 Web / 移动端页面","与产品、设计协作还原交互细节","优化页面性能与用户体验"],"need":["扎实的编程基础","对细节和体验有追求","持续学习新技术的能力"],"fit":{"interests":{"tech":1,"design":0.6,"make":0.5},"traits":{"logic":1,"exec":0.8,"creative":0.6,"handcraft":0.5},"skills":{"coding":1,"aitool":0.6,"uidesign":0.5},"prefs":{"highpay":0.8,"growth":0.9,"remote":0.7,"solo":0.6}},"persona":{"student":0.85,"fresh":0.95,"mid":0.55,"mom":0.45}},
@@ -148,6 +148,9 @@ var JOBS = [
   {"id":"targeted_024","name":"文案写手","icon":"i-briefcase","cat":"运营转型","color":"linear-gradient(145deg,#e8f0fe,#d2e3fc)","salary":[4,7],"growth":"可晋升内容总监","desc":"文案写手（远程）","duty":["撰写产品文案","编辑推文内容","策划选题"],"need":["文笔好","有创意","熟悉网络热点"],"fit":{"interests":{"tech":0.4,"business":0.5,"data":0.3,"people":0.6},"traits":{"logic":0.5,"social":0.6,"leader":0.4,"creative":0.9,"exec":0.6},"skills":{"pm":0.4,"office":0.5,"datatool":0.3,"speaking":0.5,"aitool":0.4},"prefs":{"growth":0.7,"team":0.4,"highpay":0.5}},"persona":{"mid":0.75,"mom":0.8},"source":"BOSS直聘","city":"成都","tags":["宝妈友好","居家可做","技能型","时间自由"],"flex":"full","ageFriendly":true,"momFriendly":true,"jobType":"全职"},
   {"id":"targeted_025","name":"数据标注员","icon":"i-briefcase","cat":"技术转型","color":"linear-gradient(145deg,#e8f0fe,#d2e3fc)","salary":[3,5],"growth":"可晋升标注组长","desc":"数据标注员（远程）","duty":["标注训练数据","质检数据","反馈问题"],"need":["细心认真","会使用电脑","有耐心"],"fit":{"interests":{"tech":0.5,"business":0.3,"data":0.6,"people":0.4},"traits":{"logic":0.6,"social":0.4,"leader":0.3,"creative":0.3,"exec":0.8},"skills":{"pm":0.3,"office":0.6,"datatool":0.5,"speaking":0.3,"aitool":0.4},"prefs":{"growth":0.5,"team":0.4,"highpay":0.3}},"persona":{"mid":0.7,"mom":0.8},"source":"BOSS直聘","city":"成都","tags":["宝妈友好","居家可做","时间灵活","长期稳定"],"flex":"full","ageFriendly":true,"momFriendly":true,"jobType":"全职"}
 ];
+
+/* ---------- 两类服务人群（35+转型 & 宝妈） ---------- */
+
 
 /* ---------- 两类服务人群（35+转型 & 宝妈） ---------- */
 var PERSONAS = [
@@ -330,7 +333,6 @@ return {
   SKILL_GROUPS: SKILL_GROUPS,
   TRAITS: TRAITS,
   PREF_ITEMS: PREF_ITEMS,
-  JOBS: JOBS,
   PERSONAS: PERSONAS,
   STEP_DEFS: STEP_DEFS,
   PERSONA_STEPS: PERSONA_STEPS,
