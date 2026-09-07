@@ -116,7 +116,7 @@ const app = {
     }
     
     if (this.userData.isVip) {
-      if (levelEl) levelEl.innerText = 'Lv.2 重启会员';
+      if (levelEl) levelEl.innerText = 'Lv.2 启航会员';
       if (vipTag) {
         vipTag.innerText = `${this.getPlanName(this.userData.vipPlan)} (生效中)`;
         vipTag.style.background = '#fbbf24';
@@ -182,7 +182,7 @@ const app = {
   },
 
   getPlanName(plan) {
-    const names = { month: '月度会员', quarter: '重启季卡', year: '全年无限卡' };
+    const names = { month: '月度会员', quarter: '启航季卡', year: '全年无限卡' };
     return names[plan] || '会员';
   },
 
