@@ -350,8 +350,8 @@
         <!-- 模拟面试卡片 -->
         <div class="tool-card-box">
           <div class="t-box-header">
-            <h3><i class="ri-user-voice-line"></i> AI 35+ 模拟面试对话演练</h3>
-            <p>针对职业空白期、工时安排与薪资预期进行对话挑战。</p>
+            <h3><i class="ri-user-voice-line"></i> AI 模拟面试演练</h3>
+            <p>针对目标岗位进行多轮深度模拟面试，含实时评分与详细报告。</p>
           </div>
           <div class="t-box-body">
             <div class="pc-chat-window" id="interview-chat-box">
@@ -361,8 +361,8 @@
               </div>
             </div>
             <div class="pc-chat-input-bar">
-              <input type="text" id="interview-input" placeholder="输入岗位名称开始面试..." onkeypress="if(event.key==='Enter') app.sendInterviewMsg()">
-              <button class="btn btn-primary" onclick="app.sendInterviewMsg()"><i class="ri-send-plane-fill"></i> 发送</button>
+              <input type="text" id="interview-input" placeholder="输入岗位名称开始面试..." onkeypress="if(event.key==='Enter') app.startInterview()">
+              <button class="btn btn-primary" onclick="app.startInterview()"><i class="ri-send-plane-fill"></i> 开始面试</button>
             </div>
           </div>
         </div>
