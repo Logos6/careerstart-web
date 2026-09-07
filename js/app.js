@@ -735,7 +735,7 @@ const app = {
           <button class="btn btn-primary-gradient btn-lg" onclick="app.startNewAssessment(); app.switchTab('assess');">
             <i class="ri-refresh-line"></i> 重新测试
           </button>
-          <button class="btn btn-outline-primary btn-lg" onclick="app.exportReport()">
+          <button class="btn btn-primary-gradient btn-lg" onclick="app.exportReport()">
             <i class="ri-download-line"></i> 导出报告
           </button>
         </div>
@@ -943,7 +943,7 @@ const app = {
           <button class="btn btn-primary-gradient btn-lg" onclick="app.startNewAssessment(); app.switchTab('assess');">
             <i class="ri-refresh-line"></i> 重新测评
           </button>
-          <button class="btn btn-outline-primary btn-lg" onclick="app.exportReport()">
+          <button class="btn btn-primary-gradient btn-lg" onclick="app.exportReport()">
             <i class="ri-download-line"></i> 导出报告
           </button>
         </div>
