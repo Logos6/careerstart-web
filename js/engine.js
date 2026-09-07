@@ -420,7 +420,6 @@
     }
 
     // ── 技能描述 ──
-    const skillLines = lines.filter(l => /精通|熟练|掌握|熟悉|了解|擅长|技能|能力/.test(l));
     if (skillLines.length > 0) {
       const skillGeneric = skillLines.filter(l => /Office|Word|Excel|PPT|普通话|英语|计算机/.test(l));
       if (skillGeneric.length > 0 && skillLines.length <= 4) {
