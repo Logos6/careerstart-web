@@ -59,8 +59,8 @@ const app = {
   // 初始化分享按钮
   initShareButtons() {
     const shareData = {
-      title: '启航 CareerStart - 35+女性与宝妈职业重启平台',
-      text: '专为35+女性与全职宝妈打造的职业重启平台。6维AI测评、年龄友好岗位库、免费技能课程。',
+      title: '启航 CareerStart - 35+女性与宝妈职业启航平台',
+      text: '专为35+女性与全职宝妈打造的职业启航平台。6维AI测评、年龄友好岗位库、免费技能课程。',
       url: 'https://logos6.github.io/careerstart-web/'
     };
 
@@ -998,7 +998,7 @@ const app = {
     const report = CareerEngine.buildReport(this.userAnswers);
     const top1 = report.top[0];
     const text = `
-启航 CareerStart 职业重启分析报告
+启航 CareerStart 职业启航分析报告
 ================================
 生成时间：${new Date().toLocaleString('zh-CN')}
 
@@ -1652,12 +1652,12 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
       loginForm.style.display = 'block';
       registerForm.style.display = 'none';
       title.innerText = '登录账号';
-      desc.innerText = '登录后享受更多功能，记录你的职业重启旅程';
+      desc.innerText = '登录后享受更多功能，记录你的职业启航旅程';
     } else {
       loginForm.style.display = 'none';
       registerForm.style.display = 'block';
       title.innerText = '注册新账号';
-      desc.innerText = '加入启航，开启你的职业重启之旅';
+      desc.innerText = '加入启航，开启你的职业启航之旅';
     }
   },
 
