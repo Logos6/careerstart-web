@@ -32,6 +32,7 @@ const app = {
     this.renderAssessStep();
     this.updateUserDisplay();
     this.updateHomePreview();
+    this.updateHomeCourses();
     this.initShareButtons();
   },
 
@@ -175,8 +176,6 @@ const app = {
           `<div class="m-bar-item"><span>${t.job.name}</span><div class="m-bar"><div class="m-fill" style="width:${t.total}%"></div></div></div>`
         ).join('');
       }
-
-      this.updateHomeCourses();
     } catch (e) {
       console.error('[updateHomePreview Error]', e);
     }
@@ -306,6 +305,7 @@ const app = {
         if (barsEl) barsEl.innerHTML = '';
       } else {
         this.updateHomePreview();
+        this.updateHomeCourses();
       }
     }
 
@@ -658,6 +658,7 @@ const app = {
     this.userData.lastAssessment = historyEntry;
     this.saveUserData();
     this.updateHomePreview();
+    this.updateHomeCourses();
 
     const top1 = report.top[0];
     content.innerHTML = `
