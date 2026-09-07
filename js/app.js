@@ -698,36 +698,118 @@ const app = {
     this.updateHomePreview();
     this.updateHomeCourses();
 
-    const top1 = report.top[0];
-    content.innerHTML = `
-      <div style="grid-column: span 2; background:linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%); padding:32px; border-radius:20px; box-shadow:var(--shadow-sm); animation: slideUp 0.5s ease;">
-        <span style="background:var(--primary); color:#fff; font-size:13px; padding:4px 14px; border-radius:14px; font-weight:600;">匹配第一名 (TOP 1)</span>
-        <h2 style="font-size:28px; color:var(--text-main); margin:12px 0;">${top1.job.name} (综合匹配度 ${top1.total}%)</h2>
-        <p style="font-size:15px; color:var(--text-muted); margin-bottom:16px;">${top1.job.desc}</p>
-        <div style="background:#fff; padding:20px; border-radius:14px;">
-          <h4 style="font-size:16px; margin-bottom:8px;">推荐分析理由：</h4>
-          <ul style="padding-left:20px; color:#475569; font-size:14px; line-height:1.8;">
-            ${CareerEngine.reasonText(this.userAnswers, top1).map(r => `<li>${r}</li>`).join('')}
-          </ul>
-        </div>
-      </div>
+    // 生成深度分析
+    const analysis = CareerEngine.generateAssessmentAnalysis(this.userAnswers, report);
 
-      <div style="grid-column: span 2; margin-top:20px; animation: slideUp 0.6s ease;">
-        <h3 style="font-size:20px; margin-bottom:16px;">推荐备选岗位分析：</h3>
-        <div class="pc-jobs-grid">
-          ${report.top.slice(1).map((item, idx) => `
-            <div class="pc-job-card" style="animation: slideUp ${0.7 + idx * 0.1}s ease;">
-              <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                  <span class="pc-job-title">${item.job.name}</span>
-                  <span class="pc-job-salary" style="color:var(--primary);">${item.total}% 匹配</span>
+    const top1 = report.top[0];
+    const top2 = report.top[1];
+    const top3 = report.top[2];
+
+    // 六维度雷达图数据
+    const traitData = [
+      { label: '逻辑分析', score: this.userAnswers.traits.logic || 0 },
+      { label: '创造想象', score: this.userAnswers.traits.creative || 0 },
+      { label: '沟通协作', score: this.userAnswers.traits.social || 0 },
+      { label: '执行落地', score: this.userAnswers.traits.exec || 0 },
+      { label: '组织领导', score: this.userAnswers.traits.leader || 0 },
+      { label: '动手实践', score: this.userAnswers.traits.handcraft || 0 },
+    ];
+
+    content.innerHTML = `
+      <div style="grid-column: span 2; animation: slideUp 0.5s ease;">
+
+        <!-- ========== 第一部分：深度文字分析 ========== -->
+        <div style="background:linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%); padding:28px 32px; border-radius:20px; box-shadow:var(--shadow-sm); margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+            <span style="background:var(--primary); color:#fff; font-size:13px; padding:4px 14px; border-radius:14px; font-weight:600;">六维 AI 测评报告</span>
+            <span style="font-size:13px; color:var(--text-muted);">匹配岗位：${top1.job.name}（${top1.total}%）</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            ${analysis.map(section => `
+              <div style="background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                <div style="padding:14px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:8px;">
+                  <i class="${section.icon}" style="color:var(--primary); font-size:18px;"></i>
+                  <span style="font-size:16px; font-weight:700; color:var(--text-main);">${section.title}</span>
                 </div>
-                <p style="font-size:13px; color:var(--text-muted);">${item.job.desc}</p>
+                <div style="padding:16px 20px;">
+                  ${section.paragraphs.map(p => `<p style="font-size:14px; color:#334155; margin:0 0 10px; line-height:1.85;">${p}</p>`).join('')}
+                </div>
               </div>
-            </div>
-          `).join('')}
+            `).join('')}
+          </div>
         </div>
-        <div style="display:flex; gap:12px; margin-top:24px;">
+
+        <!-- ========== 第二部分：六维度雷达 + 分数 ========== -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; animation: slideUp 0.6s ease;">
+          <!-- 左：雷达图 -->
+          <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; padding:24px;">
+            <h4 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+              <i class="ri-radar-line" style="color:var(--primary);"></i> 六维能力画像
+            </h4>
+            <canvas id="assess-radar" width="320" height="320"></canvas>
+          </div>
+          <!-- 右：各维度分数 -->
+          <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; padding:24px;">
+            <h4 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+              <i class="ri-bar-chart-2-line" style="color:var(--primary);"></i> 能力维度评分
+            </h4>
+            <div style="display:flex; flex-direction:column; gap:14px;">
+              ${traitData.map(d => `
+                <div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <span style="font-size:13px; font-weight:600; color:var(--text-main);">${d.label}</span>
+                    <span style="font-size:13px; font-weight:700; color:${d.score >= 8 ? '#16a34a' : d.score >= 5 ? '#0284c7' : '#d97706'};">${d.score}/10</span>
+                  </div>
+                  <div style="background:#e2e8f0; height:6px; border-radius:3px; overflow:hidden;">
+                    <div style="background:${d.score >= 8 ? '#16a34a' : d.score >= 5 ? '#0284c7' : '#d97706'}; height:100%; width:${d.score * 10}%; border-radius:3px; transition:width 0.6s ease;"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== 第三部分：推荐岗位 ========== -->
+        <div style="animation: slideUp 0.7s ease;">
+          <h3 style="font-size:20px; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+            <i class="ri-medal-line" style="color:var(--primary);"></i> 为你推荐的 3 个方向
+          </h3>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;">
+            ${report.top.map((item, idx) => {
+              const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉';
+              const border = idx === 0 ? '2px solid var(--primary)' : '1px solid var(--border-color)';
+              const bg = idx === 0 ? 'linear-gradient(135deg,#f5f3ff,#ede9fe)' : '#fff';
+              return `
+              <div style="background:${bg}; border:${border}; border-radius:16px; padding:20px; ${idx === 0 ? 'box-shadow:0 4px 12px rgba(124,58,237,0.15);' : ''}">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                  <span style="font-size:24px;">${medal}</span>
+                  <span style="font-size:15px; font-weight:700; color:var(--text-main);">${item.job.name}</span>
+                </div>
+                <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:8px;">
+                  <span style="font-size:28px; font-weight:900; color:var(--primary);">${item.total}%</span>
+                  <span style="font-size:12px; color:var(--text-muted);">匹配度</span>
+                </div>
+                <p style="font-size:13px; color:var(--text-muted); line-height:1.7; margin:0;">${item.job.desc}</p>
+                <div style="margin-top:12px; padding-top:12px; border-top:1px solid ${idx === 0 ? '#e0d4fa' : '#f1f5f9'};">
+                  <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">兴趣匹配</div>
+                  <div style="background:#e2e8f0; height:5px; border-radius:3px; overflow:hidden;">
+                    <div style="background:var(--primary); height:100%; width:${Math.round(item.parts.interest * 100)}%; border-radius:3px;"></div>
+                  </div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
+                    <div style="font-size:11px; color:var(--text-muted);">技能 ${Math.round(item.parts.skill * 100)}%</div>
+                    <div style="font-size:11px; color:var(--text-muted);">性格 ${Math.round(item.parts.trait * 100)}%</div>
+                    <div style="font-size:11px; color:var(--text-muted);">偏好 ${Math.round(item.parts.pref * 100)}%</div>
+                    <div style="font-size:11px; color:var(--text-muted);">画像 ${Math.round(item.parts.persona * 100)}%</div>
+                  </div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- ========== 操作按钮 ========== -->
+        <div style="display:flex; gap:12px; margin-top:28px; animation: slideUp 0.8s ease;">
           <button class="btn btn-primary-gradient btn-lg" onclick="app.startNewAssessment(); app.switchTab('assess');">
             <i class="ri-refresh-line"></i> 重新测试
           </button>
@@ -737,6 +819,102 @@ const app = {
         </div>
       </div>
     `;
+
+    // 绘制雷达图
+    this.drawRadarChart('assess-radar', traitData);
+  },
+
+  // 绘制雷达图
+  drawRadarChart(canvasId, data) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const size = 320;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+    ctx.scale(dpr, dpr);
+
+    const cx = size / 2, cy = size / 2, r = 120;
+    const n = data.length;
+    const angleStep = (Math.PI * 2) / n;
+    const startAngle = -Math.PI / 2;
+
+    // 背景网格
+    for (let level = 1; level <= 5; level++) {
+      const lr = (r * level) / 5;
+      ctx.beginPath();
+      for (let i = 0; i <= n; i++) {
+        const angle = startAngle + i * angleStep;
+        const x = cx + lr * Math.cos(angle);
+        const y = cy + lr * Math.sin(angle);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // 轴线
+    for (let i = 0; i < n; i++) {
+      const angle = startAngle + i * angleStep;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // 数据区域
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const idx = i % n;
+      const angle = startAngle + idx * angleStep;
+      const val = (data[idx].score / 10) * r;
+      const x = cx + val * Math.cos(angle);
+      const y = cy + val * Math.sin(angle);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(124, 58, 237, 0.15)';
+    ctx.fill();
+    ctx.strokeStyle = '#7c3aed';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 数据点 + 标签
+    for (let i = 0; i < n; i++) {
+      const angle = startAngle + i * angleStep;
+      const val = (data[i].score / 10) * r;
+      const x = cx + val * Math.cos(angle);
+      const y = cy + val * Math.sin(angle);
+
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#7c3aed';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 标签
+      const lx = cx + (r + 24) * Math.cos(angle);
+      const ly = cy + (r + 24) * Math.sin(angle);
+      ctx.fillStyle = '#334155';
+      ctx.font = '600 12px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(data[i].label, lx, ly);
+
+      // 分数
+      ctx.fillStyle = '#7c3aed';
+      ctx.font = '700 11px -apple-system, sans-serif';
+      ctx.fillText(data[i].score + '/10', lx, ly + 15);
+    }
   },
 
   // 展示上次测评结果
@@ -750,37 +928,97 @@ const app = {
     if (pcLayout) pcLayout.style.display = 'none';
     if (resBox) resBox.style.display = 'block';
 
-    const top1 = last.top3 ? last.top3[0] : { name: last.topJob, score: last.score, desc: '' };
-    const top3Html = (last.top3 || []).slice(1).map((item, idx) => `
-      <div class="pc-job-card" style="animation: slideUp ${0.7 + idx * 0.1}s ease;">
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span class="pc-job-title">${item.name}</span>
-            <span class="pc-job-salary" style="color:var(--primary);">${item.score}% 匹配</span>
-          </div>
-          <p style="font-size:13px; color:var(--text-muted);">${item.desc}</p>
-        </div>
-      </div>
-    `).join('');
+    // 重新生成报告
+    const report = CareerEngine.buildReport(last.answers || {});
+    const analysis = CareerEngine.generateAssessmentAnalysis(last.answers || {}, report);
+
+    const top1 = report.top[0];
+    const traitData = [
+      { label: '逻辑分析', score: (last.answers || {}).traits?.logic || 0 },
+      { label: '创造想象', score: (last.answers || {}).traits?.creative || 0 },
+      { label: '沟通协作', score: (last.answers || {}).traits?.social || 0 },
+      { label: '执行落地', score: (last.answers || {}).traits?.exec || 0 },
+      { label: '组织领导', score: (last.answers || {}).traits?.leader || 0 },
+      { label: '动手实践', score: (last.answers || {}).traits?.handcraft || 0 },
+    ];
 
     content.innerHTML = `
-      <div style="grid-column: span 2; background:linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%); padding:32px; border-radius:20px; box-shadow:var(--shadow-sm); animation: slideUp 0.5s ease;">
-        <span style="background:var(--primary); color:#fff; font-size:13px; padding:4px 14px; border-radius:14px; font-weight:600;">上次测评结果</span>
-        <h2 style="font-size:28px; color:var(--text-main); margin:12px 0;">${top1.name} (综合匹配度 ${top1.score}%)</h2>
-        <p style="font-size:13px; color:var(--text-muted); margin-bottom:4px;">测评时间：${new Date(last.date).toLocaleString('zh-CN')}</p>
-        <p style="font-size:15px; color:var(--text-muted); margin-bottom:16px;">${top1.desc}</p>
-      </div>
+      <div style="grid-column: span 2; animation: slideUp 0.5s ease;">
+        <div style="background:linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%); padding:28px 32px; border-radius:20px; box-shadow:var(--shadow-sm); margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+            <span style="background:var(--primary); color:#fff; font-size:13px; padding:4px 14px; border-radius:14px; font-weight:600;">上次测评结果</span>
+            <span style="font-size:13px; color:var(--text-muted);">测评时间：${new Date(last.date).toLocaleString('zh-CN')}</span>
+          </div>
 
-      ${top3Html ? `
-      <div style="grid-column: span 2; margin-top:20px; animation: slideUp 0.6s ease;">
-        <h3 style="font-size:20px; margin-bottom:16px;">备选岗位：</h3>
-        <div class="pc-jobs-grid">${top3Html}</div>
-      </div>
-      ` : ''}
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            ${analysis.map(section => `
+              <div style="background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                <div style="padding:14px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:8px;">
+                  <i class="${section.icon}" style="color:var(--primary); font-size:18px;"></i>
+                  <span style="font-size:16px; font-weight:700; color:var(--text-main);">${section.title}</span>
+                </div>
+                <div style="padding:16px 20px;">
+                  ${section.paragraphs.map(p => `<p style="font-size:14px; color:#334155; margin:0 0 10px; line-height:1.85;">${p}</p>`).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
 
-      <div style="grid-column: span 2; margin-top:24px; animation: slideUp 0.7s ease;">
-        <div style="display:flex; gap:12px;">
-          <button class="btn btn-primary-gradient btn-lg" onclick="app.startNewAssessment()">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; animation: slideUp 0.6s ease;">
+          <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; padding:24px;">
+            <h4 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+              <i class="ri-radar-line" style="color:var(--primary);"></i> 六维能力画像
+            </h4>
+            <canvas id="assess-radar-last" width="320" height="320"></canvas>
+          </div>
+          <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; padding:24px;">
+            <h4 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+              <i class="ri-bar-chart-2-line" style="color:var(--primary);"></i> 能力维度评分
+            </h4>
+            <div style="display:flex; flex-direction:column; gap:14px;">
+              ${traitData.map(d => `
+                <div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <span style="font-size:13px; font-weight:600; color:var(--text-main);">${d.label}</span>
+                    <span style="font-size:13px; font-weight:700; color:${d.score >= 8 ? '#16a34a' : d.score >= 5 ? '#0284c7' : '#d97706'};">${d.score}/10</span>
+                  </div>
+                  <div style="background:#e2e8f0; height:6px; border-radius:3px; overflow:hidden;">
+                    <div style="background:${d.score >= 8 ? '#16a34a' : d.score >= 5 ? '#0284c7' : '#d97706'}; height:100%; width:${d.score * 10}%; border-radius:3px;"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div style="animation: slideUp 0.7s ease;">
+          <h3 style="font-size:20px; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+            <i class="ri-medal-line" style="color:var(--primary);"></i> 为你推荐的 3 个方向
+          </h3>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;">
+            ${report.top.map((item, idx) => {
+              const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉';
+              const border = idx === 0 ? '2px solid var(--primary)' : '1px solid var(--border-color)';
+              const bg = idx === 0 ? 'linear-gradient(135deg,#f5f3ff,#ede9fe)' : '#fff';
+              return `
+              <div style="background:${bg}; border:${border}; border-radius:16px; padding:20px; ${idx === 0 ? 'box-shadow:0 4px 12px rgba(124,58,237,0.15);' : ''}">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                  <span style="font-size:24px;">${medal}</span>
+                  <span style="font-size:15px; font-weight:700; color:var(--text-main);">${item.job.name}</span>
+                </div>
+                <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:8px;">
+                  <span style="font-size:28px; font-weight:900; color:var(--primary);">${item.total}%</span>
+                  <span style="font-size:12px; color:var(--text-muted);">匹配度</span>
+                </div>
+                <p style="font-size:13px; color:var(--text-muted); line-height:1.7; margin:0;">${item.job.desc}</p>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:28px; animation: slideUp 0.8s ease;">
+          <button class="btn btn-primary-gradient btn-lg" onclick="app.startNewAssessment(); app.switchTab('assess');">
             <i class="ri-refresh-line"></i> 重新测评
           </button>
           <button class="btn btn-outline-primary btn-lg" onclick="app.exportReport()">
@@ -789,6 +1027,8 @@ const app = {
         </div>
       </div>
     `;
+
+    this.drawRadarChart('assess-radar-last', traitData);
   },
 
   // 开始新一轮测评（清除上次结果）
