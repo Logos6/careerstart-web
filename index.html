@@ -715,12 +715,12 @@
   <script src="js/data.js?v=5"></script>
   <script src="js/engine.js?v=5"></script>
   <script src="js/app.js?v=9"></script>
-  <!-- 访客计数器 -->
+  <!-- 访客计数器 (hits.sh) -->
   <script>
-    fetch('https://api.countapi.xyz/hit/careerstart/visits')
-      .then(r => r.json())
-      .then(d => {
-        document.getElementById('visit-counter').textContent = '👁 访问量 ' + d.value;
+    fetch('https://hits.sh/github.com/Logos6/careerstart-web.svg?style=flat-square&label=访问量')
+      .then(r => r.text())
+      .then(svg => {
+        document.getElementById('visit-counter').innerHTML = svg;
       }).catch(() => {});
   </script>
 </body>
