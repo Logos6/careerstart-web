@@ -66,7 +66,6 @@
         <button class="nav-item active" data-target="home" onclick="app.switchTab('home')"><i class="ri-home-5-line"></i> 平台首页</button>
         <button class="nav-item" data-target="assess" onclick="app.switchTab('assess')"><i class="ri-compass-3-line"></i> 6维AI测评</button>
         <button class="nav-item" data-target="tools" onclick="app.switchTab('tools')"><i class="ri-cpu-line"></i> AI简历/面试</button>
-        <button class="nav-item" data-target="courses" onclick="app.switchTab('courses')"><i class="ri-book-open-line"></i> 充电站</button>
         <button class="nav-item" data-target="jobs" onclick="app.switchTab('jobs')"><i class="ri-briefcase-line"></i> 友好岗位库</button>
         
       </nav>
@@ -92,7 +91,6 @@
     <button class="nav-item" data-target="home" onclick="app.switchTab('home');app.toggleMobileNav()"><i class="ri-home-5-line"></i> 平台首页</button>
     <button class="nav-item" data-target="assess" onclick="app.switchTab('assess');app.toggleMobileNav()"><i class="ri-compass-3-line"></i> 6维AI测评</button>
     <button class="nav-item" data-target="tools" onclick="app.switchTab('tools');app.toggleMobileNav()"><i class="ri-cpu-line"></i> AI简历/面试</button>
-    <button class="nav-item" data-target="courses" onclick="app.switchTab('courses');app.toggleMobileNav()"><i class="ri-book-open-line"></i> 充电站</button>
     <button class="nav-item" data-target="jobs" onclick="app.switchTab('jobs');app.toggleMobileNav()"><i class="ri-briefcase-line"></i> 友好岗位库</button>
   </div>
 </header>
@@ -124,8 +122,8 @@
               <span class="lbl">学员好评率</span>
             </div>
             <div class="h-stat">
-              <span class="num">32 门</span>
-              <span class="lbl">精选免费课程</span>
+              <span class="num">327+</span>
+              <span class="lbl">陪跑成功入职</span>
             </div>
           </div>
         </div>
@@ -155,25 +153,67 @@
         </div>
       </div>
 
-      <!-- 专属行动方案卡片 -->
-      <div class="home-action-plan-card" id="home-action-plan">
-        <div class="ap-header">
-          <div class="ap-icon"><i class="ri-route-line"></i></div>
-          <div class="ap-header-text">
-            <h3 class="ap-title" id="ap-title">你的专属·30天职场重启行动方案</h3>
-            <p class="ap-sub" id="ap-sub">完成测评后，AI 将为你生成量身定制的转型行动计划</p>
+      <!-- 一对一职业重启陪跑卡片 -->
+      <div class="home-coaching-card" id="home-coaching">
+        <div class="coaching-badge">限量开放 · 名额有限</div>
+        <div class="coaching-main">
+          <div class="coaching-left">
+            <div class="coaching-icon"><i class="ri-user-heart-line"></i></div>
+            <div class="coaching-info">
+              <h2 class="coaching-title">一对一职业重启陪跑</h2>
+              <p class="coaching-subtitle">从迷茫到入职，全程有人带</p>
+            </div>
+          </div>
+          <div class="coaching-price-box">
+            <div class="coaching-price-label">单次服务价</div>
+            <div class="coaching-price"><span class="coaching-yen">¥</span>599</div>
+            <div class="coaching-price-note">找到工作为止</div>
           </div>
         </div>
 
-        <div class="ap-phases" id="ap-phases">
-          <!-- JS 动态渲染 -->
+        <div class="coaching-features">
+          <div class="coaching-feature">
+            <div class="coaching-feature-icon"><i class="ri-calendar-check-line"></i></div>
+            <div class="coaching-feature-text">
+              <h4>每周一次 · 30分钟深度复盘</h4>
+              <p>每周固定时间一对一视频复盘，梳理本周进展、调整下周策略，确保你始终走在正确的路上</p>
+            </div>
+          </div>
+          <div class="coaching-feature">
+            <div class="coaching-feature-icon"><i class="ri-phone-line"></i></div>
+            <div class="coaching-feature-text">
+              <h4>不限次数 · 紧急决策支持</h4>
+              <p>面试前紧张、offer选择纠结、薪资谈判拿不准？随时发消息，职业导师实时给你专业建议</p>
+            </div>
+          </div>
+          <div class="coaching-feature">
+            <div class="coaching-feature-icon"><i class="ri-file-edit-line"></i></div>
+            <div class="coaching-feature-text">
+              <h4>简历作品集 · 定向优化指导</h4>
+              <p>针对目标岗位逐行打磨简历，打造面试级作品集，让你的简历不再被年龄门槛筛掉</p>
+            </div>
+          </div>
+          <div class="coaching-feature">
+            <div class="coaching-feature-icon"><i class="ri-briefcase-4-line"></i></div>
+            <div class="coaching-feature-text">
+              <h4>工作待找 · 全程陪跑到入职</h4>
+              <p>不限时长，从投递到面试到拿offer，全程陪伴直到你成功上岸，不达目标不散场</p>
+            </div>
+          </div>
         </div>
 
-        <div class="ap-footer" id="ap-footer" style="display:none;">
-          <button class="btn btn-primary-gradient btn-lg" onclick="app.openVipModal()">
-            <i class="ri-vip-crown-fill"></i> 开通会员解锁完整方案
+        <div class="coaching-plan-section">
+          <h3 class="coaching-plan-title"><i class="ri-route-line"></i> 配套专属·30天转型行动方案</h3>
+          <div class="coaching-plan-phases" id="coaching-plan-phases">
+            <!-- JS 动态渲染 -->
+          </div>
+        </div>
+
+        <div class="coaching-cta">
+          <button class="btn btn-primary-gradient btn-lg coaching-btn" onclick="app.openCoachingModal()">
+            <i class="ri-whatsapp-line"></i> 立即预约咨询
           </button>
-          <p class="ap-footer-note">已有 <span id="ap-user-count">1,247</span> 位学员通过行动方案成功转型</p>
+          <p class="coaching-cta-note">已有 <strong>327</strong> 位学员通过陪跑成功转型入职</p>
         </div>
       </div>
 
@@ -190,12 +230,6 @@
           <h3>简历隐形门槛扫描</h3>
           <p>智能检测“年龄限制”、“高强度加班”等扣分雷区并给出优化建议。</p>
           <span class="f-link">上传诊断 <i class="ri-arrow-right-line"></i></span>
-        </div>
-        <div class="feature-card" onclick="app.switchTab('courses')">
-          <div class="f-icon bg-orange"><i class="ri-book-read-line"></i></div>
-          <h3>优质技能充电站</h3>
-          <p>精选 32 门对 35+ 女性实用的优质 B 站课程，无缝跳转直达学习。</p>
-          <span class="f-link">浏览课程 <i class="ri-arrow-right-line"></i></span>
         </div>
         <div class="feature-card" onclick="app.openVipModal()">
           <div class="f-icon bg-gold"><i class="ri-vip-diamond-line"></i></div>
@@ -345,33 +379,6 @@
 
         <div class="pc-jobs-grid" id="all-jobs-grid">
           <!-- 动态渲染所有 65 个岗位 -->
-        </div>
-      </div>
-    </section>
-
-    <!-- 4. 充电站 (Courses) -->
-    <section id="view-courses" class="page-view">
-      <div class="pc-section-panel">
-        <div class="panel-header">
-          <div>
-            <h2><i class="ri-book-read-line"></i> 技能充电站 · 32 门精选免费课程</h2>
-            <p style="font-size:14px; color:var(--text-muted); margin-top:2px;">涵盖行政、技术、自媒体、电商、康养等实操技能，支持点击直达 B 站观看</p>
-          </div>
-        </div>
-
-        <div class="pc-cat-filter-tabs" id="course-category-tabs">
-          <button class="pc-cat-btn active" data-cat="all">全部课程</button>
-          <button class="pc-cat-btn" data-cat="职能">职能 / 行政</button>
-          <button class="pc-cat-btn" data-cat="互联网">互联网 / 技术</button>
-          <button class="pc-cat-btn" data-cat="内容">内容 / 自媒体</button>
-          <button class="pc-cat-btn" data-cat="电商">电商 / 直播</button>
-          <button class="pc-cat-btn" data-cat="健康">健康 / 康养</button>
-          <button class="pc-cat-btn" data-cat="管理">管理 / 项目</button>
-          <button class="pc-cat-btn" data-cat="灵活就业">灵活就业 / 兼职</button>
-        </div>
-
-        <div class="pc-courses-grid" id="courses-container">
-          <!-- 动态渲染课程 -->
         </div>
       </div>
     </section>
@@ -527,6 +534,42 @@
     </div>
   </div>
 
+  <!-- 一对一陪跑咨询 Modal -->
+  <div class="modal-backdrop" id="coaching-modal" style="display:none;">
+    <div class="modal-card" style="max-width:480px;">
+      <button class="modal-close" onclick="document.getElementById('coaching-modal').style.display='none';document.body.style.overflow='auto'">&times;</button>
+      <div class="modal-header">
+        <span class="m-badge"><i class="ri-user-heart-fill"></i> 一对一职业重启陪跑</span>
+        <h2>预约咨询 · 开启你的转型之旅</h2>
+        <p>¥599/次 · 从迷茫到入职，全程有人带</p>
+      </div>
+      <div style="padding:0 24px 24px;">
+        <div style="background:linear-gradient(135deg,#f8f5ff,#eef2ff);border-radius:14px;padding:20px;margin-bottom:20px;">
+          <h4 style="font-size:15px;color:#1e1b4b;margin:0 0 12px;"><i class="ri-check-double-line" style="color:#8b5cf6;"></i> 服务包含</h4>
+          <ul style="list-style:none;padding:0;margin:0;font-size:13px;color:#475569;line-height:2;">
+            <li>✓ 每周一次 30 分钟深度复盘（视频/语音）</li>
+            <li>✓ 不限次数紧急决策支持（微信实时答疑）</li>
+            <li>✓ 简历作品集定向优化指导</li>
+            <li>✓ 全程陪跑到入职，不达目标不散场</li>
+          </ul>
+        </div>
+        <div class="input-group" style="margin-bottom:12px;">
+          <input type="text" id="coaching-name" placeholder="你的称呼">
+        </div>
+        <div class="input-group" style="margin-bottom:12px;">
+          <input type="text" id="coaching-phone" placeholder="手机号或微信号">
+        </div>
+        <div class="input-group" style="margin-bottom:16px;">
+          <textarea id="coaching-desc" placeholder="简单描述你的职业背景和转型需求（选填）" style="width:100%;padding:10px 14px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;min-height:80px;resize:vertical;font-family:inherit;"></textarea>
+        </div>
+        <button class="btn btn-primary-gradient btn-block btn-lg" onclick="app.submitCoaching()" style="background:linear-gradient(135deg,#f59e0b,#f97316) !important;color:#1e293b !important;font-weight:700;">
+          <i class="ri-whatsapp-line"></i> 提交预约，导师24小时内联系你
+        </button>
+        <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;">提交后导师会通过微信与你联系，确认服务详情</p>
+      </div>
+    </div>
+  </div>
+
   <!-- 分享 Modal -->
   <div class="modal-backdrop" id="share-modal" style="display:none;">
     <div class="modal-card" style="width:400px; text-align:center;">
@@ -626,7 +669,6 @@
         <a href="https://logos6.github.io/careerstart-web/" style="color:#94a3b8; text-decoration:none;">首页</a>
         <a href="javascript:void(0)" onclick="app.switchTab('assess')" style="color:#94a3b8; text-decoration:none;">AI测评</a>
         <a href="javascript:void(0)" onclick="app.switchTab('jobs')" style="color:#94a3b8; text-decoration:none;">岗位库</a>
-        <a href="javascript:void(0)" onclick="app.switchTab('courses')" style="color:#94a3b8; text-decoration:none;">充电站</a>
       </div>
     </div>
   </footer>
