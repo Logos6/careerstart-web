@@ -1293,33 +1293,239 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
   },
 
   // 7. AI 模拟面试
+  interviewSession: null,
+
+  startInterview() {
+    const input = document.getElementById('interview-input');
+    const chatBox = document.getElementById('interview-chat-box');
+    const txt = input.value.trim();
+    if (!txt) { alert('请输入目标岗位名称'); return; }
+
+    // 显示加载动画
+    chatBox.innerHTML = `
+      <div style="text-align:center; padding:40px 20px;">
+        <div style="width:48px; height:48px; margin:0 auto 16px; border:3px solid #e2e8f0; border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;"></div>
+        <div style="font-size:15px; font-weight:600; color:var(--text-main); margin-bottom:6px;">AI 面试官正在准备中</div>
+        <div style="font-size:12px; color:var(--text-muted);">正在生成「${txt}」专属面试题库...</div>
+      </div>
+      <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+    `;
+    input.value = '';
+
+    // 初始化面试会话
+    setTimeout(() => {
+      this.interviewSession = CareerEngine.initInterviewSession(txt);
+      const firstQ = this.interviewSession.questions[0];
+
+      chatBox.innerHTML = `
+        <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+          <div class="msg-avatar" style="background:var(--primary); color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ri-robot-fill"></i></div>
+          <div class="msg-content" style="background:#f1f5f9; color:var(--text-main); padding:12px 16px; border-radius:14px; max-width:80%; font-size:14px; line-height:1.6;">
+            你好！我是启航 AI 面试官，今天将针对「${txt}」岗位进行模拟面试。<br><br>
+            <span style="font-size:12px; color:var(--text-muted);">共 ${this.interviewSession.questions.length} 个问题，预计 5-8 分钟</span><br><br>
+            ${firstQ.question}
+          </div>
+        </div>
+      `;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }, 1500);
+  },
+
   sendInterviewMsg() {
     const input = document.getElementById('interview-input');
     const chatBox = document.getElementById('interview-chat-box');
     const txt = input.value.trim();
-    if (!txt) return;
+    if (!txt || !this.interviewSession) return;
 
+    // 显示用户消息
     chatBox.innerHTML += `
       <div class="chat-msg user" style="display:flex; gap:12px; flex-direction:row-reverse; margin-bottom:14px;">
         <div class="msg-avatar" style="background:var(--primary); color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ri-user-line"></i></div>
         <div class="msg-content" style="background:var(--primary); color:#fff; padding:12px 16px; border-radius:14px; max-width:80%; font-size:14px;">${txt}</div>
       </div>
     `;
-
     input.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
+    // 显示评分提示
+    const q = this.interviewSession.questions[this.interviewSession.currentQ];
+    chatBox.innerHTML += `
+      <div style="text-align:center; padding:8px; margin-bottom:10px;">
+        <span style="font-size:11px; color:var(--text-muted); background:#f1f5f9; padding:4px 10px; border-radius:12px;">
+          <i class="ri-flashlight-line" style="color:var(--primary);"></i> 正在分析回答...
+        </span>
+      </div>
+    `;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // 分析回答并生成反馈
+    setTimeout(() => {
+      const result = CareerEngine.getInterviewFeedback(this.interviewSession, txt);
+
+      // 移除加载提示
+      const loadingEl = chatBox.querySelector('[style*="正在分析"]');
+      if (loadingEl) loadingEl.parentElement.remove();
+
+      // 显示评分和反馈
+      const feedbackColor = result.score >= 70 ? '#16a34a' : result.score >= 50 ? '#d97706' : '#dc2626';
+      chatBox.innerHTML += `
+        <div style="margin-bottom:10px; padding:8px 12px; background:${feedbackColor}08; border:1px solid ${feedbackColor}22; border-radius:10px;">
+          <span style="font-size:11px; font-weight:700; color:${feedbackColor};">${result.level} ${result.score}分</span>
+          <span style="font-size:11px; color:var(--text-muted); margin-left:8px;">${result.feedback}</span>
+        </div>
+      `;
+
+      // 显示 AI 追问或下一题
+      setTimeout(() => {
+        chatBox.innerHTML += `
+          <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+            <div class="msg-avatar" style="background:var(--primary); color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ri-robot-fill"></i></div>
+            <div class="msg-content" style="background:#f1f5f9; color:var(--text-main); padding:12px 16px; border-radius:14px; max-width:80%; font-size:14px; line-height:1.6;">
+              ${result.aiResponse}
+              ${!result.isLast ? `<div style="margin-top:8px;font-size:11px;color:var(--text-muted);">问题 ${this.interviewSession.currentQ + 1}/${this.interviewSession.questions.length}</div>` : ''}
+            </div>
+          </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 如果是最后一题，生成报告
+        if (result.isLast) {
+          this.finishInterview();
+        }
+      }, 500);
+    }, 1200);
+  },
+
+  finishInterview() {
+    const chatBox = document.getElementById('interview-chat-box');
+
+    // 显示生成报告动画
     setTimeout(() => {
       chatBox.innerHTML += `
-        <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-          <div class="msg-avatar" style="background:#0a58ff; color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ri-robot-fill"></i></div>
-          <div class="msg-content" style="background:#f1f5f9; color:var(--text-main); padding:12px 16px; border-radius:14px; max-width:80%; font-size:14px; line-height:1.6;">
-            针对你提到的岗位【${txt}】，面试官非常看重处理突发情况的能力。如果遇到团队意见分歧，你会采取什么沟通策略？
-          </div>
+        <div id="interview-report-loading" style="text-align:center; padding:30px; margin-top:10px;">
+          <div style="width:56px; height:56px; margin:0 auto 16px; border:3px solid #e2e8f0; border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;"></div>
+          <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:6px;">AI 面试评估报告生成中</div>
+          <div style="font-size:12px; color:var(--text-muted);">正在综合分析你的面试表现...</div>
         </div>
       `;
       chatBox.scrollTop = chatBox.scrollHeight;
-    }, 1000);
+
+      // 生成报告
+      setTimeout(() => {
+        const report = CareerEngine.generateInterviewReport(this.interviewSession);
+        const loadingEl = document.getElementById('interview-report-loading');
+        if (loadingEl) loadingEl.remove();
+
+        // 保存历史
+        this.userData.interviewHistory = this.userData.interviewHistory || [];
+        this.userData.interviewHistory.push({
+          date: new Date().toISOString(),
+          job: report.jobName,
+          score: report.totalScore,
+          level: report.level
+        });
+        this.saveUserData();
+
+        // 渲染报告
+        const severityColor = { '优秀': '#16a34a', '良好': '#2ea56a', '一般': '#d97706', '较差': '#dc2626' };
+
+        chatBox.innerHTML += `
+          <div style="background:#fff; border:1px solid var(--border-color); border-radius:12px; overflow:hidden; margin-top:10px; animation:slideUp 0.4s ease;">
+            <!-- 评分头部 -->
+            <div style="padding:24px; text-align:center; background:linear-gradient(135deg,#f8f5ff 0%,#fff 100%); border-bottom:1px solid var(--border-color);">
+              <div style="width:80px; height:80px; border-radius:50%; background:conic-gradient(${report.color} ${report.totalScore * 3.6}deg, #e2e8f0 0deg); margin:0 auto 16px; display:flex; align-items:center; justify-content:center;">
+                <div style="width:64px; height:64px; border-radius:50%; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                  <span style="font-size:24px; font-weight:900; color:${report.color}; line-height:1;">${report.totalScore}</span>
+                  <span style="font-size:10px; color:${report.color}; font-weight:600;">${report.level}</span>
+                </div>
+              </div>
+              <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:4px;">「${report.jobName}」面试报告</div>
+              <div style="font-size:12px; color:var(--text-muted);">共 ${report.totalQuestions} 题 · 已答 ${report.answeredQuestions} 题 · 用时 ${report.duration}</div>
+            </div>
+
+            <!-- 分类得分 -->
+            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+              <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+                <i class="ri-bar-chart-grouped-line"></i> 各维度表现
+              </h4>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                ${Object.entries(report.categoryScores).map(([cat, score]) => `
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:12px; color:var(--text-main); width:80px;">${cat}</span>
+                    <div style="flex:1; background:#e2e8f0; height:6px; border-radius:3px; overflow:hidden;">
+                      <div style="background:${score >= 70 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626'}; height:100%; width:${score}%; border-radius:3px; transition:width 0.6s ease;"></div>
+                    </div>
+                    <span style="font-size:12px; font-weight:700; color:${score >= 70 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626'};">${score}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- 优劣势分析 -->
+            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div>
+                  <h4 style="font-size:13px; font-weight:700; margin-bottom:8px; color:#16a34a;"><i class="ri-thumb-up-line"></i> 优势领域</h4>
+                  ${report.strengths.length > 0 ? report.strengths.map(s => `<div style="font-size:12px; color:#475569; margin-bottom:4px;">✓ ${s}</div>`).join('') : '<div style="font-size:12px; color:#94a3b8;">暂无明显优势</div>'}
+                </div>
+                <div>
+                  <h4 style="font-size:13px; font-weight:700; margin-bottom:8px; color:#d97706;"><i class="ri-error-warning-line"></i> 待提升</h4>
+                  ${report.weaknesses.length > 0 ? report.weaknesses.map(w => `<div style="font-size:12px; color:#475569; margin-bottom:4px;">△ ${w}</div>`).join('') : '<div style="font-size:12px; color:#94a3b8;">暂无明显短板</div>'}
+                </div>
+              </div>
+            </div>
+
+            <!-- 综合建议 -->
+            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+              <h4 style="font-size:14px; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+                <i class="ri-lightbulb-line"></i> 面试建议
+              </h4>
+              <div style="font-size:13px; color:#475569; line-height:1.7;">${report.suggestion}</div>
+            </div>
+
+            <!-- 各题详情 -->
+            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+              <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+                <i class="ri-list-check-2"></i> 回答详情
+              </h4>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                ${report.details.map((d, i) => `
+                  <div style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+                    <div style="display:flex; align-items:center; gap:8px; padding:10px 12px; background:${d.color}08; border-bottom:1px solid #e2e8f0;">
+                      <span style="font-size:10px; font-weight:700; color:#fff; background:${d.color}; padding:2px 6px; border-radius:4px;">${d.level} ${d.score}分</span>
+                      <span style="font-size:12px; font-weight:600; color:var(--text-main);">${d.category}</span>
+                    </div>
+                    <div style="padding:10px 12px; background:#fff;">
+                      <div style="font-size:11px; color:#64748b; margin-bottom:4px;"><strong>Q:</strong> ${d.question}</div>
+                      <div style="font-size:12px; color:#334155; margin-bottom:6px; line-height:1.5;"><strong>A:</strong> ${d.answer}</div>
+                      <div style="font-size:11px; color:#475569; line-height:1.5;"><i class="ri-chat-check-line" style="color:var(--primary);"></i> ${d.feedback}</div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- 底部 -->
+            <div style="padding:14px 24px; display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:11px; color:var(--text-muted);"><i class="ri-history-line"></i> 已保存至面试记录</span>
+              <button class="btn btn-primary" style="font-size:12px; padding:6px 14px;" onclick="app.resetInterview()">再来一次</button>
+            </div>
+          </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }, 2500);
+    }, 800);
+  },
+
+  resetInterview() {
+    this.interviewSession = null;
+    const chatBox = document.getElementById('interview-chat-box');
+    chatBox.innerHTML = `
+      <div class="chat-msg system">
+        <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+        <div class="msg-content">你好！我是启航 AI 面试官。请告诉我你准备面试的岗位（例如：物业主管 / 数据分析 / 托管助教）：</div>
+      </div>
+    `;
   },
 
   // 会员 Modal
