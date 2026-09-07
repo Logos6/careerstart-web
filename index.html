@@ -591,31 +591,49 @@
 
   <!-- 会员个人收款 Modal -->
   <div class="modal-backdrop" id="vip-modal" style="display:none;">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width:580px;">
       <button class="modal-close" onclick="app.closeVipModal()">&times;</button>
       <div class="modal-header">
         <span class="m-badge"><i class="ri-vip-crown-fill"></i> 启航会员服务</span>
         <h2>开通会员 · 重启你的职业生涯</h2>
-        <p>个人微信 / 支付宝无门槛直接扫码支付，付款后填备注即可激活</p>
+        <p>解锁全部 AI 工具与深度岗位报告</p>
       </div>
 
       <div class="plan-cards-grid">
         <div class="plan-card" onclick="app.selectPlan('month')" id="plan-card-month">
-          <div class="p-title">月度会员</div>
+          <div class="p-title">体验卡</div>
           <div class="p-price">¥29 <span>/月</span></div>
           <div class="p-note">约 ¥0.97 / 天</div>
+          <div class="p-benefits" style="margin-top:12px; font-size:11px; color:var(--text-muted); text-align:left; line-height:1.8;">
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> AI 简历智能诊断 10 次</div>
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> AI 模拟面试 5 次</div>
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> 65+ 岗位深度报告</div>
+          </div>
         </div>
         <div class="plan-card active" onclick="app.selectPlan('quarter')" id="plan-card-quarter">
           <span class="popular-tag">最划算</span>
           <div class="p-title">启航季卡</div>
-          <div class="p-price">¥69 <span>/季</span></div>
-          <div class="p-note">低至 ¥0.75 / 天</div>
+          <div class="p-price">¥39 <span>/季</span></div>
+          <div class="p-note">低至 ¥0.43 / 天</div>
+          <div class="p-benefits" style="margin-top:12px; font-size:11px; color:var(--text-muted); text-align:left; line-height:1.8;">
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> AI 简历智能诊断 20 次</div>
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> AI 模拟面试 10 次</div>
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> 65+ 岗位深度报告</div>
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> 优先客服响应</div>
+          </div>
         </div>
         <div class="plan-card" onclick="app.selectPlan('year')" id="plan-card-year">
           <span class="popular-tag green">超值</span>
           <div class="p-title">全年无限卡</div>
           <div class="p-price">¥199 <span>/年</span></div>
           <div class="p-note">低至 ¥0.55 / 天</div>
+          <div class="p-benefits" style="margin-top:12px; font-size:11px; color:var(--text-muted); text-align:left; line-height:1.8;">
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> AI 简历智能诊断 <strong>不限次</strong></div>
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> AI 模拟面试 <strong>不限次</strong></div>
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> 65+ 岗位深度报告</div>
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> 优先客服响应</div>
+            <div><i class="ri-check-line" style="color:#16a34a;"></i> 一对一陪跑 9 折</div>
+          </div>
         </div>
       </div>
 
@@ -625,7 +643,7 @@
           <p>请扫码微信/支付宝个人收款码支付</p>
         </div>
         <div class="pay-amount-display">
-          应付金额：<strong id="pay-final-price">¥69.00</strong>
+          应付金额：<strong id="pay-final-price">¥39.00</strong>
         </div>
         <p class="qr-tip">支付成功后，请输入付款微信备注名或手机号，点击完成激活</p>
         <div class="input-group">
