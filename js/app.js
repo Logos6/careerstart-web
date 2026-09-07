@@ -183,59 +183,122 @@ const app = {
 
   updateHomeCourses() {
     try {
-      const card = document.getElementById('home-course-rec');
-      const grid = document.getElementById('course-rec-grid');
-      const sub = document.getElementById('course-rec-sub');
-      if (!card || !grid) return;
+      const card = document.getElementById('home-action-plan');
+      const phasesEl = document.getElementById('ap-phases');
+      const footer = document.getElementById('ap-footer');
+      const titleEl = document.getElementById('ap-title');
+      const subEl = document.getElementById('ap-sub');
+      if (!card || !phasesEl) return;
 
       const hasAssessment = this.userData.assessmentHistory && this.userData.assessmentHistory.length > 0;
+      const isVip = this.userData.isVip;
 
       if (hasAssessment) {
         const latest = this.userData.assessmentHistory[this.userData.assessmentHistory.length - 1];
         const report = CareerEngine.buildReport(latest.answers || {});
-        const missing = CareerEngine.gapSkills(report);
-        const courses = CareerEngine.gapCoursePlan(missing);
+        const top1 = report.top[0];
+        const jobName = top1 ? top1.job.name : '目标岗位';
+        const jobCat = top1 ? top1.job.cat.split(' ')[0] : '';
 
-        if (courses && courses.length > 0) {
-          const topJob = report.top[0] ? report.top[0].job.name : '目标岗位';
-          if (sub) sub.textContent = `根据你的「${topJob}」匹配方向，为你精选 ${courses.length} 门提升课程`;
-          grid.innerHTML = courses.map(c => this._renderCourseRecItem(c)).join('');
-        } else {
-          this._renderDefaultCourses(grid, sub);
-        }
+        if (titleEl) titleEl.textContent = `你的专属·${jobName} · 30天转型行动方案`;
+        if (subEl) subEl.textContent = `基于测评结果，为你定制从「现状」到「入职」的完整路径`;
+
+        phasesEl.innerHTML = this._buildActionPlanPhases(jobName, jobCat, report, isVip);
       } else {
-        this._renderDefaultCourses(grid, sub);
+        if (titleEl) titleEl.textContent = '你的专属·30天职场重启行动方案';
+        if (subEl) subEl.textContent = '完成测评后，AI 将为你生成量身定制的转型行动计划';
+        phasesEl.innerHTML = this._buildDefaultPlan();
       }
 
+      if (footer) footer.style.display = isVip ? 'none' : 'block';
       card.style.display = 'block';
     } catch (e) {
       console.error('[updateHomeCourses Error]', e);
     }
   },
 
-  _renderDefaultCourses(grid, sub) {
-    if (sub) sub.textContent = '精选 3 门最实用的技能课程，完成测评可获取个性化推荐';
-    const defaults = CareerData.COURSES.filter(c =>
-      ['c-ai', 'c-comm', 'c-excel'].includes(c.id)
-    );
-    grid.innerHTML = defaults.map(c => this._renderCourseRecItem(c)).join('');
+  _buildDefaultPlan() {
+    const phases = [
+      { num: 1, title: '自我评估与方向定位', tag: 'free', tagText: '免费预览', tasks: [
+        { day: '第1-2天', text: '完成启航6维AI测评，生成个人能力雷达图与职业画像' },
+        { day: '第3天', text: '对照测评结果，锁定2-3个目标岗位方向' },
+        { day: '第4天', text: '梳理过往经历，提炼可迁移技能清单（沟通、管理、协调等）' },
+        { day: '第5天', text: '在岗位库中筛选年龄友好+弹性工时的高匹配岗位' },
+      ]},
+      { num: 2, title: '简历优化与面试准备', tag: 'vip', tagText: '会员解锁', locked: true, preview: '包含简历话术模板、面试应答策略、年龄焦虑化解技巧等 12 项实操内容' },
+      { num: 3, title: '技能速成与证书规划', tag: 'vip', tagText: '会员解锁', locked: true, preview: '精选3门B站免费课程 + 1个低门槛证书备考路径，30天内可拿证' },
+      { num: 4, title: '求职执行与持续陪跑', tag: 'vip', tagText: '会员解锁', locked: true, preview: '投递节奏表、面试复盘模板、谈薪话术、入职后30天融入指南' },
+    ];
+    return phases.map(p => this._renderPhase(p)).join('');
   },
 
-  _renderCourseRecItem(c) {
+  _buildActionPlanPhases(jobName, jobCat, report, isVip) {
+    const missing = CareerEngine.gapSkills(report);
+    const courses = CareerEngine.gapCoursePlan(missing);
+    const courseNames = courses.slice(0, 3).map(c => c.title).join('、') || '通用办公技能';
+
+    const phases = [
+      { num: 1, title: `「${jobName}」方向·自我评估与简历重塑`, tag: 'free', tagText: '免费预览', tasks: [
+        { day: '第1天', text: `深入分析「${jobName}」岗位要求：${report.top[0] ? report.top[0].job.need.slice(0,3).join('、') : '沟通能力、责任心'}` },
+        { day: '第2天', text: '梳理过往经历，将家庭管理/社区经验转化为职场语言（如项目管理、预算控制）' },
+        { day: '第3天', text: `用AI简历工具扫描你的简历，排除「年龄限制」「高强度加班」等隐性门槛` },
+        { day: '第4天', text: `针对「${jobName}」岗位重写简历核心段落，突出阅历加分项` },
+        { day: '第5天', text: '在启航岗位库中锁定3个高匹配岗位，记录投递清单' },
+      ]},
+      { num: 2, title: '面试突击与话术打磨', tag: isVip ? 'free' : 'vip', tagText: isVip ? '已解锁' : '会员解锁', locked: !isVip, tasks: isVip ? [
+        { day: '第6-7天', text: `准备「职业空白期」应答话术：将全职妈妈经历包装为「家庭项目管理」经验` },
+        { day: '第8天', text: '模拟面试演练：针对「${jobName}」常见5道面试题，写出你的专属答案' },
+        { day: '第9天', text: '学习STAR法则（情境-任务-行动-结果），用3个真实案例武装自己' },
+        { day: '第10天', text: '掌握薪资谈判技巧：如何在35+年龄段争取合理薪资与弹性工时' },
+      ] : null, preview: !isVip ? '包含15个高频面试题应答模板、 STAR法则实战案例、薪资谈判3步法等' : null },
+      { num: 3, title: `技能速成·${courseNames}`, tag: isVip ? 'free' : 'vip', tagText: isVip ? '已解锁' : '会员解锁', locked: !isVip, tasks: isVip ? [
+        { day: '第11-15天', text: `每天30分钟，跟着B站免费课程学习「${courses[0] ? courses[0].title : '核心技能'}」` },
+        { day: '第16-18天', text: `实操练习：用所学技能完成1个小型实战项目（如制作一份数据分析报告）` },
+        { day: '第19-20天', text: `准备1个作品集/案例展示，面试时可直接展示给HR看` },
+      ] : null, preview: !isVip ? `为你精选${courses.length}门免费B站课程，每天30分钟，10天掌握核心技能` : null },
+      { num: 4, title: '投递执行与持续陪跑', tag: isVip ? 'free' : 'vip', tagText: isVip ? '已解锁' : '会员解锁', locked: !isVip, tasks: isVip ? [
+        { day: '第21-23天', text: '按「3-2-1节奏」投递：每天3份精准投递 + 2份海投 + 1个内推渠道' },
+        { day: '第24-25天', text: '面试复盘：每次面试后记录问题与改进点，持续优化应答策略' },
+        { day: '第26-28天', text: '收到offer后：对比薪资福利、通勤时间、弹性政策，做出最优选择' },
+        { day: '第29-30天', text: '入职前准备：了解公司文化、准备入职材料、设定试用期目标' },
+      ] : null, preview: !isVip ? '投递节奏表、面试复盘模板、谈薪话术、入职后30天融入指南' : null },
+    ];
+    return phases.map(p => this._renderPhase(p)).join('');
+  },
+
+  _renderPhase(p) {
+    const bodyHtml = p.locked ? `
+      <div class="ap-phase-locked">
+        <div class="ap-lock-mask">
+          <div class="ap-lock-icon">🔒</div>
+          <div class="ap-lock-text">${p.preview}</div>
+          <button class="ap-lock-btn" onclick="app.openVipModal()">
+            <i class="ri-vip-crown-fill"></i> 解锁完整方案
+          </button>
+        </div>
+      </div>
+    ` : `
+      <div class="ap-phase-body">
+        <ul class="ap-task-list">
+          ${p.tasks.map(t => `
+            <li class="ap-task-item">
+              <div class="ap-task-check" onclick="this.classList.toggle('checked')">✓</div>
+              <span class="ap-task-day">${t.day}</span>
+              <span>${t.text}</span>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+    `;
+
     return `
-      <div class="course-rec-item" onclick="window.open('${c.url}','_blank')">
-        <div class="course-rec-item-top">
-          <div class="course-rec-item-icon" style="background:${c.bg};"><i class="${c.icon}"></i></div>
-          <div>
-            <h4 class="course-rec-item-title">${c.title}</h4>
-            <p class="course-rec-item-sub">${c.sub}</p>
-          </div>
+      <div class="ap-phase">
+        <div class="ap-phase-header">
+          <div class="ap-phase-num ${p.locked ? 'locked' : ''}">${p.num}</div>
+          <div class="ap-phase-title">${p.title}</div>
+          <span class="ap-phase-tag ${p.tag}">${p.tagText}</span>
         </div>
-        <div class="course-rec-item-meta">
-          <span><i class="ri-play-circle-line"></i> ${c.lessons} 节</span>
-          <span><i class="ri-time-line"></i> ${c.hours} 小时</span>
-          <span><i class="ri-star-line"></i> +${c.xp} 经验</span>
-        </div>
+        ${bodyHtml}
       </div>`;
   },
 
