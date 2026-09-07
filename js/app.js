@@ -1186,4 +1186,4 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
   },
 };
 
-window.onload = () => app.init();
+document.addEventListener('DOMContentLoaded', () => app.init());
