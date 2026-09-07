@@ -231,6 +231,25 @@ const app = {
       }
     }
 
+    if (tabName === 'home') {
+      if (!this.userData.assessmentHistory || this.userData.assessmentHistory.length === 0) {
+        const scoreEl = document.getElementById('home-preview-score');
+        const jobEl = document.getElementById('home-preview-job');
+        const descEl = document.getElementById('home-preview-desc');
+        const tagsEl = document.getElementById('home-preview-tags');
+        const labelEl = document.getElementById('home-preview-label');
+        const barsEl = document.getElementById('home-preview-bars');
+        if (scoreEl) scoreEl.innerText = '匹配度 --';
+        if (jobEl) jobEl.innerText = '完成测评后查看';
+        if (descEl) descEl.innerText = '点击左侧「一键精准匹配」开始6维AI测评';
+        if (labelEl) labelEl.innerText = '你的测评结果';
+        if (tagsEl) tagsEl.innerHTML = '';
+        if (barsEl) barsEl.innerHTML = '';
+      } else {
+        this.updateHomePreview();
+      }
+    }
+
     if (tabName === 'workshop') {
       this.initWorkshopSelect();
     }
@@ -681,6 +700,7 @@ const app = {
   // 开始新一轮测评（清除上次结果）
   startNewAssessment() {
     this.userData.lastAssessment = null;
+    this.userData.assessmentHistory = [];
     this.userAnswers = { persona: '', interests: [], skills: [], traits: { logic: 0, creative: 0, social: 0, exec: 0, leader: 0, handcraft: 0 }, prefs: [] };
     this.assessStep = 0;
     this.saveUserData();
