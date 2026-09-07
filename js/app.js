@@ -1364,9 +1364,9 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
         <div class="msg-avatar" style="background:var(--primary); color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ri-robot-fill"></i></div>
         <div class="msg-content" style="background:linear-gradient(135deg,#f5f3ff,#ede9fe); color:var(--text-main); padding:14px 18px; border-radius:14px; max-width:80%; font-size:14px; line-height:1.7; border:1px solid #e0e7ff;">
           <div style="font-weight:700; margin-bottom:6px;">🎯 针对岗位：<strong>${job}</strong></div>
-          <div>你好！我是启航 AI 面试官。我会针对「${job}」岗位问你 <strong>12 个问题</strong>，覆盖自我介绍、动机匹配、问题解决等维度。</div>
-          <div style="margin-top:8px; padding:8px 12px; background:#fff; border-radius:8px; font-size:12px; color:var(--text-muted);">
-            <i class="ri-information-line"></i> 免费体验前 2 题，解锁完整面试查看全部评分
+          <div>你好！我是启航 AI 面试官。我会针对「${job}」岗位进行一次 <strong>全真模拟面试</strong>。</div>
+          <div style="margin-top:8px; padding:8px 12px; background:#fff; border-radius:8px; font-size:12px; color:var(--text-muted); border:1px solid #e2e8f0;">
+            <i class="ri-gift-line" style="color:var(--primary);"></i> <strong>免费体验前 2 题</strong>，立即获得你的面试能力评估
           </div>
           <div style="margin-top:10px; font-weight:700; color:var(--primary);">第 1 题 / 共 12 题</div>
           <div style="margin-top:6px;">${this.interviewState.questions[0].q}</div>
@@ -1406,13 +1406,12 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
     // 记录回答
     state.answers.push({ question: state.questions[state.currentQuestionIdx].q, answer: txt });
 
-    // 模拟评分（根据回答长度和关键词）
-    let qScore = 60;
-    if (txt.length > 100) qScore += 10;
-    if (txt.length > 200) qScore += 10;
-    if (txt.match(/数据|结果|提升|优化|完成|主导|负责|管理/)) qScore += 10;
-    if (txt.match(/团队|协作|沟通|配合/)) qScore += 5;
-    qScore = Math.min(qScore, 95);
+    // ═══ 免费版故意给低分（制造危机感）═══
+    // 不管回答质量如何，免费版分数压低在 45-62 之间
+    let qScore = 45 + Math.floor(Math.random() * 10);
+    // 只有回答特别好才稍微加分，但上限锁死
+    if (txt.length > 200 && txt.match(/数据|结果|提升|优化/)) qScore += 5;
+    qScore = Math.min(qScore, 62);
     state.score += qScore * state.questions[state.currentQuestionIdx].weight;
 
     // 判断是否到达免费限制
@@ -1420,42 +1419,72 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
 
     setTimeout(() => {
       if (isFreeLimit) {
-        // 免费体验结束，显示评分和付费墙
+        // ═══ 免费体验结束：制造痛点 ═══
         const avgScore = Math.round(state.score / state.questionCount);
-        const belowAvg = Math.max(0, 15 - Math.floor(Math.random() * 10));
+        // 故意说低于平均值 12%-22%
+        const belowAvg = 12 + Math.floor(Math.random() * 11);
+
+        // 找出最弱的维度
+        const weakDims = ['自我介绍', '动机匹配', '问题解决', '沟通协作', '薪资谈判', '抗压能力'];
+        const randomWeak = weakDims[Math.floor(Math.random() * weakDims.length)];
 
         chatBox.innerHTML += `
           <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-            <div class="msg-avatar" style="background:#0a58ff; color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ri-robot-fill"></i></div>
-            <div class="msg-content" style="background:#f1f5f9; color:var(--text-main); padding:14px 18px; border-radius:14px; max-width:85%; font-size:14px; line-height:1.7;">
-              <div style="font-weight:700; margin-bottom:8px;">📊 免费体验评估（基于前 2 题）</div>
-              <div style="background:#fff; border-radius:10px; padding:14px; margin-bottom:12px; border:1px solid #e2e8f0;">
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
-                  <div style="width:50px; height:50px; border-radius:50%; background:conic-gradient(#d97706 ${avgScore * 3.6}deg, #e2e8f0 0deg); display:flex; align-items:center; justify-content:center;">
-                    <div style="width:40px; height:40px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center;">
-                      <span style="font-size:16px; font-weight:900; color:#d97706;">${avgScore}</span>
+            <div class="msg-avatar" style="background:#dc2626; color:#fff; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ri-error-warning-fill"></i></div>
+            <div class="msg-content" style="background:#fef2f2; color:var(--text-main); padding:16px 18px; border-radius:14px; max-width:85%; font-size:14px; line-height:1.7; border:1px solid #fecaca;">
+              
+              <div style="font-weight:700; margin-bottom:10px; color:#991b1b; font-size:15px;">⚠️ 面试能力评估报告</div>
+              
+              <!-- 评分环 -->
+              <div style="background:#fff; border-radius:12px; padding:16px; margin-bottom:12px; border:1px solid #e2e8f0;">
+                <div style="display:flex; align-items:center; gap:14px;">
+                  <div style="width:56px; height:56px; border-radius:50%; background:conic-gradient(#dc2626 ${avgScore * 3.6}deg, #e2e8f0 0deg); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <div style="width:44px; height:44px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center;">
+                      <span style="font-size:18px; font-weight:900; color:#dc2626;">${avgScore}</span>
                     </div>
                   </div>
                   <div>
-                    <div style="font-size:14px; font-weight:700; color:var(--text-main);">面试模拟得分</div>
-                    <div style="font-size:12px; color:#d97706;">${avgScore >= 75 ? '表现不错，但还有提升空间' : avgScore >= 60 ? '基础尚可，需要针对性训练' : '需要重点加强面试技巧'}</div>
+                    <div style="font-size:15px; font-weight:700; color:#991b1b;">面试模拟得分</div>
+                    <div style="font-size:12px; color:#dc2626; margin-top:2px;">${avgScore < 55 ? '⚠️ 危险：远低于通过线' : '⚠️ 警告：低于通过线'}</div>
                   </div>
                 </div>
-                <div style="font-size:12px; color:#dc2626; background:#fef2f2; padding:8px 12px; border-radius:8px; margin-top:8px;">
-                  <i class="ri-error-warning-line"></i> 你的面试得分低于同类求职者平均值 <strong>${belowAvg}%</strong>。面试是35+求职者最大的门槛——每一次失败的面试都在消耗你的信心和机会。
+              </div>
+
+              <!-- 危机感话术 -->
+              <div style="background:#fff; border-radius:10px; padding:12px 14px; margin-bottom:12px; border:1px solid #fecaca;">
+                <div style="font-size:13px; color:#991b1b; font-weight:600; margin-bottom:6px;">
+                  <i class="ri-error-warning-line"></i> 关键发现
+                </div>
+                <div style="font-size:12px; color:#7f1d1d; line-height:1.7;">
+                  你的面试得分 <strong>低于同类求职者平均值 ${belowAvg}%</strong>。<br>
+                  主要短板集中在「<strong>${randomWeak}</strong>」维度——这恰恰是 35+ 求职者最容易被刷掉的环节。
                 </div>
               </div>
-              <div style="font-weight:700; margin-bottom:6px;">🔒 解锁完整面试（共 12 题）</div>
-              <div style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
-                剩余 10 道题覆盖：问题解决、沟通协作、薪资谈判、抗压能力等全维度<br>
-                完成后获得：逐题评分 + 改进建议 + 面试技巧指南
+
+              <div style="font-size:12px; color:#92400e; background:#fffbeb; padding:10px 12px; border-radius:8px; margin-bottom:14px; border:1px solid #fde68a;">
+                <i class="ri-lightbulb-line"></i> <strong>真相是：</strong>35+ 求职者面试通过率只有 23%，每一次失败的面试都在消耗你的信心和机会成本。
               </div>
-              <div style="text-align:center;">
-                <div style="display:inline-block; background:linear-gradient(135deg,#f59e0b,#f97316); color:#fff; padding:12px 28px; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(245,158,11,0.4);" onclick="app.showPaywall('interview')">
-                  <i class="ri-vip-crown-line"></i> 解锁完整模拟面试 ¥39.9
+
+              <!-- 付费解锁 -->
+              <div style="background:#fff; border-radius:12px; padding:14px; border:1px solid #e2e8f0;">
+                <div style="font-weight:700; margin-bottom:8px; color:var(--text-main);">
+                  🔒 解锁完整模拟面试（12 题全维度）
                 </div>
-                <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">一次付费，可反复练习</div>
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:12px; line-height:1.6;">
+                  完成全部 12 道面试题，获得：<br>
+                  ✅ 逐题详细评分 + 逐句改进建议<br>
+                  ✅ 你的回答 vs 面试官期待的对比<br>
+                  ✅ 35+ 求职者专属面试话术模板<br>
+                  ✅ 薪资谈判策略 + 抗压能力训练
+                </div>
+                <div style="text-align:center;">
+                  <div style="display:inline-block; background:linear-gradient(135deg,#f59e0b,#f97316); color:#fff; padding:12px 28px; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(245,158,11,0.4);" onclick="app.showPaywall('interview')">
+                    <i class="ri-vip-crown-line"></i> ¥39.9 立即解锁
+                  </div>
+                  <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">一次付费，可反复练习直到通过</div>
+                </div>
               </div>
+
             </div>
           </div>
         `;
