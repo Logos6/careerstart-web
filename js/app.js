@@ -1212,6 +1212,7 @@ const app = {
     if (!text.trim()) { alert("请先输入简历文本"); return; }
 
     // 检查登录和使用次数
+    if (!this.checkLogin()) return;
     if (!this.checkUsage('resumeCheck')) return;
 
     // 记录使用次数
@@ -1409,6 +1410,7 @@ const app = {
     const txt = input.value.trim();
     if (!txt) { alert('请输入目标岗位名称'); return; }
 
+    if (!this.checkLogin()) return;
     if (!this.checkUsage('interview')) return;
     this.recordUsage('interview');
 
@@ -1424,7 +1426,7 @@ const app = {
           <i class="ri-robot-fill" style="font-size:24px; color:#fff;"></i>
         </div>
         <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:6px;">AI 面试官正在准备中</div>
-        <div style="font-size:12px; color:var(--text-muted);">正在分析简历和岗位，生成专属面试题库...</div>
+        <div style="font-size:12px; color:var(--text-muted);">正在生成专属面试题库...</div>
         <div style="width:120px; height:3px; background:#e2e8f0; border-radius:2px; margin:16px auto 0; overflow:hidden;">
           <div style="width:40%; height:100%; background:linear-gradient(90deg, var(--primary) 0%, #7c3aed 100%); border-radius:2px; animation:loading 1.5s ease-in-out infinite;"></div>
         </div>
@@ -1433,88 +1435,38 @@ const app = {
     `;
     input.value = '';
 
-    // 调用后端 API 开始面试
-    fetch('https://careerstart-api.netlify.app/.netlify/functions/ai-interview-v2', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'start',
-        role: txt,
-        resumeContext: resumeText || '',
-        userTags: [],
-      }),
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.error) throw new Error(data.error);
+    // 使用本地引擎开始面试
+    this.interviewSession = InterviewEngine.createSession(txt, resumeText, jdText);
+    const startResult = InterviewEngine.startInterview(this.interviewSession);
+    this._currentQuestion = startResult.question;
 
-      // 保存会话状态
-      this.interviewSession = data.state;
-      this._currentQuestion = data.question;
-
-      // 切换输入框为聊天模式
-      const inputBar = document.querySelector('.pc-chat-input-bar');
-      if (inputBar) {
-        inputBar.innerHTML = `
-          <input type="text" id="interview-input" placeholder="输入你的回答..." onkeypress="if(event.key==='Enter') app.sendInterviewMsg()">
-          <button class="btn btn-primary-gradient" onclick="app.sendInterviewMsg()"><i class="ri-send-plane-fill"></i> 发送</button>
-        `;
-      }
-
-      chatBox.innerHTML = `
-        <div id="interview-progress-bar" class="interview-progress" style="margin-bottom:16px;">
-          <span style="font-size:11px; color:var(--primary); font-weight:700; white-space:nowrap;"><i class="ri-bar-chart-fill"></i> 第 <span id="interview-round-num">1</span> / ${data.maxQuestions} 轮 | <span id="interview-phase-label">${data.phase}</span></span>
-          <div class="interview-progress-bar">
-            <div class="interview-progress-fill" id="interview-progress-fill" style="width:${Math.round(100/data.maxQuestions)}%;"></div>
-          </div>
-          <span style="font-size:10px; color:var(--text-muted); white-space:nowrap;" id="interview-time-est">预计剩余 ~${Math.ceil(data.maxQuestions * 0.8)}分钟</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 输入"结束"可随时完成面试</span>
-        </div>
-        <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-          <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-          <div class="msg-content">
-            <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI面试官</div>
-            ${data.question.q}
-          </div>
-        </div>
+    // 切换输入框为聊天模式
+    const inputBar = document.querySelector('.pc-chat-input-bar');
+    if (inputBar) {
+      inputBar.innerHTML = `
+        <input type="text" id="interview-input" placeholder="输入你的回答..." onkeypress="if(event.key==='Enter') app.sendInterviewMsg()">
+        <button class="btn btn-primary-gradient" onclick="app.sendInterviewMsg()"><i class="ri-send-plane-fill"></i> 发送</button>
       `;
-      chatBox.scrollTop = chatBox.scrollHeight;
-    })
-    .catch(err => {
-      console.error('Interview start failed:', err);
-      // fallback 到本地引擎
-      this.interviewSession = InterviewEngine.createSession(txt, resumeText, jdText);
-      const startResult = InterviewEngine.startInterview(this.interviewSession);
-      this._currentQuestion = startResult.question;
-      const inputBar = document.querySelector('.pc-chat-input-bar');
-      if (inputBar) {
-        inputBar.innerHTML = `
-          <input type="text" id="interview-input" placeholder="输入你的回答..." onkeypress="if(event.key==='Enter') app.sendInterviewMsg()">
-          <button class="btn btn-primary-gradient" onclick="app.sendInterviewMsg()"><i class="ri-send-plane-fill"></i> 发送</button>
-        `;
-      }
-      chatBox.innerHTML = `
-        <div id="interview-progress-bar" class="interview-progress" style="margin-bottom:16px;">
-          <span style="font-size:11px; color:var(--primary); font-weight:700; white-space:nowrap;"><i class="ri-bar-chart-fill"></i> 第 <span id="interview-round-num">1</span> / 15 轮 | <span id="interview-phase-label">${startResult.phase}</span></span>
-          <div class="interview-progress-bar"><div class="interview-progress-fill" id="interview-progress-fill" style="width:6.67%;"></div></div>
-          <span style="font-size:10px; color:var(--text-muted); white-space:nowrap;" id="interview-time-est">预计剩余 ~12分钟</span>
+    }
+
+    chatBox.innerHTML = `
+      <div id="interview-progress-bar" class="interview-progress" style="margin-bottom:16px;">
+        <span style="font-size:11px; color:var(--primary); font-weight:700; white-space:nowrap;"><i class="ri-bar-chart-fill"></i> 第 <span id="interview-round-num">1</span> / 15 轮 | <span id="interview-phase-label">${startResult.phase}</span></span>
+        <div class="interview-progress-bar"><div class="interview-progress-fill" id="interview-progress-fill" style="width:6.67%;"></div></div>
+        <span style="font-size:10px; color:var(--text-muted); white-space:nowrap;" id="interview-time-est">预计剩余 ~12分钟</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 输入"结束"可随时完成面试</span>
+      </div>
+      <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+        <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+        <div class="msg-content">
+          <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> ${this.interviewSession.persona.name}</div>
+          ${startResult.message.replace(/\n/g, '<br>')}
         </div>
-        <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-          <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-          <div class="msg-content">
-            <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> ${this.interviewSession.persona.name}</div>
-            ${startResult.message.replace(/\n/g, '<br>')}
-          </div>
-        </div>
-      `;
-      chatBox.scrollTop = chatBox.scrollHeight;
-    })
-    .finally(() => {
-      const loadingArea = document.getElementById('interview-loading-area');
-      if (loadingArea) loadingArea.remove();
-    });
+      </div>
+    `;
+    chatBox.scrollTop = chatBox.scrollHeight;
   },
 
   updateInterviewProgress(round) {
@@ -1576,85 +1528,29 @@ const app = {
     `;
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // 调用后端 API 提交回答
-    fetch('https://careerstart-api.netlify.app/.netlify/functions/ai-interview-v2', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'answer',
-        state: this.interviewSession,
-        answer: txt,
-      }),
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.error) throw new Error(data.error);
-
-      const loadingEl = document.getElementById('interview-loading');
-      if (loadingEl) loadingEl.remove();
-
-      // 更新会话状态
-      this.interviewSession = data.state;
-      this._currentQuestion = data.nextQuestion;
-
-      setTimeout(() => {
-        this.updateInterviewProgress(data.questionNumber);
-
-        // 显示评分标签
-        const eval_ = data.evaluation;
-        const scoreColor = eval_.score >= 80 ? '#10b981' : eval_.score >= 60 ? '#f59e0b' : '#ef4444';
-        const scoreTag = `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; background:${scoreColor}20; color:${scoreColor}; margin-left:8px;">${eval_.score}分 ${eval_.level}</span>`;
-
-        // AI 回复
-        let aiMsg = eval_.feedback;
-        if (data.followUp?.shouldFollowUp) {
-          aiMsg += '\n\n' + data.followUp.followUpQuestion;
-        } else if (data.nextQuestion && !data.isFinished) {
-          aiMsg += '\n\n' + data.nextQuestion.q;
-        }
-
-        chatBox.innerHTML += `
-          <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-            <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-            <div class="msg-content">
-              <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI面试官${scoreTag}</div>
-              ${aiMsg.replace(/\n/g, '<br>')}
-            </div>
-          </div>
-        `;
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        // 如果面试结束，自动生成报告
-        if (data.isFinished) {
-          setTimeout(() => this.finishInterview(), 2000);
-        }
-      }, 600);
-    })
-    .catch(err => {
-      console.error('Answer submit failed:', err);
-      // fallback 到本地引擎
+    // 使用本地引擎处理回答
+    setTimeout(() => {
       const loadingEl = document.getElementById('interview-loading');
       if (loadingEl) loadingEl.remove();
       const result = InterviewEngine.processAnswer(this.interviewSession, txt, this._currentQuestion);
       this._currentQuestion = result.question;
-      setTimeout(() => {
-        this.updateInterviewProgress(result.round);
-        const scoreTag = result.evaluation ? `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; background:${result.evaluation.color}20; color:${result.evaluation.color}; margin-left:8px;">${result.evaluation.score}分 ${result.evaluation.level}</span>` : '';
-        chatBox.innerHTML += `
-          <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-            <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-            <div class="msg-content">
-              <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> ${this.interviewSession.persona.name}${scoreTag}</div>
-              ${result.message.replace(/\n/g, '<br>')}
-            </div>
+
+      this.updateInterviewProgress(result.round);
+      const scoreTag = result.evaluation ? `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; background:${result.evaluation.color}20; color:${result.evaluation.color}; margin-left:8px;">${result.evaluation.score}分 ${result.evaluation.level}</span>` : '';
+      chatBox.innerHTML += `
+        <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+          <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+          <div class="msg-content">
+            <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> ${this.interviewSession.persona.name}${scoreTag}</div>
+            ${result.message.replace(/\n/g, '<br>')}
           </div>
-        `;
-        chatBox.scrollTop = chatBox.scrollHeight;
-        if (result.isFinished) {
-          setTimeout(() => this.finishInterview(), 2000);
-        }
-      }, 800);
-    });
+        </div>
+      `;
+      chatBox.scrollTop = chatBox.scrollHeight;
+      if (result.isFinished) {
+        setTimeout(() => this.finishInterview(), 2000);
+      }
+    }, 800);
   },
 
   finishInterview() {
@@ -1669,39 +1565,13 @@ const app = {
     `;
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // 尝试调用后端 API 生成报告
-    if (this.interviewSession && this.interviewSession.sessionId) {
-      fetch('https://careerstart-api.netlify.app/.netlify/functions/ai-interview-v2', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'report',
-          state: this.interviewSession,
-        }),
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.error) throw new Error(data.error);
-        const report = data.report;
-        const loadingEl = document.getElementById('interview-report-loading');
-        if (loadingEl) loadingEl.remove();
-        this._renderReport(report, chatBox);
-      })
-      .catch(err => {
-        console.error('Backend report failed, using local:', err);
-        const report = InterviewEngine.generateReport(this.interviewSession);
-        const loadingEl = document.getElementById('interview-report-loading');
-        if (loadingEl) loadingEl.remove();
-        this._renderReport(report, chatBox);
-      });
-    } else {
-      setTimeout(() => {
-        const report = InterviewEngine.generateReport(this.interviewSession);
-        const loadingEl = document.getElementById('interview-report-loading');
-        if (loadingEl) loadingEl.remove();
-        this._renderReport(report, chatBox);
-      }, 500);
-    }
+    // 使用本地引擎生成报告
+    setTimeout(() => {
+      const report = InterviewEngine.generateReport(this.interviewSession);
+      const loadingEl = document.getElementById('interview-report-loading');
+      if (loadingEl) loadingEl.remove();
+      this._renderReport(report, chatBox);
+    }, 500);
   },
 
   _renderReport(report, chatBox) {
@@ -1714,6 +1584,11 @@ const app = {
       level: report.level
     });
     this.saveUserData();
+
+    // 保存到间隔重复历史（用于薄弱维度跟踪）
+    if (typeof InterviewEngine !== 'undefined' && InterviewEngine.recordSessionToHistory) {
+      InterviewEngine.recordSessionToHistory(report);
+    }
 
     // 兼容两种格式：后端API格式 vs 本地引擎格式
     const dimScores = report.dimensionScores || {};
@@ -1882,8 +1757,8 @@ const app = {
   },
 
   downloadReport() {
-    const report = CareerEngine.generateInterviewReport(this.interviewSession);
-    if (!report) return;
+    const report = InterviewEngine.generateReport(this.interviewSession);
+    if (!report || report.error) return;
     const compEntries = Object.entries(report.competencies || {});
     let txt = `启航 CareerStart - AI模拟面试评估报告\n${'='.repeat(40)}\n\n`;
     txt += `岗位：${report.jobName}\n`;
@@ -1935,12 +1810,34 @@ const app = {
 
   // 检查登录状态
   checkLogin() {
-    return true; // 测试模式：跳过登录检查
+    const token = localStorage.getItem('careerstart_token');
+    const user = localStorage.getItem('careerstart_user');
+    if (token && user) return true;
+    // 未登录，弹出登录框
+    this.openAuthModal();
+    return false;
   },
 
   // 检查使用次数
   checkUsage(type) {
-    return true; // 测试模式：跳过次数检查
+    // VIP用户不限次
+    if (this.userData.isVip) return true;
+
+    const limits = this.planLimits[this.userData.vipPlan] || { resumeCheck: 3, interview: 2 };
+    const limit = limits[type] || 0;
+    const used = this.userData.usage[type] || 0;
+
+    if (used >= limit) {
+      const names = { resumeCheck: 'AI简历诊断', interview: 'AI模拟面试' };
+      const remaining = Math.max(0, limit - used);
+      if (remaining === 0) {
+        alert(`今日${names[type]}次数已用完（${used}/${limit}次）。\n\n升级VIP可解锁更多次数！`);
+        this.openVipModal();
+        return false;
+      }
+      return true;
+    }
+    return true;
   },
 
   // 记录使用次数
