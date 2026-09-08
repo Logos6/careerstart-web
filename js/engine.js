@@ -1298,80 +1298,152 @@
     return sections;
   }
 
-  // ==================== 模拟面试引擎 ====================
+  // ==================== 模拟面试引擎 v2.0 ====================
+  // 深度场景化题库 + 无限轮次 + 追问逻辑 + 35+专属问题
 
-  const INTERVIEW_QUESTIONS = {
+  const INTERVIEW_DB = {
+    // ── 通用深度题（所有岗位必问） ──
     general: [
-      { id: 'intro', category: '自我介绍', question: '请用 1-2 分钟简单介绍一下你自己，包括你的工作经验和核心优势。', tips: '结构：姓名→工作年限→核心技能→代表成果→求职意向', weight: 15 },
-      { id: 'gap', category: '职业空白期', question: '我们注意到你的简历有一段职业空白期，请问这段时间你在做什么？为什么选择现在重返职场？', tips: '诚实说明原因（学习/照顾家人/创业尝试），强调这段时间的成长和收获', weight: 20 },
-      { id: 'salary', category: '薪资期望', question: '你对薪资的期望是多少？能说说你的依据吗？', tips: '先说市场行情，再说个人能力，给一个合理区间而非固定数字', weight: 10 },
-      { id: 'stress', category: '抗压能力', question: '如果入职后发现工作内容和预期有差距，或者需要加班，你会怎么处理？', tips: '表达适应能力和学习意愿，同时展现合理的职业规划', weight: 15 },
-      { id: 'plan', category: '职业规划', question: '你未来 3 年的职业规划是什么？打算在我们公司怎么发展？', tips: '结合公司发展路径，展现稳定性和成长意愿', weight: 15 },
-      { id: 'weakness', category: '自我认知', question: '你认为自己最大的弱点是什么？你是如何克服的？', tips: '真实但不致命，重点在改进措施和成长', weight: 15 },
-      { id: 'value', category: '价值主张', question: '相比于年轻的候选人，你觉得你的核心竞争力是什么？', tips: '突出经验、稳定性、行业洞察、人脉资源等35+专属优势', weight: 20 }
+      { id: 'intro', cat: '自我介绍', q: '请用2分钟介绍你自己，重点说清楚：你过去做过什么、擅长什么、为什么来应聘这个岗位。', tips: '不要念简历，用故事线串联经历', w: 15 },
+      { id: 'gap', cat: '职业空白期', q: '你的简历有一段空白期。请如实告诉我这段时间你在做什么，以及你为什么选择现在重返职场？', tips: '诚实+成长视角：照顾家人/学习/创业尝试都OK，重点是这段时间的收获', w: 20 },
+      { id: 'value35', cat: '35+价值', q: '说实话，这个岗位可能有更年轻的候选人。你觉得你相比25岁的求职者，真正的优势在哪里？请用具体例子说明。', tips: '不要说"经验丰富"这种空话，要说具体场景：处理过什么危机、积累了多少行业人脉、犯过什么错学到了什么', w: 25 },
+      { id: 'weakness', cat: '自我认知', q: '你认为自己最大的短板是什么？这个短板对你的工作产生过什么实际影响？你是怎么应对的？', tips: '真实但不致命，重点在改进措施和实际效果', w: 20 },
+      { id: 'plan3', cat: '职业规划', q: '如果入职后发现实际工作内容和面试时谈的不一样，你会怎么处理？请说说你过去遇到类似情况的真实经历。', tips: '展现适应力和沟通能力，用STAR法则讲一个真实案例', w: 20 },
+      { id: 'salary', cat: '薪资谈判', q: '你期望的薪资是多少？如果我告诉你这个岗位的预算比你期望的低20%，你会怎么考虑？', tips: '先说市场调研依据，再给弹性区间，展现对岗位本身的兴趣', w: 15 },
+      { id: 'conflict', cat: '冲突处理', q: '请回忆一次你在工作中和同事或上级产生严重分歧的经历。你是怎么处理的？最终结果如何？', tips: '用STAR法则：情境→分歧点→你的行动→结果→反思', w: 20 },
+      { id: 'failure', cat: '失败复盘', q: '说一个你在工作中搞砸的事情。当时发生了什么？你从中学到了什么？后来有没有用到这个教训？', tips: '真实案例+深度反思+后续应用，展现成长型思维', w: 25 },
     ],
+
+    // ── 管理/领导力场景题 ──
     management: [
-      { id: 'team', category: '团队管理', question: '你管理过多大的团队？如果团队成员不服从安排，你会怎么处理？', tips: '用具体案例说明管理方法和沟通技巧', weight: 20 },
-      { id: 'conflict', category: '冲突处理', question: '请举例说明你是如何处理团队内部冲突的？结果如何？', tips: '用 STAR 法则：情境→任务→行动→结果', weight: 20 },
-      { id: 'kpi', category: '目标达成', question: '你曾经设定过最有挑战性的 KPI 是什么？你是怎么达成的？', tips: '量化结果，说明策略和执行过程', weight: 20 }
+      { id: 'm_layoff', cat: '裁员决策', q: '假设你需要在团队中裁掉一个人，但有两个候选人各有利弊。你会用什么标准来决定？请模拟一下你会怎么和被裁的人谈。', tips: '考察决策逻辑+同理心+沟通能力', w: 25 },
+      { id: 'm_underperform', cat: '绩效改进', q: '你团队里有一个老员工，近两年绩效持续下滑，但态度没问题。你会怎么做？请说说你的具体步骤。', tips: '诊断原因→设定改进计划→定期跟进→结果评估', w: 25 },
+      { id: 'm_conflict', cat: '团队冲突', q: '你的两个核心下属闹矛盾，已经影响到项目进度。你作为管理者会怎么介入？请模拟你会说的话。', tips: '分别了解→找共同目标→制定协作规则→跟进', w: 20 },
+      { id: 'm_change', cat: '变革推动', q: '公司要推行一个新的工作流程，但团队抵触很大。你会怎么推动落地？请举一个你过去成功推动变革的例子。', tips: '变革管理：愿景沟通→试点→收集反馈→迭代→全面推广', w: 25 },
+      { id: 'm_budget', cat: '资源分配', q: '你部门的预算被砍了30%，但项目目标不变。你会怎么重新分配资源？请给出具体方案。', tips: '优先级排序→砍非核心→提升效率→向上争取', w: 20 },
     ],
+
+    // ── 技术/专业场景题 ──
     technical: [
-      { id: 'skill', category: '专业技能', question: '你最近学习的新技能或工具是什么？为什么选择学这个？', tips: '展现学习能力和对行业趋势的关注', weight: 20 },
-      { id: 'project', category: '项目经验', question: '请介绍一个你最满意的项目，你在其中承担什么角色？', tips: '突出个人贡献和可量化的成果', weight: 25 }
+      { id: 't_debug', cat: '问题排查', q: '说一个你最近解决的最复杂的技术问题。你是怎么定位问题的？用了什么工具和方法？最终怎么解决的？', tips: '详细描述排查思路，不要只说结果', w: 25 },
+      { id: 't_tradeoff', cat: '技术决策', q: '你在项目中做过最艰难的技术选型是什么？当时有哪几个选项？你为什么选了现在这个？有没有后悔？', tips: '展现决策逻辑和权衡能力', w: 25 },
+      { id: 't_learn', cat: '学习能力', q: '最近半年你学了什么新技能或工具？为什么选这个？学了之后对工作有什么实际帮助？', tips: '具体+有应用场景，不要说"我学了XX"', w: 20 },
+      { id: 't_pressure', cat: '交付压力', q: '说一个你在极短时间内完成紧急项目的经历。你是怎么保证质量的？有没有踩坑？', tips: '时间管理+质量把控+风险预判', w: 20 },
     ],
-    service: [
-      { id: 'customer', category: '客户服务', question: '遇到情绪激动的客户投诉，你会怎么处理？请举个实际例子。', tips: '先共情→再解决→后跟进，展现服务意识', weight: 20 },
-      { id: 'rework', category: '重复工作', question: '这个岗位可能需要重复性的工作，你能接受吗？你有什么方法保持效率？', tips: '表达耐心和责任心，分享提高效率的方法', weight: 15 }
-    ]
+
+    // ── 销售/客户场景题 ──
+    sales: [
+      { id: 's_reject', cat: '拒绝处理', q: '客户连续拒绝你三次，说"我们不需要"。你会怎么继续跟进？请模拟你会发的第四条消息。', tips: '不是死缠烂打，而是换角度提供价值', w: 25 },
+      { id: 's_price', cat: '价格谈判', q: '客户说"你们的价格比竞品贵30%"，你会怎么回应？请现场模拟这段对话。', tips: '先认同→再挖需求→差异化价值→案例证明', w: 25 },
+      { id: 's_relationship', cat: '客户关系', q: '说一个你维护了3年以上的客户关系。你是怎么从第一次接触到变成长期合作伙伴的？', tips: '展现长期主义和信任建立过程', w: 20 },
+      { id: 's_target', cat: '业绩压力', q: '季度末还差30%的业绩，距离deadline只剩两周。你会怎么冲刺？请给出具体行动计划。', tips: '盘点线索→聚焦大单→激活老客户→团队协作', w: 20 },
+    ],
+
+    // ── 运营/内容场景题 ──
+    operations: [
+      { id: 'o_data', cat: '数据驱动', q: '说一个你通过数据分析发现业务问题并解决的案例。你关注了哪些指标？发现了什么异常？采取了什么行动？', tips: '数据→洞察→行动→结果的完整闭环', w: 25 },
+      { id: 'o_growth', cat: '增长策划', q: '如果让你从0到1搭建一个新渠道的运营体系，你会怎么做？请给出30天行动计划。', tips: '调研→定位→内容→引流→转化→复盘', w: 25 },
+      { id: 'o_content', cat: '内容运营', q: '你做过最成功的一篇内容是什么？为什么它能火？请从选题、标题、内容结构、发布时间等维度复盘。', tips: '具体数据+可复制的方法论', w: 20 },
+      { id: 'o_user', cat: '用户运营', q: '用户流失率突然从5%飙升到15%，你会怎么排查原因？请列出你的诊断步骤。', tips: '数据分群→行为分析→定性调研→假设验证→行动', w: 25 },
+    ],
+
+    // ── 35+宝妈专属场景题 ──
+    mom_special: [
+      { id: 'mom_return', cat: '重返职场', q: '你离开职场多久了？这段时间你做了哪些准备来让自己重新适应工作节奏？', tips: '学习/兼职/志愿者/社群运营都算准备', w: 20 },
+      { id: 'mom_balance', cat: '工作家庭', q: '如果项目截止日期和孩子生病撞在一起，你会怎么处理？请说说你的真实想法。', tips: '展现规划能力+应急预案+坦诚态度', w: 25 },
+      { id: 'mom_value', cat: '妈妈优势', q: '全职带娃这几年，你觉得你获得了哪些职场上用得到的能力？请举具体例子。', tips: '时间管理、多任务处理、情绪管理、谈判（和孩子斗智斗勇）都是真实能力', w: 20 },
+      { id: 'mom_fear', cat: '顾虑坦白', q: '你最担心重返职场后遇到什么问题？你打算怎么应对？', tips: '坦诚说出真实顾虑+具体应对方案', w: 20 },
+    ],
   };
 
-  const INTERVIEW_STAGES = [
-    { stage: 'greeting', label: '开场', icon: 'ri-hand-heart-line' },
-    { stage: 'intro', label: '自我介绍', icon: 'ri-user-line' },
-    { stage: 'core', label: '核心问题', icon: 'ri-questionnaire-line' },
-    { stage: 'scenario', label: '情景模拟', icon: 'ri-chat-follow-up-line' },
-    { stage: 'closing', label: '结束', icon: 'ri-flag-line' }
+  // 追问模板：根据用户回答中的关键词触发
+  const FOLLOWUP_RULES = [
+    { keywords: ['团队|带领|管理|下属'], followups: ['你当时管理多少人？团队氛围怎么样？', '如果团队中有人不服从安排，你会怎么处理？'] },
+    { keywords: ['数据|指标|分析|报表'], followups: ['你用什么工具做数据分析？能举一个你通过数据发现问题的例子吗？', '如果数据和直觉冲突，你信哪个？为什么？'] },
+    { keywords: ['客户|甲方|用户'], followups: ['遇到难缠的客户你会怎么处理？能举个例子吗？', '你是怎么维护长期客户关系的？'] },
+    { keywords: ['项目|产品|上线'], followups: ['这个项目你具体负责什么部分？遇到了什么困难？', '项目延期了你会怎么处理？有没有真实的赶工经历？'] },
+    { keywords: ['学习|培训|提升'], followups: ['你最近学的最有用的一个技能是什么？学了之后对工作有什么帮助？', '你觉得你目前最需要提升的能力是什么？你打算怎么补？'] },
+    { keywords: ['困难|挑战|压力|失败'], followups: ['你当时是怎么扛过来的？有没有想过放弃？', '从这次经历中你学到了什么？后来有没有用到？'] },
+    { keywords: ['沟通|协调|合作'], followups: ['能举一个你说服别人的例子吗？对方最终同意了吗？', '跨部门协作中最难的是什么？你怎么解决的？'] },
+    { keywords: ['创意|策划|方案'], followups: ['这个方案的执行效果怎么样？有什么数据支撑吗？', '如果让你重新做一次，你会改进什么？'] },
   ];
 
   function initInterviewSession(jobName) {
     const jobType = detectJobType(jobName);
-    const questions = selectQuestions(jobType);
-    
+    // 选择题库：通用 + 岗位类型 + 35+专属
+    const pool = [
+      ...INTERVIEW_DB.general,
+      ...(INTERVIEW_DB[jobType] || []),
+      ...INTERVIEW_DB.mom_special,
+    ];
+    // 打乱顺序
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
     return {
       jobName,
       jobType,
-      questions,
+      pool,
+      asked: [],
       answers: [],
       currentQ: 0,
-      stage: 'intro',
-      scores: {},
-      startTime: Date.now()
+      round: 0,
+      startTime: Date.now(),
     };
   }
 
   function detectJobType(jobName) {
-    const name = jobName.toLowerCase();
-    if (/管理|主管|经理|总监|leader|manager/i.test(name)) return 'management';
-    if (/开发|工程|技术|测试|运维|数据|IT| programmer/i.test(name)) return 'technical';
-    if (/客服|服务|前台|接待|咨询/i.test(name)) return 'service';
+    const n = (jobName || '').toLowerCase();
+    if (/管理|主管|经理|总监|leader|director|vp/i.test(n)) return 'management';
+    if (/开发|工程|技术|测试|运维|数据|IT| programmer|架构/i.test(n)) return 'technical';
+    if (/销售|商务|客户|bd|渠道|市场/i.test(n)) return 'sales';
+    if (/运营|内容|社群|增长|产品|新媒体/i.test(n)) return 'operations';
     return 'general';
   }
 
-  function selectQuestions(jobType) {
-    const base = [...INTERVIEW_QUESTIONS.general];
-    const extra = INTERVIEW_QUESTIONS[jobType] || [];
-    
-    // 打乱通用问题顺序
-    for (let i = base.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [base[i], base[j]] = [base[j], base[i]];
+  // 获取下一个问题（支持无限轮次 + 追问）
+  function getNextQuestion(session) {
+    // 先看有没有追问
+    if (session.followups && session.followups.length > 0) {
+      return session.followups.shift();
     }
+    // 从题库取新题
+    if (session.pool.length > 0) {
+      const q = session.pool.shift();
+      session.asked.push(q.id);
+      return q;
+    }
+    // 题库用完，从已问题目中随机抽取做追问
+    const allQ = Object.values(INTERVIEW_DB).flat();
+    const randomQ = allQ[Math.floor(Math.random() * allQ.length)];
+    return { ...randomQ, id: 'followup_' + Date.now(), cat: '深度追问' };
+  }
 
-    // 选择 5 个通用 + 2 个专项
-    const selected = base.slice(0, 5);
-    const extraShuffled = extra.sort(() => Math.random() - 0.5).slice(0, 2);
-    
-    return [...selected, ...extraShuffled];
+  // 根据回答生成追问
+  function generateFollowups(answer, currentQuestion) {
+    const text = (answer || '').toLowerCase();
+    const followups = [];
+    for (const rule of FOLLOWUP_RULES) {
+      const regex = new RegExp(rule.keywords);
+      if (regex.test(text)) {
+        const pool = rule.followups.filter(f => {
+          // 避免和当前问题重复
+          return !f.includes(currentQuestion.cat);
+        });
+        if (pool.length > 0) {
+          followups.push(pool[Math.floor(Math.random() * pool.length)]);
+        }
+      }
+    }
+    // 最多返回1个追问
+    return followups.slice(0, 1).map(q => ({
+      id: 'fu_' + Date.now(),
+      cat: '深度追问',
+      q,
+      tips: '基于你刚才的回答深入展开',
+      w: 15,
+    }));
   }
 
   function analyzeAnswer(answer, question) {
@@ -1490,40 +1562,60 @@
   }
 
   function getInterviewFeedback(session, userAnswer) {
-    const q = session.questions[session.currentQ];
+    const q = session.asked[session.asked.length - 1];
     const analysis = analyzeAnswer(userAnswer, q);
 
-    // 保存答案
-    session.answers.push({
-      question: q,
-      answer: userAnswer,
-      analysis
-    });
+    session.answers.push({ question: q, answer: userAnswer, analysis });
+    session.round++;
 
-    // 生成追问或下一题
-    const isLast = session.currentQ >= session.questions.length - 1;
+    // 根据回答质量决定是否生成追问
+    const followups = generateFollowups(userAnswer, q);
+    if (followups.length > 0 && analysis.score < 75) {
+      session.followups = [...(session.followups || []), ...followups];
+    }
+
+    // 获取下一个问题
+    const nextQ = getNextQuestion(session);
+    session.currentQ++;
+
+    // 生成 AI 回应
     let aiResponse = '';
-
-    if (isLast) {
-      aiResponse = '感谢你的回答！面试到此结束，请稍候正在生成面试评估报告...';
+    if (analysis.score >= 80) {
+      const praises = ['回答得很好，有理有据。', '不错，逻辑清晰。', '很好，有具体案例支撑。'];
+      aiResponse = praises[Math.floor(Math.random() * praises.length)];
+    } else if (analysis.score >= 60) {
+      aiResponse = '回答有条理，但还可以更深入一些。';
     } else {
-      // 根据回答质量决定追问还是下一题
-      if (analysis.score < 50 && userAnswer.length > 20) {
-        aiResponse = `你提到了「${analysis.keywords[0] || '某个方面'}」，能再具体说说吗？比如用一个实际案例来说明？`;
-      } else {
-        session.currentQ++;
-        const nextQ = session.questions[session.currentQ];
-        aiResponse = nextQ.question;
-      }
+      aiResponse = '回答比较简略，建议用具体案例展开说明。';
+    }
+
+    // 追问或下一题
+    if (session.followups && session.followups.length > 0) {
+      aiResponse += '\n\n' + session.followups[0].q;
+    } else {
+      aiResponse += '\n\n' + nextQ.q;
     }
 
     return {
       feedback: analysis.feedback,
       score: analysis.score,
       level: analysis.level,
-      isLast,
+      color: analysis.color,
+      isLast: false,
       aiResponse,
-      progress: Math.round(((session.answers.length) / session.questions.length) * 100)
+      nextQuestion: nextQ,
+      round: session.round,
+    };
+  }
+
+  function endInterview(session) {
+    return {
+      feedback: '',
+      score: 0,
+      level: '',
+      isLast: true,
+      aiResponse: '好的，面试到此结束。正在为你生成面试评估报告...',
+      round: session.round,
     };
   }
 
@@ -1531,10 +1623,9 @@
     const totalScore = Math.round(session.answers.reduce((s, a) => s + a.analysis.score, 0) / session.answers.length);
     const duration = Math.round((Date.now() - session.startTime) / 1000);
 
-    // 分类评分
     const categoryScores = {};
     for (const a of session.answers) {
-      const cat = a.question.category;
+      const cat = a.question.cat;
       if (!categoryScores[cat]) categoryScores[cat] = [];
       categoryScores[cat].push(a.analysis.score);
     }
@@ -1543,32 +1634,29 @@
       avgByCategory[cat] = Math.round(scores.reduce((s, v) => s + v, 0) / scores.length);
     }
 
-    // 找出强项和弱项
     const sorted = Object.entries(avgByCategory).sort((a, b) => b[1] - a[1]);
     const strengths = sorted.filter(([, s]) => s >= 70).map(([cat]) => cat);
     const weaknesses = sorted.filter(([, s]) => s < 60).map(([cat]) => cat);
 
-    // 综合评级
     let level, color, suggestion;
     if (totalScore >= 85) {
       level = '面试表现优秀';
       color = '#16a34a';
-      suggestion = '你的面试表现整体出色，建议保持自信和条理，面试时注意语速控制和眼神交流。';
+      suggestion = '你的面试表现整体出色。保持自信和条理，面试时注意语速控制和眼神交流。';
     } else if (totalScore >= 70) {
       level = '面试表现良好';
       color = '#2ea56a';
-      suggestion = '基础扎实，建议在薄弱环节重点准备，多用 STAR 法则组织回答。';
+      suggestion = '基础扎实。建议在薄弱环节重点准备，多用 STAR 法则组织回答。';
     } else if (totalScore >= 55) {
       level = '面试表现一般';
       color = '#d97706';
-      suggestion = '有一定基础但缺乏亮点，建议准备 3-5 个成功案例并反复练习。';
+      suggestion = '有一定基础但缺乏亮点。建议准备 3-5 个成功案例并反复练习。';
     } else {
       level = '需要加强准备';
       color = '#dc2626';
       suggestion = '建议系统准备：① 梳理核心优势 ② 准备量化案例 ③ 反复模拟练习。';
     }
 
-    // 收集所有关键词
     const allKeywords = [...new Set(session.answers.flatMap(a => a.analysis.keywords))];
 
     return {
@@ -1578,15 +1666,15 @@
       color,
       suggestion,
       duration: `${Math.floor(duration / 60)}分${duration % 60}秒`,
-      totalQuestions: session.questions.length,
+      totalQuestions: session.answers.length,
       answeredQuestions: session.answers.length,
       categoryScores: avgByCategory,
       strengths,
       weaknesses,
       keywords: allKeywords,
       details: session.answers.map(a => ({
-        question: a.question.question,
-        category: a.question.category,
+        question: a.question.q,
+        category: a.question.cat,
         answer: a.answer,
         score: a.analysis.score,
         level: a.analysis.level,
@@ -1599,6 +1687,6 @@
 
   return {
     scoreJob, buildReport, gapSkills, gapCoursePlan, reasonText, jobById, courseById, levelOf, detectAgeBias, diagnoseResume, generateAssessmentAnalysis, computeTraitScores,
-    initInterviewSession, getInterviewFeedback, generateInterviewReport
+    initInterviewSession, getInterviewFeedback, endInterview, generateInterviewReport
   };
 }));
