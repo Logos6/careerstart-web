@@ -671,14 +671,15 @@ const app = {
       const top2 = report.top[1];
       const top3 = report.top[2];
 
-    // 六维度雷达图数据（默认值5）
+    // 六维度雷达图数据（基于全部问答综合计算）
+    const computedTraits = CareerEngine.computeTraitScores(this.userAnswers);
     const traitData = [
-      { label: '逻辑分析', score: this.userAnswers.traits.logic || 5 },
-      { label: '创造想象', score: this.userAnswers.traits.creative || 5 },
-      { label: '沟通协作', score: this.userAnswers.traits.social || 5 },
-      { label: '执行落地', score: this.userAnswers.traits.exec || 5 },
-      { label: '组织领导', score: this.userAnswers.traits.leader || 5 },
-      { label: '动手实践', score: this.userAnswers.traits.handcraft || 5 },
+      { label: '逻辑分析', score: computedTraits.logic },
+      { label: '创造想象', score: computedTraits.creative },
+      { label: '沟通协作', score: computedTraits.social },
+      { label: '执行落地', score: computedTraits.exec },
+      { label: '组织领导', score: computedTraits.leader },
+      { label: '动手实践', score: computedTraits.handcraft },
     ];
 
     content.innerHTML = `
@@ -713,7 +714,7 @@ const app = {
             <h4 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
               <i class="ri-radar-line" style="color:var(--primary);"></i> 六维能力画像
             </h4>
-            <canvas id="assess-radar" width="320" height="320"></canvas>
+            <canvas id="assess-radar" width="360" height="340"></canvas>
           </div>
           <!-- 右：各维度分数 -->
           <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; padding:24px;">
@@ -804,14 +805,14 @@ const app = {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
-    const size = 320;
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
-    canvas.style.width = size + 'px';
-    canvas.style.height = size + 'px';
+    const w = 360, h = 340;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
     ctx.scale(dpr, dpr);
 
-    const cx = size / 2, cy = size / 2, r = 120;
+    const cx = w / 2, cy = h / 2 - 5, r = 110;
     const n = data.length;
     const angleStep = (Math.PI * 2) / n;
     const startAngle = -Math.PI / 2;
@@ -876,8 +877,8 @@ const app = {
       ctx.stroke();
 
       // 标签
-      const lx = cx + (r + 24) * Math.cos(angle);
-      const ly = cy + (r + 24) * Math.sin(angle);
+      const lx = cx + (r + 30) * Math.cos(angle);
+      const ly = cy + (r + 30) * Math.sin(angle);
       ctx.fillStyle = '#334155';
       ctx.font = '600 12px -apple-system, sans-serif';
       ctx.textAlign = 'center';
@@ -907,13 +908,14 @@ const app = {
     const analysis = CareerEngine.generateAssessmentAnalysis(last.answers || {}, report);
 
     const top1 = report.top[0];
+    const computedTraits = CareerEngine.computeTraitScores(last.answers || {});
     const traitData = [
-      { label: '逻辑分析', score: (last.answers || {}).traits?.logic || 0 },
-      { label: '创造想象', score: (last.answers || {}).traits?.creative || 0 },
-      { label: '沟通协作', score: (last.answers || {}).traits?.social || 0 },
-      { label: '执行落地', score: (last.answers || {}).traits?.exec || 0 },
-      { label: '组织领导', score: (last.answers || {}).traits?.leader || 0 },
-      { label: '动手实践', score: (last.answers || {}).traits?.handcraft || 0 },
+      { label: '逻辑分析', score: computedTraits.logic },
+      { label: '创造想象', score: computedTraits.creative },
+      { label: '沟通协作', score: computedTraits.social },
+      { label: '执行落地', score: computedTraits.exec },
+      { label: '组织领导', score: computedTraits.leader },
+      { label: '动手实践', score: computedTraits.handcraft },
     ];
 
     content.innerHTML = `
@@ -944,7 +946,7 @@ const app = {
             <h4 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
               <i class="ri-radar-line" style="color:var(--primary);"></i> 六维能力画像
             </h4>
-            <canvas id="assess-radar-last" width="320" height="320"></canvas>
+            <canvas id="assess-radar-last" width="360" height="340"></canvas>
           </div>
           <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; padding:24px;">
             <h4 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
