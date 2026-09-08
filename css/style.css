@@ -2015,21 +2015,22 @@ body {
   min-height: 300px;
 }
 
-.pc-opt-grid {
+.assess-options-wrapper .pc-opt-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 .assess-options-wrapper .pc-opt-card {
   background: #f9fafb;
   border: 2px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 24px 20px;
+  border-radius: 12px;
+  padding: 14px 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  text-align: center;
 }
 
 .assess-options-wrapper .pc-opt-card::before {
@@ -2065,16 +2066,16 @@ body {
 }
 
 .assess-options-wrapper .pc-opt-card h4 {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .assess-options-wrapper .pc-opt-card p {
-  font-size: 13px;
+  font-size: 12px;
   color: #6b7280;
-  line-height: 1.5;
+  line-height: 1.4;
   margin: 0;
 }
 
@@ -2303,7 +2304,8 @@ body {
     order: -1;
   }
   
-  .pc-opt-grid {
+  .pc-opt-grid,
+  .assess-options-wrapper .pc-opt-grid {
     grid-template-columns: 1fr;
   }
   
