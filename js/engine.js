@@ -2447,7 +2447,7 @@
     if (!text || text.trim().length < 5) {
       return { score: 10, level: '无效', color: '#dc2626', star: analyzeSTAR(''),
         components: { starComponent: 0, specificityComponent: 0, quantComponent: 0, personalComponent: 0, depthComponent: 0 },
-        feedbackParts: ['回答过短或无效'], suggestions: ['请详细展开，至少说2-3句话，包含具体案例'] };
+        feedbackParts: ['回答内容较少，可以再展开说说'], suggestions: ['试着多说一些，比如举一个具体的工作案例'] };
     }
     const star = analyzeSTAR(text);
     const len = text.length;
@@ -2463,18 +2463,18 @@
     else if (totalScore >= 55) { level = '一般'; color = '#d97706'; }
     else { level = '待提升'; color = '#dc2626'; }
     const feedbackParts = [];
-    if (!star.hasSituation) feedbackParts.push('缺少情境描述（Situation）');
-    if (!star.hasTask) feedbackParts.push('缺少任务说明（Task）');
-    if (!star.hasAction) feedbackParts.push('缺少行动描述（Action）');
-    if (!star.hasResult) feedbackParts.push('缺少结果量化（Result）');
-    if (len < 50) feedbackParts.push('回答过短，建议展开到100字以上');
-    if (!/\d+/.test(text)) feedbackParts.push('缺少量化数据');
+    if (!star.hasSituation) feedbackParts.push('可以说说当时是什么情况、什么背景下做的这件事');
+    if (!star.hasTask) feedbackParts.push('可以说说你在这个项目中具体负责哪一块');
+    if (!star.hasAction) feedbackParts.push('可以说说你具体采取了哪些措施');
+    if (!star.hasResult) feedbackParts.push('可以说说最后效果怎么样');
+    if (len < 50) feedbackParts.push('回答比较简洁，可以再展开一些');
+    if (!/\d+/.test(text)) feedbackParts.push('如果能加上一些数据会更有说服力');
     const suggestions = [];
-    if (!star.hasSituation) suggestions.push('用1-2句话描述当时的情境和背景');
-    if (!star.hasTask) suggestions.push('明确说明你个人负责的具体任务');
-    if (!star.hasAction) suggestions.push('详细描述你采取的具体行动步骤（这是回答的核心部分）');
-    if (!star.hasResult) suggestions.push('用数据量化你行动带来的结果');
-    if (star.specificity < 50) suggestions.push('加入具体的公司名、项目名、时间节点等细节');
+    if (!star.hasSituation) suggestions.push('先简单交代一下当时的背景');
+    if (!star.hasTask) suggestions.push('说清楚你个人负责的具体工作');
+    if (!star.hasAction) suggestions.push('说说你具体做了什么，比如第一步做了什么、第二步做了什么');
+    if (!star.hasResult) suggestions.push('最后结果怎么样？如果有数据可以提一下');
+    if (star.specificity < 50) suggestions.push('可以加一些具体细节，比如项目名称、时间节点等');
     return { score: Math.min(totalScore, 100), level, color, star, components: { starComponent, specificityComponent, quantComponent, personalComponent, depthComponent }, feedbackParts, suggestions };
   }
 
@@ -2551,13 +2551,11 @@
     // 组合反馈
     aiResponse = starMsg + '\n' + scoreMsg;
 
-    // 追问或下一题（带难度标签）
-    const diffLabel = (d) => d === 'advanced' ? '🔴 高级' : d === 'intermediate' ? '🟡 中级' : '🟢 基础';
+    // 追问或下一题
     if (session.followups && session.followups.length > 0) {
       aiResponse += '\n\n追问：' + session.followups[0].q;
     } else {
-      const dLabel = nextQ.difficulty ? diffLabel(nextQ.difficulty) : '';
-      aiResponse += '\n\n下一题 ' + dLabel + '：' + nextQ.q;
+      aiResponse += '\n\n下一题：' + nextQ.q;
     }
 
     return {
@@ -2577,7 +2575,7 @@
     } else if (round <= 3) {
       closingMsg = '感谢您今天的参与。由于面试轮次较少，部分评估维度可能不够充分。正在为您生成评估报告，建议您稍后再次练习以获得更完整的评估。';
     } else {
-      closingMsg = '感谢您今天的参与和分享！您的面试表现已全面记录。正在为您生成专业评估报告，包含六维能力雷达图、STAR分析和针对性改进建议，请稍候...';
+      closingMsg = '感谢您今天的参与和分享！您的面试表现已全面记录。正在为您生成专业评估报告，包含六维能力雷达图和针对性改进建议，请稍候...';
     }
     return {
       feedbackParts: [], score: 0, level: '', isLast: true,
@@ -2660,15 +2658,15 @@
     } else if (totalScore >= 70) {
       level = '面试表现良好';
       color = '#2ea56a';
-      suggestion = '基础扎实，STAR结构基本完整。建议在薄弱环节重点准备，多用具体案例和量化数据来增强说服力。';
+      suggestion = '基础扎实，回答结构比较完整。建议在薄弱环节重点准备，多举具体案例，有数据支撑会更有说服力。';
     } else if (totalScore >= 55) {
       level = '面试表现一般';
       color = '#d97706';
-      suggestion = '有一定基础但缺乏亮点。建议准备3-5个STAR格式的成功案例，每个案例包含具体情境、任务、行动步骤和可量化的结果。';
+      suggestion = '有一定基础但缺乏亮点。建议准备3-5个成功案例，每个案例说清楚背景、你做了什么、最后结果怎么样。';
     } else {
       level = '需要加强准备';
       color = '#dc2626';
-      suggestion = '建议系统准备：① 用STAR法则梳理3-5个核心案例 ② 每个案例准备量化数据 ③ 反复模拟练习，提升表达流利度。';
+      suggestion = '建议系统准备：① 梳理3-5个核心案例 ② 每个案例准备量化数据 ③ 多做模拟练习，提升表达流利度。';
     }
 
     // 7. 关键词
