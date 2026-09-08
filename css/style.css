@@ -2998,6 +2998,65 @@ body {
   color: #fff;
 }
 
+/* ========== 测评选项卡片 ========== */
+.pc-opt-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.pc-opt-card {
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.pc-opt-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(168,139,250,0.04));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.pc-opt-card:hover {
+  border-color: #a78bfa;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139,92,246,0.15);
+}
+.pc-opt-card:hover::before { opacity: 1; }
+.pc-opt-card.active {
+  border-color: #7c3aed;
+  background: linear-gradient(135deg, #f3e8ff, #ede9fe);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+}
+.pc-opt-card.active::before { opacity: 1; }
+.pc-opt-card h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 4px;
+  position: relative;
+}
+.pc-opt-card p {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+  position: relative;
+}
+.pc-opt-card.active h4 { color: #7c3aed; }
+
+@media (max-width: 768px) {
+  .pc-opt-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .pc-opt-card { padding: 12px 8px; }
+  .pc-opt-card h4 { font-size: 13px; }
+}
+
 /* 响应式适配 */
 @media (max-width: 900px) {
   .workshop-cards-grid {
