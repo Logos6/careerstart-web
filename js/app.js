@@ -662,7 +662,6 @@ const app = {
       this.userData.lastAssessment = historyEntry;
       this.saveUserData();
       this.updateHomePreview();
-      this.updateHomeCourses();
 
       // 生成深度分析
       const analysis = CareerEngine.generateAssessmentAnalysis(this.userAnswers, report);
