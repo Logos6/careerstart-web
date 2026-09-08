@@ -1559,10 +1559,10 @@ const app = {
       });
       this.saveUserData();
 
-        // 渲染报告
-        const severityColor = { '优秀': '#16a34a', '良好': '#2ea56a', '一般': '#d97706', '较差': '#dc2626' };
+      // 渲染报告
+      const severityColor = { '优秀': '#16a34a', '良好': '#2ea56a', '一般': '#d97706', '较差': '#dc2626' };
 
-        chatBox.innerHTML += `
+      chatBox.innerHTML += `
           <div style="background:#fff; border:1px solid var(--border-color); border-radius:12px; overflow:hidden; margin-top:10px; animation:slideUp 0.4s ease;">
             <!-- 评分头部 -->
             <div style="padding:24px; text-align:center; background:linear-gradient(135deg,#f8f5ff 0%,#fff 100%); border-bottom:1px solid var(--border-color);">
@@ -1645,9 +1645,8 @@ const app = {
             </div>
           </div>
         `;
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }, 2500);
-    }, 800);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }, 2500);
   },
 
   resetInterview() {
