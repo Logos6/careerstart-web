@@ -1432,6 +1432,15 @@ const app = {
       const firstQ = this.interviewSession.pool.shift();
       this.interviewSession.asked.push(firstQ.id);
 
+      // 切换输入框为聊天模式
+      const inputBar = document.querySelector('.pc-chat-input-bar');
+      if (inputBar) {
+        inputBar.innerHTML = `
+          <input type="text" id="interview-input" placeholder="输入你的回答..." onkeypress="if(event.key==='Enter') app.sendInterviewMsg()">
+          <button class="btn btn-primary-gradient" onclick="app.sendInterviewMsg()"><i class="ri-send-plane-fill"></i> 发送</button>
+        `;
+      }
+
       chatBox.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 已回答 0 轮 · 输入"结束"可随时完成面试</span>
