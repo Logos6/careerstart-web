@@ -3004,6 +3004,8 @@ body {
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
+.pc-opt-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.pc-opt-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .pc-opt-card {
   background: #fff;
   border: 2px solid #e5e7eb;
@@ -3051,10 +3053,79 @@ body {
 }
 .pc-opt-card.active h4 { color: #7c3aed; }
 
+/* ========== 左右分栏布局（BOSS直聘风格） ========== */
+.lr-layout {
+  display: flex;
+  gap: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  min-height: 420px;
+}
+.lr-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  background: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+  overflow-y: auto;
+  max-height: 500px;
+}
+.lr-cat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  font-size: 14px;
+  color: #374151;
+}
+.lr-cat-item:hover {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+.lr-cat-item.active {
+  background: #fff;
+  border-left-color: #7c3aed;
+  color: #7c3aed;
+  font-weight: 600;
+}
+.lr-cat-count {
+  background: #e5e7eb;
+  color: #6b7280;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.lr-cat-item.active .lr-cat-count {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+.lr-main {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  max-height: 500px;
+}
+.lr-main-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
 @media (max-width: 768px) {
-  .pc-opt-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .pc-opt-card { padding: 12px 8px; }
-  .pc-opt-card h4 { font-size: 13px; }
+  .lr-layout { flex-direction: column; min-height: auto; }
+  .lr-sidebar { width: 100%; max-height: none; border-right: none; border-bottom: 1px solid #e5e7eb; display: flex; overflow-x: auto; overflow-y: hidden; }
+  .lr-cat-item { white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; padding: 10px 14px; font-size: 13px; }
+  .lr-cat-item.active { border-bottom-color: #7c3aed; }
+  .lr-main { max-height: none; }
+  .pc-opt-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* 响应式适配 */
