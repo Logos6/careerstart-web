@@ -1446,19 +1446,21 @@ const app = {
           <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 已回答 0 轮 · 输入"结束"可随时完成面试</span>
         </div>
         <div style="margin-bottom:14px; padding:12px 16px; background:linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%); border-radius:10px; border:1px solid #c7d2fe;">
-          <div style="font-size:12px; font-weight:700; color:#4338ca; margin-bottom:6px;"><i class="ri-lightbulb-flash-line"></i> STAR面试法则提示</div>
+          <div style="font-size:12px; font-weight:700; color:#4338ca; margin-bottom:6px;"><i class="ri-lightbulb-flash-line"></i> 面试须知</div>
           <div style="font-size:11px; color:#475569; line-height:1.6;">
-            回答时请尽量包含：<strong>S</strong>（情境）→ <strong>T</strong>（任务）→ <strong>A</strong>（行动）→ <strong>R</strong>（结果）<br>
-            每道题回答后，系统会实时评估你的 STAR 完整度和回答质量。
+            本次面试共15轮，建议用<strong>STAR法则</strong>（情境→任务→行动→结果）组织回答。<br>
+            每轮回答后会给出结构化评估和改进建议。输入「结束」可提前完成。
           </div>
         </div>
         <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
           <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
           <div class="msg-content">
             <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
-            你好！我是启航 AI 面试官，今天将针对「${txt}」岗位进行结构化模拟面试。<br><br>
-            我会从<strong>沟通表达、问题解决、执行力、领导力、学习成长、抗压韧性</strong>六个维度评估你的表现。<br><br>
-            请尽量用<strong>STAR法则</strong>（情境→任务→行动→结果）来组织回答。输入「结束」即可完成面试。<br><br>
+            您好！感谢您参加今天的模拟面试。<br><br>
+            我是本次的AI面试官，今天将针对<strong>「${txt}」</strong>岗位进行一场结构化面试。<br><br>
+            <strong>面试流程：</strong>本次面试共15轮，每轮我会提出一个问题，建议您用STAR法则组织回答。<br><br>
+            <strong>评估维度：</strong>我们将从<strong>专业能力、沟通表达、问题解决、团队协作、学习成长、抗压韧性</strong>六个维度评估您的表现。<br><br>
+            准备好了吗？那我们开始第一个问题：<br><br>
             <strong>${firstQ.q}</strong>
           </div>
         </div>
@@ -1566,8 +1568,8 @@ const app = {
     chatBox.innerHTML += `
       <div id="interview-report-loading" style="text-align:center; padding:30px; margin-top:10px;">
         <div style="width:56px; height:56px; margin:0 auto 16px; border:3px solid #e2e8f0; border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;"></div>
-        <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:6px;">AI 面试评估报告生成中</div>
-        <div style="font-size:12px; color:var(--text-muted);">正在综合分析你的面试表现...</div>
+        <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:6px;">感谢您今天的参与！</div>
+        <div style="font-size:12px; color:var(--text-muted);">正在生成专业面试评估报告，包含六维能力分析...</div>
       </div>
     `;
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -1591,7 +1593,7 @@ const app = {
       const radarHtml = compEntries.length > 0 ? `
         <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
           <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
-            <i class="ri-radar-line"></i> 胜任力评估
+            <i class="ri-radar-line"></i> 六维胜任力评估
           </h4>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
             ${compEntries.map(([key, comp]) => `
@@ -1751,7 +1753,7 @@ const app = {
     chatBox.innerHTML = `
       <div class="chat-msg system">
         <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-        <div class="msg-content">你好！我是启航 AI 面试官。请告诉我你准备面试的岗位（例如：物业主管 / 数据分析 / 托管助教）：</div>
+        <div class="msg-content">您好！感谢您参加模拟面试。请告诉我您准备面试的岗位（例如：物业主管 / 数据分析 / 托管助教）：</div>
       </div>
     `;
   },
