@@ -1741,24 +1741,313 @@
     ],
   };
 
-  // 追问模板：根据用户回答中的关键词触发
-  const FOLLOWUP_RULES = [
-    { keywords: ['团队|带领|管理|下属'], followups: ['你当时管理多少人？团队氛围怎么样？', '如果团队中有人不服从安排，你会怎么处理？'] },
-    { keywords: ['数据|指标|分析|报表'], followups: ['你用什么工具做数据分析？能举一个你通过数据发现问题的例子吗？', '如果数据和直觉冲突，你信哪个？为什么？'] },
-    { keywords: ['客户|甲方|用户'], followups: ['遇到难缠的客户你会怎么处理？能举个例子吗？', '你是怎么维护长期客户关系的？'] },
-    { keywords: ['项目|产品|上线'], followups: ['这个项目你具体负责什么部分？遇到了什么困难？', '项目延期了你会怎么处理？有没有真实的赶工经历？'] },
-    { keywords: ['学习|培训|提升'], followups: ['你最近学的最有用的一个技能是什么？学了之后对工作有什么帮助？', '你觉得你目前最需要提升的能力是什么？你打算怎么补？'] },
-    { keywords: ['困难|挑战|压力|失败'], followups: ['你当时是怎么扛过来的？有没有想过放弃？', '从这次经历中你学到了什么？后来有没有用到？'] },
-    { keywords: ['沟通|协调|合作'], followups: ['能举一个你说服别人的例子吗？对方最终同意了吗？', '跨部门协作中最难的是什么？你怎么解决的？'] },
-    { keywords: ['创意|策划|方案'], followups: ['这个方案的执行效果怎么样？有什么数据支撑吗？', '如果让你重新做一次，你会改进什么？'] },
-    { keywords: ['招聘|面试|人才'], followups: ['你面试过最满意的一个候选人是什么样的？', '你怎么判断一个人是否适合公司的文化？'] },
-    { keywords: ['预算|成本|省钱'], followups: ['你做过最成功的降本项目是什么？节省了多少？', '如果预算再砍一半，你还能做什么？'] },
-    { keywords: ['流程|制度|规范'], followups: ['你搭建过什么流程或制度？推行过程中最大的阻力是什么？', '你怎么让团队遵守流程？有没有遇到过抵触？'] },
-    { keywords: ['投诉|纠纷|冲突'], followups: ['你当时的情绪是怎么控制的？事后有没有复盘？', '如果你是对方，你会怎么看待这件事？'] },
-    { keywords: ['创新|新方法|突破'], followups: ['这个创新的灵感从哪里来的？执行过程中遇到了什么阻力？', '创新失败了你会怎么办？'] },
-    { keywords: ['销售|签单|业绩'], followups: ['你签过最大的一笔单是多少？过程中最难的是什么？', '客户说"太贵了"你通常怎么回应？'] },
-    { keywords: ['运营|增长|转化'], followups: ['你做过最成功的运营活动是什么？ROI是多少？', '你觉得增长最大的瓶颈是什么？你怎么突破的？'] },
+  // ── 智能追问系统 v2.0：多级追问 + 上下文追踪 + 深度挖掘 ──
+
+  // 追问链：每组含多级追问，按顺序触发
+  const FOLLOWUP_CHAINS = [
+    {
+      keywords: /团队|带领|管理|下属|部门/,
+      levels: [
+        { q: '你当时管理多少人？团队的组织架构是什么样的？', depth: 'detail' },
+        { q: '团队里有没有你亲手招进来的人？你是怎么筛选的？', depth: 'expand' },
+        { q: '如果团队中有人不服从安排，你会怎么处理？能举一个具体例子吗？', depth: 'challenge' },
+        { q: '你团队的离职率怎么样？你是怎么留住核心成员的？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /数据|指标|分析|报表|bi|数据化/,
+      levels: [
+        { q: '你用什么工具做数据分析？Excel、SQL、还是其他？', depth: 'detail' },
+        { q: '能举一个你通过数据发现问题并解决的真实案例吗？', depth: 'expand' },
+        { q: '如果数据和你的直觉冲突，你信哪个？为什么？', depth: 'challenge' },
+        { q: '你怎么保证数据的准确性？你有没有因为数据错误而做过错误决策？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /客户|甲方|用户|顾客|学员/,
+      levels: [
+        { q: '你服务过最多的客户群体是什么样的？', depth: 'detail' },
+        { q: '遇到难缠的客户你会怎么处理？能举一个最棘手的例子吗？', depth: 'expand' },
+        { q: '你是怎么维护长期客户关系的？有没有合作3年以上的客户？', depth: 'deepen' },
+        { q: '你有没有因为服务不好而丢失过客户？后来怎么改进的？', depth: 'challenge' },
+      ]
+    },
+    {
+      keywords: /项目|产品|上线|交付|需求/,
+      levels: [
+        { q: '这个项目你具体负责什么部分？团队有多少人？', depth: 'detail' },
+        { q: '遇到了什么困难？你是怎么解决的？', depth: 'expand' },
+        { q: '项目延期了你会怎么处理？有没有真实的赶工经历？', depth: 'challenge' },
+        { q: '如果让你重新做这个项目，你会在哪些方面做得不一样？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /学习|培训|提升|进修|考证/,
+      levels: [
+        { q: '你最近学的最有用的一个技能是什么？', depth: 'detail' },
+        { q: '学了之后对工作有什么具体帮助？能举个例子吗？', depth: 'expand' },
+        { q: '你觉得你目前最需要提升的能力是什么？你打算怎么补？', depth: 'deepen' },
+        { q: '你有没有学了但没用上的情况？为什么没用上？', depth: 'challenge' },
+      ]
+    },
+    {
+      keywords: /困难|挑战|压力|失败|挫折|低谷/,
+      levels: [
+        { q: '当时的情况具体是什么样的？压力有多大？', depth: 'detail' },
+        { q: '你当时是怎么扛过来的？有没有想过放弃？', depth: 'expand' },
+        { q: '从这次经历中你学到了什么？后来有没有用到这个教训？', depth: 'deepen' },
+        { q: '如果同样的事情再发生一次，你会怎么做？', depth: 'challenge' },
+      ]
+    },
+    {
+      keywords: /沟通|协调|合作|协作|谈判/,
+      levels: [
+        { q: '能举一个你说服别人的例子吗？对方最终同意了吗？', depth: 'detail' },
+        { q: '跨部门协作中最难的是什么？你怎么解决的？', depth: 'expand' },
+        { q: '你有没有沟通失败的经历？后来怎么补救的？', depth: 'challenge' },
+        { q: '你怎么和不同性格的人沟通？你有什么方法论吗？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /创意|策划|方案|创新|想法/,
+      levels: [
+        { q: '这个创意/方案的灵感从哪里来的？', depth: 'detail' },
+        { q: '执行效果怎么样？有什么数据支撑吗？', depth: 'expand' },
+        { q: '如果让你重新做一次，你会改进什么？', depth: 'challenge' },
+        { q: '你有没有创意被否决的经历？你是怎么处理的？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /招聘|面试|人才|选拔|用人/,
+      levels: [
+        { q: '你面试过最多的岗位是什么？你总结出了什么筛选经验？', depth: 'detail' },
+        { q: '你怎么判断一个人是否适合公司的文化？', depth: 'expand' },
+        { q:你有没有招错过人？后来怎么处理的？', depth: 'challenge' },
+        { q:你觉得优秀人才最重要的3个特质是什么？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /预算|成本|省钱|降本|花销/,
+      levels: [
+        { q: '你做过最成功的降本项目是什么？节省了多少？', depth: 'detail' },
+        { q: '你是怎么找到降本空间的？用了什么方法？', depth: 'expand' },
+        { q: '如果预算再砍一半，你还能做什么？', depth: 'challenge' },
+        { q: '你怎么平衡降本和质量？有没有因为降本而影响质量的情况？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /流程|制度|规范|sop|标准化/,
+      levels: [
+        { q: '你搭建过什么流程或制度？推行过程中最大的阻力是什么？', depth: 'detail' },
+        { q: '你怎么让团队遵守流程？有没有遇到过抵触？', depth: 'expand' },
+        { q: '你觉得流程和效率之间怎么平衡？', depth: 'challenge' },
+        { q: '你有没有优化过现有流程？优化前后有什么变化？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /投诉|纠纷|冲突|矛盾|吵架/,
+      levels: [
+        { q: '当时的情况具体是什么样的？矛盾的焦点是什么？', depth: 'detail' },
+        { q: '你当时的情绪是怎么控制的？', depth: 'expand' },
+        { q: '事后有没有复盘？你觉得下次可以怎么做更好？', depth: 'deepen' },
+        { q: '如果你是对方，你会怎么看待这件事？', depth: 'challenge' },
+      ]
+    },
+    {
+      keywords: /创新|新方法|突破|改革|变革/,
+      levels: [
+        { q: '这个创新的灵感从哪里来的？', depth: 'detail' },
+        { q: '执行过程中遇到了什么阻力？你怎么推动的？', depth: 'expand' },
+        { q: '创新失败了你会怎么办？你有失败的创新经历吗？', depth: 'challenge' },
+        { q: '你怎么判断一个创新值不值得投入？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /销售|签单|业绩|成交|提成|业绩目标/,
+      levels: [
+        { q: '你签过最大的一笔单是多少？过程是怎样的？', depth: 'detail' },
+        { q: '客户说"太贵了"你通常怎么回应？能模拟一下吗？', depth: 'expand' },
+        { q: '你有没有跟丢过大单？后来分析原因是什么？', depth: 'challenge' },
+        { q: '你的销售方法论是什么？你能总结成一套可复制的方法吗？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /运营|增长|转化|引流|获客|留存/,
+      levels: [
+        { q: '你做过最成功的运营活动是什么？ROI是多少？', depth: 'detail' },
+        { q: '你觉得增长最大的瓶颈是什么？你是怎么突破的？', depth: 'expand' },
+        { q: '你怎么判断一个运营策略值不值得投入？', depth: 'challenge' },
+        { q: '你有没有做过从0到1的增长项目？过程是怎样的？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /设计|ui|ux|视觉|界面|交互/,
+      levels: [
+        { q: '你最满意的一个设计作品是什么？设计思路是怎样的？', depth: 'detail' },
+        { q: '你怎么平衡美观和实用？有没有因为领导要求改设计的经历？', depth: 'expand' },
+        { q: '你怎么验证你的设计效果？你做过A/B测试吗？', depth: 'challenge' },
+        { q:你觉得好设计和坏设计最大的区别是什么？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /远程|居家|灵活|在家办公/,
+      levels: [
+        { q: '你远程办公时怎么管理自己的时间？', depth: 'detail' },
+        { q: '远程办公时沟通效率下降了，你怎么解决？', depth: 'expand' },
+        { q: '你怎么避免远程办公时工作侵蚀生活时间？', depth: 'challenge' },
+        { q: '你觉得远程办公和现场办公最大的区别是什么？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /创业|副业|自由职业|自己做|合伙/,
+      levels: [
+        { q: '你创业/做副业的初衷是什么？', depth: 'detail' },
+        { q: '你学到了什么？如果再来一次，你会做哪些不同的决定？', depth: 'expand' },
+        { q: '你有没有经历过失败？你是怎么走出来的？', depth: 'challenge' },
+        { q: '你觉得创业和打工最大的区别是什么？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /家庭|孩子|带娃|宝妈|育儿|照顾/,
+      levels: [
+        { q: '你离开职场多久了？这段时间你做了哪些准备？', depth: 'detail' },
+        { q: '你觉得带娃过程中培养的哪些能力可以在工作中直接用到？', depth: 'expand' },
+        { q: '如果项目截止日期和孩子生病撞在一起，你会怎么处理？', depth: 'challenge' },
+        { q: '你的家人支持你重返职场吗？你有备用方案吗？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /转行|转型|换行业|换方向|跨领域/,
+      levels: [
+        { q: '你为什么想转行？是什么让你下定决心的？', depth: 'detail' },
+        { q: '你之前的哪些技能可以迁移到新领域？', depth: 'expand' },
+        { q: '转行可能需要接受降薪，你能接受吗？', depth: 'challenge' },
+        { q: '你为转行做了哪些具体准备？', depth: 'deepen' },
+      ]
+    },
+    {
+      keywords: /决策|选择|判断|决定|取舍/,
+      levels: [
+        { q: '你做过的最困难的决策是什么？', depth: 'detail' },
+        { q: '你考虑了哪些因素？最终是怎么决定的？', depth: 'expand' },
+        { q: '如果重来一次，你会做同样的决定吗？', depth: 'challenge' },
+        { q:你做决策时更依赖数据还是直觉？', depth: 'deepen' },
+      ]
+    },
   ];
+
+  // 深度分析：判断回答是否需要追问
+  function analyzeDepth(answer, question) {
+    const text = (answer || '').trim();
+    const len = text.length;
+    const result = { needsFollowup: false, reason: '', depth: 0 };
+
+    // 回答太短
+    if (len < 30) {
+      result.needsFollowup = true;
+      result.reason = 'short';
+      result.depth = 1;
+      return result;
+    }
+
+    // 没有具体案例/数据
+    const hasCase = /当时|有一次|曾经|之前|在.*公司|具体来说|举个例子|比如|例如/.test(text);
+    const hasData = /\d+[%％万元人天次个月年]|提升了?\d+|增长了?\d+|节省了?\d+/.test(text);
+    if (!hasCase && !hasData && len < 80) {
+      result.needsFollowup = true;
+      result.reason = 'no_evidence';
+      result.depth = 1;
+      return result;
+    }
+
+    // 有案例但不够深入
+    if (hasCase && !hasData && len < 120) {
+      result.needsFollowup = true;
+      result.reason = 'shallow_case';
+      result.depth = 0.5;
+      return result;
+    }
+
+    // 回答很好，不需要追问
+    result.needsFollowup = false;
+    result.depth = 2;
+    return result;
+  }
+
+  // 生成追问（多级链式）
+  function generateFollowups(answer, currentQuestion, session) {
+    const text = (answer || '').toLowerCase();
+    const followups = [];
+
+    // 1. 检查是否有匹配的追问链
+    for (const chain of FOLLOWUP_CHAINS) {
+      if (chain.keywords.test(text)) {
+        // 找到当前链的进度
+        const chainKey = chain.keywords.source;
+        const progress = (session.followupProgress || {})[chainKey] || 0;
+        if (progress < chain.levels.length) {
+          const level = chain.levels[progress];
+          followups.push({
+            id: 'fu_' + Date.now(),
+            cat: '深度追问',
+            q: level.q,
+            tips: '基于你刚才的回答深入展开',
+            w: 15,
+            chainKey,
+            chainLevel: progress + 1,
+          });
+        }
+        break; // 每轮最多触发一个追问链
+      }
+    }
+
+    // 2. 如果没有匹配追问链，检查回答深度
+    if (followups.length === 0) {
+      const depth = analyzeDepth(answer, currentQuestion);
+      if (depth.needsFollowup) {
+        const depthFollowups = {
+          short: [
+            '你的回答比较简略，能展开说说吗？请用一个具体的例子来说明。',
+            '能再详细一些吗？比如当时的背景是什么？你具体做了什么？',
+            '这个回答有点笼统，能给我讲一个真实发生的故事吗？',
+          ],
+          no_evidence: [
+            '你说的这些很好，但能举一个具体的案例来佐证吗？',
+            '有没有一个实际的例子能证明你说的这一点？',
+            '听起来不错，但我想听一个真实发生的故事，可以吗？',
+          ],
+          shallow_case: [
+            '案例有了，但还不够深入。这个案例最终的结果数据是什么？',
+            '你提到了这个案例，那当时遇到的最大阻力是什么？你是怎么克服的？',
+            '这个案例的结果很好，但过程中有没有踩过坑？',
+          ],
+        };
+        const pool = depthFollowups[depth.reason] || depthFollowups.short;
+        followups.push({
+          id: 'fu_' + Date.now(),
+          cat: '深度追问',
+          q: pool[Math.floor(Math.random() * pool.length)],
+          tips: '基于你刚才的回答深入展开',
+          w: 15,
+        });
+      }
+    }
+
+    return followups.slice(0, 1); // 每轮最多1个追问
+  }
+
+  // 初始化追问进度跟踪
+  function initFollowupProgress() {
+    return {};
+  }
+
+  // 更新追问进度
+  function updateFollowupProgress(session, followup) {
+    if (followup.chainKey) {
+      if (!session.followupProgress) session.followupProgress = {};
+      session.followupProgress[followup.chainKey] = followup.chainLevel;
+    }
+  }
 
   function initInterviewSession(jobName) {
     const jobTypes = detectJobTypes(jobName);
@@ -1774,7 +2063,7 @@
       const j = Math.floor(Math.random() * (i + 1));
       [unique[i], unique[j]] = [unique[j], unique[i]];
     }
-    return { jobName, jobTypes, pool: unique, asked: [], answers: [], currentQ: 0, round: 0, followups: [], startTime: Date.now() };
+    return { jobName, jobTypes, pool: unique, asked: [], answers: [], currentQ: 0, round: 0, followups: [], followupProgress: {}, startTime: Date.now() };
   }
 
   function detectJobTypes(jobName) {
@@ -1942,10 +2231,12 @@
     session.answers.push({ question: q, answer: userAnswer, analysis });
     session.round++;
 
-    // 根据回答质量决定是否生成追问
-    const followups = generateFollowups(userAnswer, q);
-    if (followups.length > 0 && analysis.score < 75) {
-      session.followups = [...(session.followups || []), ...followups];
+    // 智能追问：多级链式 + 深度分析
+    const followups = generateFollowups(userAnswer, q, session);
+    if (followups.length > 0) {
+      const fu = followups[0];
+      updateFollowupProgress(session, fu);
+      session.followups = [...(session.followups || []), fu];
     }
 
     // 获取下一个问题
@@ -1955,7 +2246,7 @@
     // 生成 AI 回应
     let aiResponse = '';
     if (analysis.score >= 80) {
-      const praises = ['回答得很好，有理有据。', '不错，逻辑清晰。', '很好，有具体案例支撑。'];
+      const praises = ['回答得很好，有理有据。', '不错，逻辑清晰，有具体案例。', '很好，这个回答很有深度。', '说得很好，有数据支撑更有说服力。'];
       aiResponse = praises[Math.floor(Math.random() * praises.length)];
     } else if (analysis.score >= 60) {
       aiResponse = '回答有条理，但还可以更深入一些。';
