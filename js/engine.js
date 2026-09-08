@@ -2498,11 +2498,8 @@
     // 1. 优先返回追问
     if (session.followups.length > 0) return session.followups.shift();
 
-    // 2. 第1轮：必问自我介绍
+    // 2. 第1轮：暖场随机自我介绍
     if (session.round === 1) {
-      const q = findQuestion(session, ['g1', 'si1']);
-      if (q) return q;
-      // 备用：从 self_intro 分类中找
       return pickFromCategory(session, ['self_intro'], 'basic');
     }
 
