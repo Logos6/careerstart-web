@@ -2470,15 +2470,10 @@
   function initInterviewSession(jobName) {
     const jobTypes = detectJobTypes(jobName);
 
-    // 构建分类到题目的索引
+    // 构建分类到题目的索引（直接从 INTERVIEW_DB 构建）
     const categoryIndex = {};
-    for (const [catKey, catNames] of Object.entries(CATEGORY_MAP)) {
-      if (INTERVIEW_DB[catKey]) {
-        for (const q of INTERVIEW_DB[catKey]) {
-          if (!categoryIndex[catKey]) categoryIndex[catKey] = [];
-          categoryIndex[catKey].push(q);
-        }
-      }
+    for (const [catKey, questions] of Object.entries(INTERVIEW_DB)) {
+      categoryIndex[catKey] = [...questions];
     }
 
     return {
