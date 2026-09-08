@@ -6,87 +6,100 @@
   }
 }(typeof self !== 'undefined' ? self : this, function () {
 
-/* ---------- 兴趣领域 ---------- */
-var INTERESTS = [
-  // ── 互联网与科技（BOSS直聘真实行业标签）──
-  { id: "tech",       label: "互联网",           icon: "i-code" },
-  { id: "ecom",       label: "电子商务",         icon: "i-cart" },
-  { id: "soft",       label: "计算机软件",       icon: "i-code" },
-  { id: "data",       label: "大数据",           icon: "i-chart" },
-  { id: "ai",         label: "人工智能",         icon: "i-flash" },
-  { id: "game",       label: "游戏",             icon: "i-gamepad" },
-  { id: "social",     label: "社交网络与媒体",   icon: "i-play" },
-  { id: "finintech",  label: "互联网金融",       icon: "i-coin" },
-  { id: "iot",        label: "物联网",           icon: "i-gear" },
-  { id: "iot2",       label: "运营商/增值服务",   icon: "i-cloud" },
-  { id: "enterprise", label: "企业服务",         icon: "i-brief" },
-  { id: "bigdata",    label: "大数据",           icon: "i-chart" },
-  // ── 金融与商务 ──
-  { id: "bank",       label: "银行",             icon: "i-coin" },
-  { id: "insurance",  label: "保险",             icon: "i-umbrella" },
-  { id: "invest",     label: "投资/融资",        icon: "i-trend" },
-  { id: "finother",   label: "其他金融业",       icon: "i-coin" },
-  { id: "audit",      label: "财务/审计/税务",   icon: "i-calculator" },
-  { id: "consulting", label: "咨询",             icon: "i-bulb" },
-  { id: "hr",         label: "人力资源服务",     icon: "i-user" },
-  // ── 制造与工程 ──
-  { id: "auto",       label: "汽车研发/制造",    icon: "i-car" },
-  { id: "auto2",      label: "汽车智能网联",     icon: "i-car" },
-  { id: "auto3",      label: "汽车经销商",       icon: "i-car" },
-  { id: "newenergy",  label: "新能源汽车",       icon: "i-flash" },
-  { id: "material",   label: "橡胶/塑料制品",    icon: "i-flask" },
-  { id: "textile",    label: "服装/纺织",        icon: "i-palette" },
-  { id: "furniture",  label: "家具/家居",        icon: "i-home" },
-  { id: "elec",       label: "机电工程",         icon: "i-gear" },
-  // ── 建筑与房产 ──
-  { id: "construct",  label: "土木工程",         icon: "i-building" },
-  { id: "construct2", label: "工程施工",         icon: "i-building" },
-  { id: "construct3", label: "建筑工程咨询服务", icon: "i-building" },
-  { id: "realestate", label: "房地产开发经营",   icon: "i-home" },
-  { id: "realestate2",label: "房地产中介/租赁",  icon: "i-home" },
-  // ── 零售与贸易 ──
-  { id: "retail",     label: "批发/零售",        icon: "i-shop" },
-  { id: "trade",      label: "进出口贸易",       icon: "i-ship" },
-  // ── 教育与培训 ──
-  { id: "edu",        label: "培训/辅导机构",    icon: "i-grad" },
-  { id: "edu2",       label: "学校/学历教育",    icon: "i-grad" },
-  // ── 医疗与健康 ──
-  { id: "medical",    label: "医疗健康",         icon: "i-pulse" },
-  { id: "medical2",   label: "医疗服务",         icon: "i-pulse" },
-  { id: "beauty",     label: "医美服务",         icon: "i-sparkle" },
-  { id: "health",     label: "保健/养生",        icon: "i-heart" },
-  { id: "pharma",     label: "生物/制药",        icon: "i-pill" },
-  // ── 餐饮与生活 ──
-  { id: "food",       label: "餐饮",             icon: "i-cup" },
-  { id: "life",       label: "生活服务(O2O)",    icon: "i-hand" },
-  { id: "life2",      label: "其他生活服务",     icon: "i-hand" },
-  // ── 物流与交通 ──
-  { id: "logistics",  label: "公路物流",         icon: "i-truck" },
-  { id: "transport",  label: "客运服务",         icon: "i-bus" },
-  // ── 媒体与文化 ──
-  { id: "media",      label: "文化艺术/娱乐",    icon: "i-play" },
-  { id: "ad",         label: "广告/公关/会展",   icon: "i-megaphone" },
-  // ── 专业服务 ──
-  { id: "legal",      label: "检测/认证/知识产权", icon: "i-scale" },
-  { id: "service",    label: "其他专业服务",     icon: "i-brief" },
-  // ── 其他 ──
-  { id: "tourism",    label: "旅游/景区",        icon: "i-compass" },
-  { id: "farming",    label: "农/林/牧/渔",      icon: "i-seedling" },
-  // ── 通用类别（用于岗位匹配）──
-  { id: "people",     label: "人际沟通",         icon: "i-user" },
-  { id: "business",   label: "企业服务",         icon: "i-brief" },
-  { id: "sales",      label: "销售",             icon: "i-trend" },
-  { id: "design",     label: "设计",             icon: "i-palette" },
-  { id: "care",       label: "关怀服务",         icon: "i-heart" },
-  { id: "admin",      label: "行政文秘",         icon: "i-doc" },
-  { id: "security",   label: "安全保卫",         icon: "i-shield" },
-  { id: "nature",     label: "自然户外",         icon: "i-leaf" },
-  { id: "make",       label: "动手制造",         icon: "i-gear" },
-  { id: "hospitality",label: "酒店餐饮",         icon: "i-cup" },
-  { id: "finance",    label: "金融财务",         icon: "i-coin" },
-  { id: "art",        label: "艺术文创",         icon: "i-palette" },
-  { id: "energy",     label: "能源环保",         icon: "i-flash" },
+/* ---------- 兴趣领域（按大类分组） ---------- */
+var INTEREST_GROUPS = [
+  { cat: "互联网与科技", items: [
+    { id: "tech",       label: "互联网" },
+    { id: "ecom",       label: "电子商务" },
+    { id: "soft",       label: "计算机软件" },
+    { id: "data",       label: "大数据" },
+    { id: "ai",         label: "人工智能" },
+    { id: "game",       label: "游戏" },
+    { id: "social",     label: "社交网络与媒体" },
+    { id: "finintech",  label: "互联网金融" },
+    { id: "iot",        label: "物联网" },
+    { id: "iot2",       label: "运营商/增值服务" },
+    { id: "enterprise", label: "企业服务" },
+  ]},
+  { cat: "金融与商务", items: [
+    { id: "bank",       label: "银行" },
+    { id: "insurance",  label: "保险" },
+    { id: "invest",     label: "投资/融资" },
+    { id: "finother",   label: "其他金融业" },
+    { id: "audit",      label: "财务/审计/税务" },
+    { id: "consulting", label: "咨询" },
+    { id: "hr",         label: "人力资源服务" },
+    { id: "finance",    label: "金融财务" },
+  ]},
+  { cat: "制造与工程", items: [
+    { id: "auto",       label: "汽车研发/制造" },
+    { id: "auto2",      label: "汽车智能网联" },
+    { id: "auto3",      label: "汽车经销商" },
+    { id: "newenergy",  label: "新能源汽车" },
+    { id: "material",   label: "橡胶/塑料制品" },
+    { id: "textile",    label: "服装/纺织" },
+    { id: "furniture",  label: "家具/家居" },
+    { id: "elec",       label: "机电工程" },
+    { id: "energy",     label: "能源环保" },
+    { id: "make",       label: "动手制造" },
+  ]},
+  { cat: "建筑与房产", items: [
+    { id: "construct",  label: "土木工程" },
+    { id: "construct2", label: "工程施工" },
+    { id: "construct3", label: "建筑工程咨询服务" },
+    { id: "realestate", label: "房地产开发经营" },
+    { id: "realestate2",label: "房地产中介/租赁" },
+  ]},
+  { cat: "零售与贸易", items: [
+    { id: "retail",     label: "批发/零售" },
+    { id: "trade",      label: "进出口贸易" },
+    { id: "sales",      label: "销售" },
+  ]},
+  { cat: "教育与培训", items: [
+    { id: "edu",        label: "培训/辅导机构" },
+    { id: "edu2",       label: "学校/学历教育" },
+  ]},
+  { cat: "医疗与健康", items: [
+    { id: "medical",    label: "医疗健康" },
+    { id: "medical2",   label: "医疗服务" },
+    { id: "beauty",     label: "医美服务" },
+    { id: "health",     label: "保健/养生" },
+    { id: "pharma",     label: "生物/制药" },
+    { id: "care",       label: "关怀服务" },
+  ]},
+  { cat: "餐饮与生活", items: [
+    { id: "food",       label: "餐饮" },
+    { id: "life",       label: "生活服务(O2O)" },
+    { id: "life2",      label: "其他生活服务" },
+    { id: "hospitality",label: "酒店餐饮" },
+  ]},
+  { cat: "物流与交通", items: [
+    { id: "logistics",  label: "公路物流" },
+    { id: "transport",  label: "客运服务" },
+  ]},
+  { cat: "媒体与文化", items: [
+    { id: "media",      label: "文化艺术/娱乐" },
+    { id: "ad",         label: "广告/公关/会展" },
+    { id: "art",        label: "艺术文创" },
+    { id: "design",     label: "设计" },
+  ]},
+  { cat: "专业服务", items: [
+    { id: "legal",      label: "检测/认证/知识产权" },
+    { id: "service",    label: "其他专业服务" },
+    { id: "admin",      label: "行政文秘" },
+    { id: "security",   label: "安全保卫" },
+  ]},
+  { cat: "其他行业", items: [
+    { id: "tourism",    label: "旅游/景区" },
+    { id: "farming",    label: "农/林/牧/渔" },
+    { id: "people",     label: "人际沟通" },
+    { id: "business",   label: "企业服务" },
+    { id: "nature",     label: "自然户外" },
+  ]},
 ];
+/* 兼容旧代码：平铺数组 */
+var INTERESTS = [];
+INTEREST_GROUPS.forEach(function(g){ g.items.forEach(function(it){ INTERESTS.push(it); }); });
 
 /* ---------- 技能标签（按领域分组，基于BOSS直聘岗位名称） ---------- */
 var SKILL_GROUPS = [
@@ -369,54 +382,63 @@ var TRAITS = [
   { id: "handcraft", label: "动手实践", desc: "操作工具设备、解决实际问题的能力" },
 ];
 
-/* ---------- 工作偏好（基于BOSS直聘真实标签） ---------- */
-var PREF_ITEMS = [
-  // ── 工作时间 ──
-  { id: "stable",    label: "稳定朝九晚五" },
-  { id: "flextime",  label: "弹性工作时间" },
-  { id: "parttime",  label: "兼职 / 非全职" },
-  { id: "weekend",   label: "周末双休" },
-  { id: "noshift",   label: "不要倒班 / 夜班" },
-  { id: "lowot",     label: "少加班" },
-  { id: "early96",   label: "早九晚六" },
-  { id: "early10",   label: "早十晚七" },
-  { id: "5day",      label: "5天/周" },
-  { id: "6day",      label: "6天/周" },
-  // ── 工作方式 ──
-  { id: "remote",    label: "远程 / 居家办公" },
-  { id: "solo",      label: "独立工作" },
-  { id: "team",      label: "团队协作" },
-  { id: "outdoor",   label: "外出走动" },
-  { id: "travel",    label: "可接受出差" },
-  { id: "field",     label: "外勤 / 跑业务" },
-  // ── 薪资与发展 ──
-  { id: "highpay",   label: "高薪优先" },
-  { id: "growth",    label: "看重晋升空间" },
-  { id: "learn",     label: "能学新东西" },
-  { id: "meaning",   label: "工作有意义感" },
-  { id: "title",     label: "看重职位头衔" },
-  // ── 工作强度 ──
-  { id: "lowstress", label: "低压轻松" },
-  { id: "diverse",   label: "内容多样化" },
-  { id: "routine",   label: "喜欢固定流程" },
-  { id: "challenge", label: "喜欢有挑战" },
-  { id: "fast",      label: "节奏快不无聊" },
-  // ── 公司类型 ──
-  { id: "bigco",     label: "大公司 / 体制内" },
-  { id: "smallco",   label: "小团队 / 初创" },
-  { id: "foreign",   label: "外企" },
-  { id: "state",     label: "国企 / 事业单位" },
-  { id: "startup",   label: "创业公司" },
-  // ── 其他偏好 ──
-  { id: "local",     label: "离家近" },
-  { id: "nointerest",label: "不挑行业只看钱" },
-  { id: "social",    label: "社交氛围好" },
-  { id: "autonomy",  label: "自主决策权" },
-  { id: "stable2",   label: "铁饭碗 / 长期稳定" },
-  { id: "flexloc",   label: "地点灵活" },
-  { id: "benefits",  label: "福利待遇好" },
-  { id: "culture",   label: "企业文化好" },
+/* ---------- 工作偏好（按大类分组） ---------- */
+var PREF_GROUPS = [
+  { cat: "工作时间", items: [
+    { id: "stable",    label: "稳定朝九晚五" },
+    { id: "early96",   label: "早九晚六" },
+    { id: "early10",   label: "早十晚七" },
+    { id: "flextime",  label: "弹性工作时间" },
+    { id: "weekend",   label: "周末双休" },
+    { id: "5day",      label: "5天/周" },
+    { id: "6day",      label: "6天/周" },
+    { id: "lowot",     label: "少加班" },
+    { id: "noshift",   label: "不要倒班/夜班" },
+    { id: "parttime",  label: "兼职/非全职" },
+  ]},
+  { cat: "工作方式", items: [
+    { id: "remote",    label: "远程/居家办公" },
+    { id: "flexloc",   label: "地点灵活" },
+    { id: "solo",      label: "独立工作" },
+    { id: "team",      label: "团队协作" },
+    { id: "outdoor",   label: "外出走动" },
+    { id: "field",     label: "外勤/跑业务" },
+    { id: "travel",    label: "可接受出差" },
+  ]},
+  { cat: "薪资与成长", items: [
+    { id: "highpay",   label: "高薪优先" },
+    { id: "benefits",  label: "福利待遇好" },
+    { id: "growth",    label: "看重晋升空间" },
+    { id: "learn",     label: "能学新东西" },
+    { id: "title",     label: "看重职位头衔" },
+    { id: "meaning",   label: "工作有意义感" },
+  ]},
+  { cat: "工作节奏", items: [
+    { id: "lowstress", label: "低压轻松" },
+    { id: "routine",   label: "喜欢固定流程" },
+    { id: "diverse",   label: "内容多样化" },
+    { id: "challenge", label: "喜欢有挑战" },
+    { id: "fast",      label: "节奏快不无聊" },
+  ]},
+  { cat: "公司类型", items: [
+    { id: "bigco",     label: "大公司/体制内" },
+    { id: "state",     label: "国企/事业单位" },
+    { id: "smallco",   label: "小团队/初创" },
+    { id: "startup",   label: "创业公司" },
+    { id: "foreign",   label: "外企" },
+    { id: "stable2",   label: "铁饭碗/长期稳定" },
+  ]},
+  { cat: "其他偏好", items: [
+    { id: "local",     label: "离家近" },
+    { id: "social",    label: "社交氛围好" },
+    { id: "autonomy",  label: "自主决策权" },
+    { id: "culture",   label: "企业文化好" },
+    { id: "nointerest",label: "不挑行业只看钱" },
+  ]},
 ];
+/* 兼容旧代码：平铺数组 */
+var PREF_ITEMS = [];
+PREF_GROUPS.forEach(function(g){ g.items.forEach(function(it){ PREF_ITEMS.push(it); }); });
 
 /* ---------- 职位库（仅供测评引擎匹配使用） ---------- */
 var JOBS = [
