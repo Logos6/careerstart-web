@@ -1378,7 +1378,8 @@ body {
 }
 
 .pc-chat-window {
-  height: 320px;
+  min-height: 320px;
+  max-height: 500px;
   background: #fff;
   border-radius: var(--radius-md);
   padding: 16px;
