@@ -1307,7 +1307,7 @@
     general: [
       { id: 'g1', cat: '自我介绍', q: '请用2分钟介绍你自己，重点说清楚：你过去做过什么、擅长什么、为什么来应聘这个岗位。', tips: '不要念简历，用故事线串联经历', w: 15 },
       { id: 'g2', cat: '职业空白期', q: '你的简历有一段空白期。请如实告诉我这段时间你在做什么，以及你为什么选择现在重返职场？', tips: '诚实+成长视角', w: 20 },
-      { id: 'g3', cat: '35+价值', q: '说实话，这个岗位可能有更年轻的候选人。你觉得你相比25岁的求职者，真正的优势在哪里？请用具体例子说明。', tips: '不要说"经验丰富"这种空话，要说具体场景', w: 25 },
+      { id: 'g3', cat: '核心优势', q: '你认为自己最核心的职业优势是什么？请用一个具体的工作案例来证明这个优势。', tips: '不要说"经验丰富"这种空话，要说具体场景和成果', w: 25 },
       { id: 'g4', cat: '自我认知', q: '你认为自己最大的短板是什么？这个短板对你的工作产生过什么实际影响？你是怎么应对的？', tips: '真实但不致命，重点在改进措施', w: 20 },
       { id: 'g5', cat: '职业规划', q: '如果入职后发现实际工作内容和面试时谈的不一样，你会怎么处理？请说说你过去遇到类似情况的真实经历。', tips: '展现适应力和沟通能力', w: 20 },
       { id: 'g6', cat: '薪资谈判', q: '你期望的薪资是多少？如果我告诉你这个岗位的预算比你期望的低20%，你会怎么考虑？', tips: '先说市场调研依据，再给弹性区间', w: 15 },
@@ -2096,37 +2096,64 @@
     return { ...rq, id: 'fu_' + Date.now(), cat: '深度追问' };
   }
 
-  function generateFollowups(answer, currentQuestion) {
-    const text = (answer || '').toLowerCase();
-    const followups = [];
-    for (const rule of FOLLOWUP_RULES) {
-      const regex = new RegExp(rule.keywords);
-      if (regex.test(text)) {
-        const pool = rule.followups.filter(f => !f.includes(currentQuestion.cat));
-        if (pool.length > 0) followups.push(pool[Math.floor(Math.random() * pool.length)]);
-      }
-    }
-    return followups.slice(0, 1).map(q => ({ id: 'fu_' + Date.now(), cat: '深度追问', q, tips: '基于你刚才的回答深入展开', w: 15 }));
-  }
+  // 删除了第二个generateFollowups（引用未定义的FOLLOWUP_RULES，导致崩溃）
+  // 追问功能由第一个generateFollowups（第1978行）负责
 
   // ═══════════════════════════════════════════════════
-  //  胜任力评估体系（Competency Framework）
-  //  基于 HireVue / Final Round AI 等专业面试系统标准
+  //  六维胜任力评估体系（Competency Framework）
+  //  基于 Moka / 北森 / HireVue 等专业面试系统标准
+  //  每个维度5级行为锚定（BARS），确保评分一致性
   // ═══════════════════════════════════════════════════
 
   const COMPETENCIES = {
-    communication: { name: '沟通表达', icon: 'ri-chat-quote-line',
-      anchors: { 5:'逻辑清晰、结构化表达，善用案例和数据佐证', 4:'表达清晰有案例支撑', 3:'基本清楚但缺乏结构', 2:'表达混乱逻辑跳跃', 1:'语无伦次' }},
-    problem_solving: { name: '问题解决', icon: 'ri-lightbulb-line',
-      anchors: { 5:'系统拆解问题，找到根因并提出创新方案', 4:'有分析思路能提出有效方案', 3:'能解决问题但缺系统方法', 2:'缺乏思路方案简单', 1:'无法有效分析解决' }},
-    execution: { name: '执行力', icon: 'ri-flag-line',
-      anchors: { 5:'目标明确计划周密，压力下高效交付', 4:'能按时交付结果达标', 3:'能完成但缺主动性', 2:'执行力不足常延期', 1:'缺乏执行意愿或能力' }},
-    leadership: { name: '领导力', icon: 'ri-team-line',
-      anchors: { 5:'激发团队潜能推动变革有全局视野', 4:'能带领团队达成目标', 3:'有管理意识影响力有限', 2:'更像执行者而非领导者', 1:'缺乏领导意识' }},
-    learning: { name: '学习成长', icon: 'ri-graduation-cap-line',
-      anchors: { 5:'主动学习新技能并快速应用到工作中', 4:'有学习习惯能跟上行业发展', 3:'被动学习缺乏主动性', 2:'学习能力不足难适应变化', 1:'拒绝学习' }},
-    resilience: { name: '抗压韧性', icon: 'ri-shield-line',
-      anchors: { 5:'高压下保持冷静从挫折中快速恢复', 4:'能承受压力有应对逆境经验', 3:'能扛一般压力极端不确定', 2:'抗压较弱容易受挫', 1:'面对压力容易崩溃' }},
+    professional: { name: '专业能力', icon: 'ri-medal-line', weight: 0.25,
+      anchors: {
+        5: '系统掌握岗位核心知识，能独立解决复杂专业问题，有深度行业洞察',
+        4: '专业基础扎实，能解决大部分岗位问题，有一定实战经验',
+        3: '掌握基本专业技能，能完成常规工作任务',
+        2: '专业知识不足，需要频繁求助',
+        1: '缺乏岗位所需的基本专业知识'
+      }},
+    communication: { name: '沟通表达', icon: 'ri-chat-quote-line', weight: 0.20,
+      anchors: {
+        5: '逻辑清晰、结构化表达，善用案例和数据佐证，有说服力',
+        4: '表达清晰有条理，能准确传达核心观点',
+        3: '基本清楚但缺乏结构，偶尔表达不够精炼',
+        2: '表达混乱逻辑跳跃，重点不突出',
+        1: '语无伦次，无法清晰传达信息'
+      }},
+    problem_solving: { name: '问题解决', icon: 'ri-lightbulb-line', weight: 0.20,
+      anchors: {
+        5: '系统拆解问题，找到根因并提出创新方案，有数据验证',
+        4: '有分析思路，能提出有效解决方案并执行',
+        3: '能解决常规问题但缺乏系统方法',
+        2: '缺乏分析思路，方案简单',
+        1: '无法有效分析和解决问题'
+      }},
+    teamwork: { name: '团队协作', icon: 'ri-team-line', weight: 0.15,
+      anchors: {
+        5: '主动推动跨部门协作，化解冲突，激发团队潜能',
+        4: '善于团队合作，能协调不同意见达成目标',
+        3: '能配合团队完成工作，但缺乏主动协调',
+        2: '更倾向于独立工作，协作意识较弱',
+        1: '缺乏团队意识，难以融入集体'
+      }},
+    learning: { name: '学习成长', icon: 'ri-graduation-cap-line', weight: 0.10,
+      anchors: {
+        5: '主动学习新技能并快速应用到工作中，有明确成长路径',
+        4: '有学习习惯，能跟上行业发展和岗位需求',
+        3: '被动学习，缺乏主动性但能完成培训',
+        2: '学习能力不足，难以适应变化',
+        1: '拒绝学习，固守旧有方式'
+      }},
+    resilience: { name: '抗压韧性', icon: 'ri-shield-line', weight: 0.10,
+      anchors: {
+        5: '高压下保持冷静，从挫折中快速恢复并总结经验',
+        4: '能承受工作压力，有应对逆境的实际经验',
+        3: '能扛一般压力，面对极端不确定性时表现一般',
+        2: '抗压能力较弱，容易受挫影响状态',
+        1: '面对压力容易崩溃，缺乏应对机制'
+      }},
   };
 
   function analyzeSTAR(text) {
@@ -2188,12 +2215,18 @@
   function detectCompetencies(text) {
     const t = (text || '').toLowerCase();
     const matched = [];
-    if (/沟通|汇报|协调|说服|表达|谈判|反馈|演讲/.test(t)) matched.push('communication');
-    if (/问题|解决|分析|排查|诊断|根因|方案|创新|优化/.test(t)) matched.push('problem_solving');
-    if (/执行|交付|完成|落地|推进|实现|达成|目标|deadline|按时/.test(t)) matched.push('execution');
-    if (/管理|带领|团队|领导|决策|授权|培养|激励|招聘/.test(t)) matched.push('leadership');
-    if (/学习|培训|提升|进修|考证|新技能|掌握|了解/.test(t)) matched.push('learning');
-    if (/压力|挑战|挫折|困难|加班|高强度|紧急|危机|失败/.test(t)) matched.push('resilience');
+    // 专业能力：岗位知识、技能、行业经验
+    if (/专业|技术|技能|知识|经验|行业|岗位|资质|证书|认证|掌握|熟悉|精通|熟练/.test(t)) matched.push('professional');
+    // 沟通表达：汇报、协调、说服、表达
+    if (/沟通|汇报|协调|说服|表达|谈判|反馈|演讲|讲述|介绍|说明/.test(t)) matched.push('communication');
+    // 问题解决：分析、排查、方案、创新
+    if (/问题|解决|分析|排查|诊断|根因|方案|创新|优化|改进|改善/.test(t)) matched.push('problem_solving');
+    // 团队协作：团队合作、跨部门、冲突处理
+    if (/团队|协作|合作|跨部门|配合|冲突|协调|一起|共同|互助/.test(t)) matched.push('teamwork');
+    // 学习成长：学习、培训、提升
+    if (/学习|培训|提升|进修|考证|新技能|掌握|了解|自学|研究/.test(t)) matched.push('learning');
+    // 抗压韧性：压力、挑战、挫折
+    if (/压力|挑战|挫折|困难|加班|高强度|紧急|危机|失败|逆境/.test(t)) matched.push('resilience');
     return matched.length > 0 ? matched : ['communication'];
   }
 
@@ -2222,36 +2255,45 @@
     const nextQ = getNextQuestion(session);
     session.currentQ++;
 
-    // 生成AI回应
-    let starTag = 'STAR [';
-    starTag += analysis.star.hasSituation ? '✅S' : '❌S';
-    starTag += analysis.star.hasTask ? ' ✅T' : ' ❌T';
-    starTag += analysis.star.hasAction ? ' ✅A' : ' ❌A';
-    starTag += analysis.star.hasResult ? ' ✅R' : ' ❌R';
-    starTag += ']';
-
+    // 生成专业AI回应（模拟真实面试官风格）
     let aiResponse = '';
+
+    // STAR状态
+    let starMsg = '【回答结构】';
+    starMsg += analysis.star.hasSituation ? ' ✓情境' : ' ✗情境';
+    starMsg += analysis.star.hasTask ? ' ✓任务' : ' ✗任务';
+    starMsg += analysis.star.hasAction ? ' ✓行动' : ' ✗行动';
+    starMsg += analysis.star.hasResult ? ' ✓结果' : ' ✗结果';
+
+    // 评分反馈
+    let scoreMsg = '';
     if (analysis.score >= 80) {
-      aiResponse = starTag + ' 评分 ' + analysis.score + '/100（' + analysis.level + '）。回答有具体案例和数据支撑，继续保持。';
+      scoreMsg = `评分 ${analysis.score}/100（${analysis.level}）`;
     } else if (analysis.score >= 60) {
       const missing = [];
-      if (!analysis.star.hasSituation) missing.push('情境');
-      if (!analysis.star.hasTask) missing.push('任务');
-      if (!analysis.star.hasAction) missing.push('行动');
-      if (!analysis.star.hasResult) missing.push('结果');
-      aiResponse = starTag + ' 评分 ' + analysis.score + '/100（' + analysis.level + '）。' + (missing.length > 0 ? '建议补充：' + missing.join('、') : '可以更深入展开。');
+      if (!analysis.star.hasSituation) missing.push('情境描述');
+      if (!analysis.star.hasTask) missing.push('任务说明');
+      if (!analysis.star.hasAction) missing.push('行动步骤');
+      if (!analysis.star.hasResult) missing.push('结果量化');
+      scoreMsg = `评分 ${analysis.score}/100（${analysis.level}）`;
+      if (missing.length > 0) scoreMsg += `\n建议补充：${missing.join('、')}`;
     } else {
-      aiResponse = starTag + ' 评分 ' + analysis.score + '/100（' + analysis.level + '）。' + (analysis.suggestions[0] || '建议用STAR法则组织回答。');
+      scoreMsg = `评分 ${analysis.score}/100（${analysis.level}）`;
+      if (analysis.suggestions[0]) scoreMsg += `\n${analysis.suggestions[0]}`;
     }
 
+    // 组合反馈
+    aiResponse = starMsg + '\n' + scoreMsg;
+
+    // 追问或下一题
     if (session.followups && session.followups.length > 0) {
-      aiResponse += '\n\n📌 追问：' + session.followups[0].q;
+      aiResponse += '\n\n追问：' + session.followups[0].q;
     } else {
-      aiResponse += '\n\n💬 下一题：' + nextQ.q;
+      aiResponse += '\n\n下一题：' + nextQ.q;
     }
 
     return {
-      feedback: analysis.feedback, score: analysis.score,
+      feedbackParts: analysis.feedbackParts, score: analysis.score,
       level: analysis.level, color: analysis.color,
       isLast: false, aiResponse, nextQuestion: nextQ,
       round: session.round, star: analysis.star,
@@ -2260,9 +2302,18 @@
   }
 
   function endInterview(session) {
+    const round = session.round || 0;
+    let closingMsg = '';
+    if (round === 0) {
+      closingMsg = '感谢您参加今天的面试。由于回答轮次较少，报告可能不够全面，建议您再次尝试以获得更准确的评估。正在生成评估报告...';
+    } else if (round <= 3) {
+      closingMsg = '感谢您今天的参与。由于面试轮次较少，部分评估维度可能不够充分。正在为您生成评估报告，建议您稍后再次练习以获得更完整的评估。';
+    } else {
+      closingMsg = '感谢您今天的参与和分享！您的面试表现已全面记录。正在为您生成专业评估报告，包含六维能力雷达图、STAR分析和针对性改进建议，请稍候...';
+    }
     return {
-      feedback: '', score: 0, level: '', isLast: true,
-      aiResponse: '好的，面试到此结束。正在为你生成专业面试评估报告...',
+      feedbackParts: [], score: 0, level: '', isLast: true,
+      aiResponse: closingMsg,
       round: session.round,
     };
   }
@@ -2379,7 +2430,7 @@
         score: a.analysis.score,
         level: a.analysis.level,
         color: a.analysis.color,
-        feedback: a.analysis.feedback.text,
+        feedback: (a.analysis.feedbackParts || []).join('；'),
         suggestion: a.analysis.suggestions.join('；'),
         star: a.analysis.star,
         components: a.analysis.components,
