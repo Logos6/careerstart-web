@@ -2411,93 +2411,105 @@
     return INTERVIEWER_PERSONAS.hr_manager;
   }
 
-  // ──── 动态追问引擎 ────
-  // 核心：根据候选人具体说了什么来追问，不是走预设链
+  // ──── 动态追问引擎 v2 ────
+  // 核心改进：追问是有选择性的，不是每次都追
   function generateProbing(answer, question, persona, session) {
     const text = (answer || '').trim();
     const len = text.length;
-    const probing = [];
 
-    // 1. 回答太短 → 追问展开
-    if (len < 30) {
+    // 追问预算：每道题最多追1次问
+    const lastQid = session.asked[session.asked.length - 1];
+    const probingKey = 'probed_' + lastQid;
+    if (session._probingBudget && session._probingBudget[probingKey]) {
+      return []; // 已经追问过这道题，不再追
+    }
+
+    // 回答太短(<=15字) → 必须追问
+    if (len <= 15) {
       const shortProbes = [
         '能再展开说说吗？具体的细节是什么？',
         '能再详细一些吗？比如当时的背景是什么？',
         '这个回答有点简洁，能给我讲一个具体的故事吗？',
+        '能举一个具体的例子来说明吗？',
+        '你说的这个能再具体一些吗？我想了解更多细节。',
       ];
-      probing.push(shortProbes[Math.floor(Math.random() * shortProbes.length)]);
-      return probing.slice(0, 1);
+      const probe = shortProbes[Math.floor(Math.random() * shortProbes.length)];
+      if (!session._probingBudget) session._probingBudget = {};
+      session._probingBudget[probingKey] = true;
+      return [probe];
     }
 
-    // 2. 分析回答内容，提取线索
+    // 回答长度适中但信息不完整(15-60字) → 50%概率追问
+    if (len < 60 && Math.random() > 0.5) {
+      const mediumProbes = [
+        '能再具体一些吗？比如当时的背景和你具体做了什么？',
+        '这个能展开讲讲吗？我想了解更多的细节。',
+        '听起来不错，能举个实际的例子来说明吗？',
+        '你说的这个能再详细说说吗？',
+      ];
+      const probe = mediumProbes[Math.floor(Math.random() * mediumProbes.length)];
+      if (!session._probingBudget) session._probingBudget = {};
+      session._probingBudget[probingKey] = true;
+      return [probe];
+    }
+
+    // 回答较长(>60字) → 分析内容，选择性追问
     const hasProject = /项目|产品|功能|上线|发布|迭代|重构|迁移/.test(text);
-    const hasTeam = /团队|小组|部门|同事|协作|配合|跨部门/.test(text);
     const hasData = /\d+[%％万元人天次个月年]|提升了?\d+|增长了?\d+|节省了?\d+|DAU|GMV|ROI|KPI/.test(text);
     const hasDifficulty = /困难|挑战|压力|问题|难点|瓶颈|踩坑/.test(text);
     const hasSuccess = /成功|完成|达成|实现|效果好|做得好|成果/.test(text);
     const hasFailure = /失败|错误|没做好|教训|复盘|不足/.test(text);
-    const hasVague = len < 60 && !hasProject && !hasData && !hasDifficulty;
+    const hasTeam = /团队|小组|部门|同事|协作|配合|跨部门/.test(text);
 
-    // 3. 根据内容选择追问方向
+    // 只有明确的信息缺口才追问，且30%概率跳过
+    if (Math.random() < 0.3) return [];
+
+    let probe = null;
+
     if (hasProject && !hasData) {
-      // 提到了项目但没说数据 → 追问结果
-      const projectProbes = persona.probes.project || [
-        '这个项目的最终结果怎么样？有没有数据支撑？',
+      const projectProbes = [
+        '这个项目的最终结果怎么样？有没有可以量化的数据？',
         '你在这个项目中的具体贡献是什么？',
+        '项目过程中遇到的最大挑战是什么？你是怎么解决的？',
       ];
-      probing.push(projectProbes[Math.floor(Math.random() * projectProbes.length)]);
+      probe = projectProbes[Math.floor(Math.random() * projectProbes.length)];
     } else if (hasDifficulty && !hasFailure) {
-      // 提到了困难但没说怎么解决 → 追问解决方法
-      probing.push('你是怎么解决这个困难的？具体采取了什么措施？');
+      const diffProbes = [
+        '你是怎么解决这个困难的？具体采取了什么措施？',
+        '面对这个挑战，你当时是怎么想的？',
+        '后来你是怎么突破这个瓶颈的？',
+      ];
+      probe = diffProbes[Math.floor(Math.random() * diffProbes.length)];
     } else if (hasSuccess && !hasData) {
-      // 说了成功但没数据 → 追问量化
-      const successProbes = persona.probes.success || [
+      const successProbes = [
         '效果如何？能给个具体数字吗？',
         '你在这个成果中的具体贡献是什么？',
+        '这个结果后来有持续保持吗？',
       ];
-      probing.push(successProbes[Math.floor(Math.random() * successProbes.length)]);
+      probe = successProbes[Math.floor(Math.random() * successProbes.length)];
     } else if (hasFailure) {
-      // 提到了失败 → 追问反思
-      probing.push('从这次经历中你学到了什么？后来有改进吗？');
+      const failProbes = [
+        '从这次经历中你学到了什么？后来有改进吗？',
+        '如果现在让你重新来过，你会怎么做？',
+        '这件事对你后来的工作方式有什么影响？',
+      ];
+      probe = failProbes[Math.floor(Math.random() * failProbes.length)];
     } else if (hasTeam) {
-      // 提到了团队 → 追问协作细节
-      probing.push('你在团队中具体负责什么？团队有多少人？');
-    } else if (hasVague) {
-      // 回答太笼统 → 追问具体案例
-      const vagueProbes = persona.probes.vague || [
-        '能举一个具体的例子吗？',
-        '能再具体一些吗？',
+      const teamProbes = [
+        '你在团队中具体负责什么？团队有多少人？',
+        '团队内部有没有分歧？你是怎么处理的？',
+        '你觉得在这个团队里，最让你有成就感的是什么？',
       ];
-      probing.push(vagueProbes[Math.floor(Math.random() * vagueProbes.length)]);
+      probe = teamProbes[Math.floor(Math.random() * teamProbes.length)];
     }
 
-    // 4. 如果前面有回答，可以引用前面的内容
-    if (session.answers.length >= 2 && probing.length === 0) {
-      const prev = session.answers[session.answers.length - 2];
-      if (prev && prev.answer) {
-        const prevKeywords = extractKeywords(prev.answer);
-        if (prevKeywords.length > 0 && Math.random() > 0.6) {
-          const refProbes = [
-            '你刚才提到了' + prevKeywords[0] + '相关的内容，能再深入讲讲吗？',
-            '前面你说到了' + prevKeywords[0] + '，我想再了解一下——',
-          ];
-          probing.push(refProbes[Math.floor(Math.random() * refProbes.length)]);
-        }
-      }
+    if (probe) {
+      if (!session._probingBudget) session._probingBudget = {};
+      session._probingBudget[probingKey] = true;
+      return [probe];
     }
 
-    // 5. 挑战式追问（随机触发，测试深度）
-    if (probing.length === 0 && len > 60 && Math.random() > 0.7) {
-      const challengeProbes = [
-        '如果让你重新做一次，你会有什么不同的做法？',
-        '你觉得这件事有什么不足的地方？',
-        '有没有可能是因为其他原因？',
-        '你的同事会怎么评价这件事？',
-      ];
-      probing.push(challengeProbes[Math.floor(Math.random() * challengeProbes.length)]);
-    }
-
-    return probing.slice(0, 1); // 每轮最多1个追问
+    return [];
   }
 
   // ──── 面试阶段定义 ────
@@ -2691,6 +2703,7 @@
       usedFollowups: [],
       competencyScores: {},
       questionMap: {},  // id → question object（用于查找 probing/closing 等非DB题目）
+      _probingBudget: {},  // 追问预算：记录已追问过的题目
       startTime: Date.now(),
     };
   }
@@ -2969,6 +2982,9 @@
     const probing = generateProbing(userAnswer, q, persona, session);
 
     // ──── 判断是否该进入下一阶段 ────
+    // 追问也消耗一轮，所以phaseRounds也要+1
+    session.phaseRounds = (session.phaseRounds || 0) + 1;
+    const prevPhase = session.phase;
     const shouldAdvance = session.phaseRounds >= (INTERVIEW_PHASES[session.phase]?.targetRounds || 3);
     if (shouldAdvance && session.phase !== 'closing') {
       const phaseOrder = ['opening', 'background', 'ability', 'behavior', 'closing'];
@@ -2978,6 +2994,14 @@
         session.phaseRounds = 0;
       }
     }
+
+    // 阶段过渡语（当phase变化时）
+    const phaseTransition = session.phase !== prevPhase ? {
+      background: '好的，了解了基本情况。接下来我想更深入地了解一下——',
+      ability: '嗯，背景方面我大概了解了。下面我想聊聊你的专业能力——',
+      behavior: '专业能力方面我有了初步了解。接下来我想问问你的实际工作经历——',
+      closing: '好的，今天聊得差不多了。最后我想再确认几个问题——',
+    }[session.phase] || '' : '';
 
     // ──── 获取下一个问题 ────
     let nextQ = null;
@@ -3016,15 +3040,13 @@
       const transition = digDeeper[Math.floor(Math.random() * digDeeper.length)];
       aiResponse = reaction + '\n\n' + transition + '\n\n' + probing[0];
     } else if (nextQ) {
-      // 无追问：反应 + 自然过渡 + 下一题
-      const transition = persona.transitions[Math.floor(Math.random() * persona.transitions.length)];
-      aiResponse = reaction + '\n\n' + transition + '\n\n' + nextQ.q;
+      // 无追问：反应 + 阶段过渡(如果有) + 自然过渡 + 下一题
+      const naturalTransition = persona.transitions[Math.floor(Math.random() * persona.transitions.length)];
+      aiResponse = reaction + '\n\n' + (phaseTransition ? phaseTransition + '\n\n' : naturalTransition + '\n\n') + nextQ.q;
     } else {
       // 面试结束
       aiResponse = reaction + '\n\n' + persona.closing;
     }
-
-    session.phaseRounds = (session.phaseRounds || 0) + 1;
 
     return {
       feedbackParts: analysis.feedbackParts, score: analysis.score,
