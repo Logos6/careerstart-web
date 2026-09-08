@@ -2494,12 +2494,7 @@
     // 1. 优先返回追问
     if (session.followups.length > 0) return session.followups.shift();
 
-    // 2. 第1轮：暖场随机自我介绍
-    if (session.round === 1) {
-      return pickFromCategory(session, ['self_intro'], 'basic');
-    }
-
-    // 3. 第2-3轮：背景探索（从上一轮回答中提取追问）
+    // 2. 第1-3轮：背景探索（随机自我介绍/职业背景/转型动机）
     if (session.round <= 3) {
       // 检查上一轮回答是否有可追问的关键词
       const lastEntry = session.answers[session.answers.length - 1];
@@ -2517,7 +2512,7 @@
           }
         }
       }
-      // 没有可追问的，从背景分类中选题
+      // 从背景分类中选题
       return pickFromCategory(session, ['self_intro', 'career_gap', 'career_change', 'general'], 'basic');
     }
 
@@ -2582,7 +2577,7 @@
     return null;
   }
 
-  // 按分类选题
+  // 按分类选题（随机选取）
   function pickFromCategory(session, catKeys, targetDifficulty) {
     let candidates = [];
     for (const catKey of catKeys) {
@@ -2598,15 +2593,9 @@
     }
     if (candidates.length === 0) return null;
 
-    // 按难度排序
-    const difficultyOrder = { basic: 0, intermediate: 1, advanced: 2 };
-    candidates.sort((a, b) => {
-      const da = difficultyOrder[classifyDifficulty(a)] || 0;
-      const db = difficultyOrder[classifyDifficulty(b)] || 0;
-      return Math.abs(da - difficultyOrder[targetDifficulty]) - Math.abs(db - difficultyOrder[targetDifficulty]);
-    });
-
-    const q = candidates[0];
+    // 随机打乱后返回
+    const shuffled = candidates.sort(() => Math.random() - 0.5);
+    const q = shuffled[0];
     session.asked.push(q.id);
     return q;
   }
