@@ -2461,7 +2461,8 @@
   function extractKeywords(answer) {
     const found = [];
     for (const [key, pattern] of Object.entries(KEYWORD_PATTERNS)) {
-      if (pattern.test(answer)) found.push(key);
+      // 用 match 代替 test，避免 g flag 状态问题
+      if (answer.match(pattern)) found.push(key);
     }
     return found;
   }
@@ -2506,9 +2507,9 @@
     // 3. 第2-3轮：背景探索（从上一轮回答中提取追问）
     if (session.round <= 3) {
       // 检查上一轮回答是否有可追问的关键词
-      const lastAnswer = session.answers[session.answers.length - 1];
-      if (lastAnswer) {
-        const keywords = extractKeywords(lastAnswer);
+      const lastEntry = session.answers[session.answers.length - 1];
+      if (lastEntry && lastEntry.answer) {
+        const keywords = extractKeywords(lastEntry.answer);
         for (const kw of keywords) {
           const templates = FOLLOWUP_TEMPLATES[kw];
           if (templates) {
@@ -2551,9 +2552,9 @@
 
     // 5. 第8-11轮：行为面试+深度追问
     if (session.round <= 11) {
-      const lastAnswer = session.answers[session.answers.length - 1];
-      if (lastAnswer) {
-        const keywords = extractKeywords(lastAnswer);
+      const lastEntry = session.answers[session.answers.length - 1];
+      if (lastEntry && lastEntry.answer) {
+        const keywords = extractKeywords(lastEntry.answer);
         for (const kw of keywords) {
           const templates = FOLLOWUP_TEMPLATES[kw];
           if (templates) {
@@ -2820,8 +2821,10 @@
     // 追问或下一题
     if (session.followups && session.followups.length > 0) {
       aiResponse += '\n\n追问：' + session.followups[0].q;
-    } else {
+    } else if (nextQ) {
       aiResponse += '\n\n下一题：' + nextQ.q;
+    } else {
+      aiResponse += '\n\n面试结束，感谢您的参与！正在生成评估报告...';
     }
 
     return {
