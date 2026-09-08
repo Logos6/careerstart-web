@@ -2361,6 +2361,50 @@
     legal: ['专业知识', '案例分析', '风险评估', '沟通协调', '合规意识'],
   };
 
+  // 根据岗位名称匹配行业分类
+  const JOB_KEYWORDS = {
+    management: ['管理', '总监', '主管', '经理', 'leader', 'CEO', 'COO', 'VP'],
+    technical: ['开发', '工程师', '程序员', '架构', '后端', '前端', '测试', '运维', 'Java', 'Python', 'Go', 'React', 'Vue'],
+    sales: ['销售', '客户经理', 'BD', '商务', '拓展', '经纪人'],
+    marketing: ['市场', '推广', '品牌', '营销', '广告', 'PR'],
+    operations: ['运营', '产品运营', '用户运营', '内容运营', '活动策划', '社群'],
+    finance: ['财务', '会计', '审计', '税务', '出纳', 'Finance'],
+    hr_admin: ['人事', 'HR', '招聘', '行政', '人力资源', 'HRBP'],
+    design: ['设计', 'UI', 'UX', '视觉', '平面', '交互', '美工'],
+    data_analytics: ['数据分析', 'BI', '数据', '数据挖掘', '算法'],
+    ecommerce_retail: ['电商', '店铺', '直播', '带货', '选品', '淘宝', '京东', '抖音'],
+    ai_tech: ['AI', '人工智能', '大模型', '机器学习', '深度学习', 'NLP', 'LLM'],
+    banking_insurance: ['银行', '金融', '保险', '理财', '信贷', '证券', '基金'],
+    logistics: ['物流', '仓储', '配送', '供应链', '快递'],
+    pharma_med: ['医药', '医疗', '护理', '药', '临床', '医院', '制药'],
+    culture_media: ['新媒体', '自媒体', '内容', '短视频', 'MCN', '文案', '编导', '主播', '网红', '博主'],
+    construction_re: ['建筑', '工程', '施工', '监理', '房产', '土木'],
+    hospitality: ['酒店', '餐饮', '服务员', '前厅', '宴会'],
+    agriculture: ['农业', '养殖', '种植', '畜牧', '农产品', '农场'],
+    new_energy: ['新能源', '光伏', '储能', '电池', '风电', '充电桩'],
+    education: ['教育', '老师', '教师', '培训', '课程', '助教', '讲师'],
+    healthcare: ['护士', '护理', '保健', '康复', '理疗'],
+    legal: ['法务', '律师', '合规', '法律顾问', '知识产权'],
+  };
+
+  function detectJobTypes(jobName) {
+    const types = [];
+    const text = jobName.toLowerCase();
+    for (const [type, keywords] of Object.entries(JOB_KEYWORDS)) {
+      for (const kw of keywords) {
+        if (text.includes(kw.toLowerCase())) {
+          types.push(type);
+          break;
+        }
+      }
+    }
+    // 如果没有匹配到任何行业分类，返回通用分类
+    if (types.length === 0) {
+      types.push('general');
+    }
+    return types;
+  }
+
   function initInterviewSession(jobName) {
     const jobTypes = detectJobTypes(jobName);
     
@@ -2790,6 +2834,6 @@
 
   return {
     scoreJob, buildReport, gapSkills, gapCoursePlan, reasonText, jobById, courseById, levelOf, detectAgeBias, diagnoseResume, generateAssessmentAnalysis, computeTraitScores,
-    initInterviewSession, getInterviewFeedback, endInterview, generateInterviewReport, COMPETENCIES,
+    initInterviewSession, getNextQuestion, getInterviewFeedback, endInterview, generateInterviewReport, COMPETENCIES,
   };
 }));
