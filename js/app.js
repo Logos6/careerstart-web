@@ -1458,10 +1458,6 @@ const app = {
 
     // 检测结束指令
     if (/^(结束|完成|退出|结束面试|完成面试|done|end)$/i.test(txt)) {
-      if (this.interviewSession.answers.length < 3) {
-        alert('至少回答3道题后再结束，这样报告才更准确。');
-        return;
-      }
       input.value = '';
       chatBox.innerHTML += `
         <div class="chat-msg user" style="display:flex; gap:12px; flex-direction:row-reverse; margin-bottom:14px;">
