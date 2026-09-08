@@ -1485,10 +1485,11 @@ const app = {
     const txt = input.value.trim();
     if (!txt || !this.interviewSession) return;
 
-    // 检测结束指令
-    console.log('[Interview] checking end command:', txt);
-    if (/(结束|完成|退出|结束面试|完成面试|done|end)/i.test(txt)) {
-      console.log('[Interview] end command detected');
+    // 检测结束指令（宽松匹配）
+    const endPatterns = ['结束', '完成', '退出', '结束面试', '完成面试', 'done', 'end'];
+    const isEnd = endPatterns.some(p => txt.includes(p));
+    console.log('[Interview] txt:', JSON.stringify(txt), 'isEnd:', isEnd);
+    if (isEnd) {
       input.value = '';
       chatBox.innerHTML += `
         <div class="chat-msg user" style="display:flex; gap:12px; flex-direction:row-reverse; margin-bottom:14px;">
