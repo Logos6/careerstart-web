@@ -671,14 +671,14 @@ const app = {
       const top2 = report.top[1];
       const top3 = report.top[2];
 
-    // 六维度雷达图数据
+    // 六维度雷达图数据（默认值5）
     const traitData = [
-      { label: '逻辑分析', score: this.userAnswers.traits.logic || 0 },
-      { label: '创造想象', score: this.userAnswers.traits.creative || 0 },
-      { label: '沟通协作', score: this.userAnswers.traits.social || 0 },
-      { label: '执行落地', score: this.userAnswers.traits.exec || 0 },
-      { label: '组织领导', score: this.userAnswers.traits.leader || 0 },
-      { label: '动手实践', score: this.userAnswers.traits.handcraft || 0 },
+      { label: '逻辑分析', score: this.userAnswers.traits.logic || 5 },
+      { label: '创造想象', score: this.userAnswers.traits.creative || 5 },
+      { label: '沟通协作', score: this.userAnswers.traits.social || 5 },
+      { label: '执行落地', score: this.userAnswers.traits.exec || 5 },
+      { label: '组织领导', score: this.userAnswers.traits.leader || 5 },
+      { label: '动手实践', score: this.userAnswers.traits.handcraft || 5 },
     ];
 
     content.innerHTML = `
