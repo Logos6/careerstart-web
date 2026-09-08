@@ -2017,20 +2017,29 @@ body {
 
 .assess-options-wrapper .pc-opt-grid {
   display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 700px;
+}
+.assess-options-wrapper .pc-opt-grid.cols-4 {
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  max-width: none;
 }
 
 .assess-options-wrapper .pc-opt-card {
   background: #f9fafb;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 14px 12px;
+  border-radius: 16px;
+  padding: 28px 24px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
   text-align: center;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .assess-options-wrapper .pc-opt-card::before {
@@ -2066,17 +2075,32 @@ body {
 }
 
 .assess-options-wrapper .pc-opt-card h4 {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: #1f2937;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .assess-options-wrapper .pc-opt-card p {
-  font-size: 12px;
+  font-size: 14px;
   color: #6b7280;
-  line-height: 1.4;
+  line-height: 1.6;
   margin: 0;
+}
+
+/* cols-4模式下的卡片样式（兴趣/技能/偏好步骤） */
+.assess-options-wrapper .pc-opt-grid.cols-4 .pc-opt-card {
+  padding: 14px 12px;
+  border-radius: 12px;
+  min-height: auto;
+}
+.assess-options-wrapper .pc-opt-grid.cols-4 .pc-opt-card h4 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.assess-options-wrapper .pc-opt-grid.cols-4 .pc-opt-card p {
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 /* 操作按钮栏 */
