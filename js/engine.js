@@ -325,6 +325,76 @@
     return completeness / total;
   }
 
+  // ==================== 综合计算六维能力分 ====================
+  // 基于用户全部回答（兴趣+技能+偏好+人设+滑块）综合推算
+  function computeTraitScores(a) {
+    if (!a) return { logic: 5, creative: 5, social: 5, exec: 5, leader: 5, handcraft: 5 };
+
+    const slider = a.traits || {};
+    const interests = new Set(a.interests || []);
+    const skills = new Set(a.skills || []);
+    const prefs = new Set(a.prefs || []);
+
+    // 信号映射：每个维度从哪些选项获取加分/减分信号
+    const signals = {
+      logic:   { interest: ['tech','data','finance','edu'], skill: ['coding','datatool','pm','accounting','finance','database','audit2'], pref: ['lowstress','routine'], boost: 0 },
+      creative:{ interest: ['media','design','art'], skill: ['uidesign','graphic','video','photo','writing','copywriting','animation','handwrite'], pref: ['diverse','challenge'], boost: 0 },
+      social:  { interest: ['people','sales','care'], skill: ['speaking','train','negotiate','host','persuade','listen','sales','b2b','b2c'], pref: ['team','social','outdoor'], boost: 0 },
+      exec:    { interest: ['business','tech'], skill: ['pm','coordinate','plan','delegate','office','wps'], pref: ['fast','challenge','highpay'], boost: 0 },
+      leader:  { interest: ['business'], skill: ['team','lead','plan','delegate','review','mentor','pm'], pref: ['growth','highpay','autonomy'], boost: 0 },
+      handcraft:{ interest: ['make'], skill: ['repair','weld','electric','machine','cook','bake','sewing','drive'], pref: ['outdoor','field'], boost: 0 },
+    };
+
+    // 从兴趣收集信号
+    for (const id of interests) {
+      const clusters = CLUSTER_TO_INTERESTS[id] || [];
+      for (const [trait, cfg] of Object.entries(signals)) {
+        if (cfg.interest.some(k => clusters.includes(k) || id === k)) {
+          cfg.boost += 0.6;
+        }
+      }
+    }
+
+    // 从技能收集信号（技能权重更高）
+    for (const id of skills) {
+      const cluster = SKILL_TO_CLUSTER[id];
+      for (const [trait, cfg] of Object.entries(signals)) {
+        if (cfg.skill.some(k => k === id || (cluster && cfg.skill.includes(k)))) {
+          cfg.boost += 0.8;
+        }
+      }
+    }
+
+    // 从偏好收集信号（弱信号）
+    for (const id of prefs) {
+      for (const [trait, cfg] of Object.entries(signals)) {
+        if (cfg.pref.includes(id)) {
+          cfg.boost += 0.3;
+        }
+      }
+    }
+
+    // 人设加成：35+和宝妈在某些维度有经验优势
+    if (a.persona === 'mid' || a.persona === 'mom') {
+      signals.social.boost += 0.5;
+      signals.exec.boost += 0.3;
+      signals.leader.boost += 0.2;
+    }
+
+    // 综合计算：滑块自评 40% + 行为信号推算 60%
+    const result = {};
+    for (const t of TRAITS) {
+      const selfScore = (slider[t.id] !== undefined ? slider[t.id] : 5);
+      const signalBoost = signals[t.id].boost;
+      // 信号推算分：基础5分 + 加成，上限10
+      const signalScore = Math.min(10, 5 + signalBoost);
+      // 加权融合
+      result[t.id] = Math.round(selfScore * 0.4 + signalScore * 0.6);
+    }
+
+    return result;
+  }
+
   // ==================== 综合评分 ====================
 
   function scoreJob(job, a) {
@@ -1528,7 +1598,7 @@
   }
 
   return {
-    scoreJob, buildReport, gapSkills, gapCoursePlan, reasonText, jobById, courseById, levelOf, detectAgeBias, diagnoseResume, generateAssessmentAnalysis,
+    scoreJob, buildReport, gapSkills, gapCoursePlan, reasonText, jobById, courseById, levelOf, detectAgeBias, diagnoseResume, generateAssessmentAnalysis, computeTraitScores,
     initInterviewSession, getInterviewFeedback, generateInterviewReport
   };
 }));
