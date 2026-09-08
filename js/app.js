@@ -1496,47 +1496,12 @@ ${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n'
 
   // 检查登录状态
   checkLogin() {
-    if (!this.currentUser) {
-      if (confirm('登录后可享受更多服务，是否立即登录？')) {
-        this.openAuthModal();
-      }
-      return false;
-    }
-    return true;
+    return true; // 测试模式：跳过登录检查
   },
 
   // 检查使用次数
   checkUsage(type) {
-    // 未登录 - 简历诊断可免费1次，面试必须登录
-    if (!this.currentUser) {
-      if (type === 'resumeCheck' && (this.userData.usage.resumeCheck || 0) < 1) {
-        return true; // 免费1次
-      }
-      if (confirm('登录后可享受更多服务，是否立即登录？')) {
-        this.openAuthModal();
-      }
-      return false;
-    }
-
-    // 已登录但非VIP
-    if (!this.userData.isVip) {
-      if (confirm('开通会员解锁更多次数，是否查看会员方案？')) {
-        this.openVipModal();
-      }
-      return false;
-    }
-
-    // VIP用户检查次数
-    const limits = this.planLimits[this.userData.vipPlan] || this.planLimits.month;
-    const used = this.userData.usage[type] || 0;
-    const limit = limits[type];
-
-    if (used >= limit) {
-      alert(`您的${type === 'resumeCheck' ? '简历诊断' : '模拟面试'}次数已用完（${limit}次），请升级套餐或等待下个周期。`);
-      return false;
-    }
-
-    return true;
+    return true; // 测试模式：跳过次数检查
   },
 
   // 记录使用次数
