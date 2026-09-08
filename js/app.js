@@ -1461,6 +1461,7 @@ const app = {
             <strong>面试流程：</strong>本次面试共15轮，每轮我会提出一个问题，建议您用STAR法则组织回答。<br><br>
             <strong>评估维度：</strong>我们将从<strong>专业能力、沟通表达、问题解决、团队协作、学习成长、抗压韧性</strong>六个维度评估您的表现。<br><br>
             准备好了吗？那我们开始第一个问题：<br><br>
+            <span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; margin-right:6px; background:${firstQ.difficulty==='advanced'?'#fef2f2;color:#dc2626':firstQ.difficulty==='intermediate'?'#fefce8;color:#a16207':'#f0fdf4;color:#16a34a'};">${firstQ.difficulty==='advanced'?'🔴 高级':firstQ.difficulty==='intermediate'?'🟡 中级':'🟢 基础'}</span>
             <strong>${firstQ.q}</strong>
           </div>
         </div>
