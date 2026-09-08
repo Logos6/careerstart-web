@@ -1442,8 +1442,15 @@ const app = {
       }
 
       chatBox.innerHTML = `
+        <div id="interview-progress-bar" class="interview-progress" style="margin-bottom:16px;">
+          <span style="font-size:11px; color:var(--primary); font-weight:700; white-space:nowrap;"><i class="ri-bar-chart-fill"></i> 第 <span id="interview-round-num">1</span> / 15 轮</span>
+          <div class="interview-progress-bar">
+            <div class="interview-progress-fill" id="interview-progress-fill" style="width:6.67%;"></div>
+          </div>
+          <span style="font-size:10px; color:var(--text-muted); white-space:nowrap;" id="interview-time-est">预计剩余 ~12分钟</span>
+        </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 已回答 0 轮 · 输入"结束"可随时完成面试</span>
+          <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 输入"结束"可随时完成面试</span>
         </div>
         <div style="margin-bottom:14px; padding:12px 16px; background:linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%); border-radius:10px; border:1px solid #c7d2fe;">
           <div style="font-size:12px; font-weight:700; color:#4338ca; margin-bottom:6px;"><i class="ri-lightbulb-flash-line"></i> 面试须知</div>
@@ -1468,6 +1475,19 @@ const app = {
       `;
       chatBox.scrollTop = chatBox.scrollHeight;
     }, 2000);
+  },
+
+  updateInterviewProgress(round) {
+    const pct = Math.min((round / 15) * 100, 100);
+    const el = document.getElementById('interview-progress-fill');
+    const numEl = document.getElementById('interview-round-num');
+    const timeEl = document.getElementById('interview-time-est');
+    if (el) el.style.width = pct + '%';
+    if (numEl) numEl.textContent = round;
+    if (timeEl) {
+      const remaining = Math.max(0, 15 - round);
+      timeEl.textContent = remaining > 0 ? `预计剩余 ~${Math.ceil(remaining * 0.8)}分钟` : '面试即将结束';
+    }
   },
 
   sendInterviewMsg() {
@@ -1546,10 +1566,8 @@ const app = {
       `;
 
       setTimeout(() => {
+        this.updateInterviewProgress(result.round);
         chatBox.innerHTML += `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 已回答 ${result.round} 轮</span>
-          </div>
           <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
             <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
             <div class="msg-content">
@@ -1652,10 +1670,10 @@ const app = {
       `;
 
       chatBox.innerHTML += `
-          <div style="background:#fff; border:1px solid var(--border-color); border-radius:12px; overflow:hidden; margin-top:10px; animation:slideUp 0.4s ease;">
+          <div style="background:#fff; border:1px solid var(--border-color); border-radius:12px; overflow:hidden; margin-top:10px; animation:slideUp 0.4s ease; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
             <!-- 评分头部 -->
-            <div style="padding:24px; text-align:center; background:linear-gradient(135deg,#f8f5ff 0%,#fff 100%); border-bottom:1px solid var(--border-color);">
-              <div style="width:80px; height:80px; border-radius:50%; background:conic-gradient(${report.color} ${report.totalScore * 3.6}deg, #e2e8f0 0deg); margin:0 auto 16px; display:flex; align-items:center; justify-content:center;">
+            <div style="padding:28px 24px; text-align:center; background:linear-gradient(135deg,#f8f5ff 0%,#fff 100%); border-bottom:1px solid var(--border-color);">
+              <div style="width:80px; height:80px; border-radius:50%; background:conic-gradient(${report.color} ${report.totalScore * 3.6}deg, #e2e8f0 0deg); margin:0 auto 16px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 12px ${report.color}33;">
                 <div style="width:64px; height:64px; border-radius:50%; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                   <span style="font-size:24px; font-weight:900; color:${report.color}; line-height:1;">${report.totalScore}</span>
                   <span style="font-size:10px; color:${report.color}; font-weight:600;">${report.level}</span>
@@ -1668,19 +1686,19 @@ const app = {
             ${radarHtml}
             ${starHtml}
 
-            <!-- 分类得分 -->
+            <!-- 各维度表现 -->
             <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
               <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
                 <i class="ri-bar-chart-grouped-line"></i> 各维度表现
               </h4>
-              <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; flex-direction:column; gap:10px;">
                 ${Object.entries(report.categoryScores).map(([cat, score]) => `
                   <div style="display:flex; align-items:center; gap:10px;">
-                    <span style="font-size:12px; color:var(--text-main); width:80px;">${cat}</span>
+                    <span style="font-size:12px; color:var(--text-main); width:80px; font-weight:500;">${cat}</span>
                     <div style="flex:1; background:#e2e8f0; height:6px; border-radius:3px; overflow:hidden;">
                       <div style="background:${score >= 70 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626'}; height:100%; width:${score}%; border-radius:3px; transition:width 0.6s ease;"></div>
                     </div>
-                    <span style="font-size:12px; font-weight:700; color:${score >= 70 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626'};">${score}</span>
+                    <span style="font-size:12px; font-weight:700; color:${score >= 70 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626'}; min-width:28px; text-align:right;">${score}</span>
                   </div>
                 `).join('')}
               </div>
@@ -1689,48 +1707,49 @@ const app = {
             <!-- 优劣势分析 -->
             <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                <div>
+                <div style="padding:12px; background:#f0fdf4; border-radius:8px; border:1px solid #bbf7d0;">
                   <h4 style="font-size:13px; font-weight:700; margin-bottom:8px; color:#16a34a;"><i class="ri-thumb-up-line"></i> 优势领域</h4>
-                  ${report.strengths.length > 0 ? report.strengths.map(s => `<div style="font-size:12px; color:#475569; margin-bottom:4px;">✓ ${s}</div>`).join('') : '<div style="font-size:12px; color:#94a3b8;">暂无明显优势</div>'}
+                  ${report.strengths.length > 0 ? report.strengths.map(s => `<div style="font-size:12px; color:#475569; margin-bottom:4px; line-height:1.5;">✓ ${s}</div>`).join('') : '<div style="font-size:12px; color:#94a3b8;">暂无明显优势</div>'}
                 </div>
-                <div>
+                <div style="padding:12px; background:#fffbeb; border-radius:8px; border:1px solid #fde68a;">
                   <h4 style="font-size:13px; font-weight:700; margin-bottom:8px; color:#d97706;"><i class="ri-error-warning-line"></i> 待提升</h4>
-                  ${report.weaknesses.length > 0 ? report.weaknesses.map(w => `<div style="font-size:12px; color:#475569; margin-bottom:4px;">△ ${w}</div>`).join('') : '<div style="font-size:12px; color:#94a3b8;">暂无明显短板</div>'}
+                  ${report.weaknesses.length > 0 ? report.weaknesses.map(w => `<div style="font-size:12px; color:#475569; margin-bottom:4px; line-height:1.5;">△ ${w}</div>`).join('') : '<div style="font-size:12px; color:#94a3b8;">暂无明显短板</div>'}
                 </div>
               </div>
             </div>
 
-            <!-- 综合建议 -->
+            <!-- 面试建议 -->
             <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
-              <h4 style="font-size:14px; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+              <h4 style="font-size:14px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px; color:var(--primary);">
                 <i class="ri-lightbulb-line"></i> 面试建议
               </h4>
-              <div style="font-size:13px; color:#475569; line-height:1.7;">${report.suggestion}</div>
+              <div style="font-size:13px; color:#475569; line-height:1.8; padding:12px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">${report.suggestion}</div>
             </div>
 
             <!-- 各题详情 -->
             <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
-              <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+              <h4 style="font-size:14px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; color:var(--primary);">
                 <i class="ri-list-check-2"></i> 回答详情
               </h4>
-              <div style="display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; flex-direction:column; gap:12px;">
                 ${report.details.map((d, i) => `
-                  <div style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
-                    <div style="display:flex; align-items:center; gap:8px; padding:10px 12px; background:${d.color}08; border-bottom:1px solid #e2e8f0;">
-                      <span style="font-size:10px; font-weight:700; color:#fff; background:${d.color}; padding:2px 6px; border-radius:4px;">${d.level} ${d.score}分</span>
+                  <div style="border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                    <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:${d.color}08; border-bottom:1px solid #f1f5f9;">
+                      <span style="font-size:11px; font-weight:700; color:#fff; background:${d.color}; padding:2px 8px; border-radius:4px;">${d.level} ${d.score}分</span>
                       <span style="font-size:12px; font-weight:600; color:var(--text-main);">${d.category}</span>
+                      <span style="margin-left:auto; font-size:10px; color:var(--text-muted);">第${i+1}题</span>
                     </div>
-                    <div style="padding:10px 12px; background:#fff;">
-                      <div style="font-size:11px; color:#64748b; margin-bottom:4px;"><strong>Q:</strong> ${d.question}</div>
-                      <div style="font-size:12px; color:#334155; margin-bottom:6px; line-height:1.5;"><strong>A:</strong> ${d.answer}</div>
-                      ${d.star ? `<div style="display:flex; gap:3px; margin-bottom:4px;">
-                        <span style="font-size:9px; padding:1px 4px; border-radius:3px; background:${d.star.hasSituation?'#dcfce7':'#fee2e2'}; color:${d.star.hasSituation?'#166534':'#991b1b'};">S</span>
-                        <span style="font-size:9px; padding:1px 4px; border-radius:3px; background:${d.star.hasTask?'#dcfce7':'#fee2e2'}; color:${d.star.hasTask?'#166534':'#991b1b'};">T</span>
-                        <span style="font-size:9px; padding:1px 4px; border-radius:3px; background:${d.star.hasAction?'#dcfce7':'#fee2e2'}; color:${d.star.hasAction?'#166534':'#991b1b'};">A</span>
-                        <span style="font-size:9px; padding:1px 4px; border-radius:3px; background:${d.star.hasResult?'#dcfce7':'#fee2e2'}; color:${d.star.hasResult?'#166534':'#991b1b'};">R</span>
+                    <div style="padding:14px; background:#fff;">
+                      <div style="font-size:11px; color:#64748b; margin-bottom:6px; padding:6px 8px; background:#f8fafc; border-radius:4px;"><strong style="color:var(--primary);">Q:</strong> ${d.question}</div>
+                      <div style="font-size:12px; color:#334155; margin-bottom:8px; line-height:1.6; padding:6px 8px; background:#fafafa; border-radius:4px;"><strong style="color:#475569;">A:</strong> ${d.answer}</div>
+                      ${d.star ? `<div style="display:flex; gap:4px; margin-bottom:6px;">
+                        <span style="font-size:9px; padding:2px 6px; border-radius:4px; font-weight:600; background:${d.star.hasSituation?'#dcfce7':'#fee2e2'}; color:${d.star.hasSituation?'#166534':'#991b1b'};">S</span>
+                        <span style="font-size:9px; padding:2px 6px; border-radius:4px; font-weight:600; background:${d.star.hasTask?'#dcfce7':'#fee2e2'}; color:${d.star.hasTask?'#166534':'#991b1b'};">T</span>
+                        <span style="font-size:9px; padding:2px 6px; border-radius:4px; font-weight:600; background:${d.star.hasAction?'#dcfce7':'#fee2e2'}; color:${d.star.hasAction?'#166534':'#991b1b'};">A</span>
+                        <span style="font-size:9px; padding:2px 6px; border-radius:4px; font-weight:600; background:${d.star.hasResult?'#dcfce7':'#fee2e2'}; color:${d.star.hasResult?'#166534':'#991b1b'};">R</span>
                       </div>` : ''}
-                      <div style="font-size:11px; color:#475569; line-height:1.5;"><i class="ri-chat-check-line" style="color:var(--primary);"></i> ${d.feedback}</div>
-                      ${d.suggestion ? `<div style="font-size:11px; color:#7c3aed; line-height:1.5; margin-top:4px;"><i class="ri-lightbulb-line"></i> ${d.suggestion}</div>` : ''}
+                      <div style="font-size:12px; color:#475569; line-height:1.6; padding:6px 8px; background:#f0f9ff; border-radius:4px; border-left:3px solid var(--primary);"><i class="ri-chat-check-line" style="color:var(--primary);"></i> ${d.feedback}</div>
+                      ${d.suggestion ? `<div style="font-size:12px; color:#7c3aed; line-height:1.6; margin-top:6px; padding:6px 8px; background:#faf5ff; border-radius:4px; border-left:3px solid #7c3aed;"><i class="ri-lightbulb-line"></i> ${d.suggestion}</div>` : ''}
                     </div>
                   </div>
                 `).join('')}
@@ -1738,14 +1757,51 @@ const app = {
             </div>
 
             <!-- 底部 -->
-            <div style="padding:14px 24px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="padding:16px 24px; display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border-top:1px solid var(--border-color);">
               <span style="font-size:11px; color:var(--text-muted);"><i class="ri-history-line"></i> 已保存至面试记录</span>
-              <button class="btn btn-primary" style="font-size:12px; padding:6px 14px;" onclick="app.resetInterview()">再来一次</button>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-outline" style="font-size:12px; padding:6px 14px;" onclick="app.downloadReport()"><i class="ri-download-line"></i> 下载报告</button>
+                <button class="btn btn-primary" style="font-size:12px; padding:6px 14px;" onclick="app.resetInterview()"><i class="ri-refresh-line"></i> 再来一次</button>
+              </div>
             </div>
           </div>
         `;
       chatBox.scrollTop = chatBox.scrollHeight;
     }, 2500);
+  },
+
+  downloadReport() {
+    const report = CareerEngine.generateInterviewReport(this.interviewSession);
+    if (!report) return;
+    const compEntries = Object.entries(report.competencies || {});
+    let txt = `启航 CareerStart - AI模拟面试评估报告\n${'='.repeat(40)}\n\n`;
+    txt += `岗位：${report.jobName}\n`;
+    txt += `总分：${report.totalScore}分（${report.level}）\n`;
+    txt += `答题：${report.totalQuestions}题 / 已答${report.answeredQuestions}题\n`;
+    txt += `用时：${report.duration}\n\n`;
+    txt += `【六维胜任力】\n`;
+    compEntries.forEach(([k, c]) => { txt += `  ${c.name}：${c.score}分 - ${c.anchor || ''}\n`; });
+    txt += `\n【各维度得分】\n`;
+    Object.entries(report.categoryScores).forEach(([cat, score]) => { txt += `  ${cat}：${score}分\n`; });
+    txt += `\n【优势】\n`;
+    (report.strengths || []).forEach(s => { txt += `  ✓ ${s}\n`; });
+    txt += `\n【待提升】\n`;
+    (report.weaknesses || []).forEach(w => { txt += `  △ ${w}\n`; });
+    txt += `\n【建议】\n${report.suggestion || ''}\n\n`;
+    txt += `【各题详情】\n`;
+    (report.details || []).forEach((d, i) => {
+      txt += `\n--- 第${i+1}题 [${d.category} ${d.level} ${d.score}分] ---\n`;
+      txt += `Q: ${d.question}\n`;
+      txt += `A: ${d.answer}\n`;
+      txt += `点评：${d.feedback}\n`;
+      if (d.suggestion) txt += `建议：${d.suggestion}\n`;
+    });
+    const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `面试报告_${report.jobName}_${new Date().toISOString().slice(0,10)}.txt`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   },
 
   resetInterview() {
