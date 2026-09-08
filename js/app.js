@@ -1434,17 +1434,14 @@ const app = {
 
       chatBox.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 已回答 0 轮 · 可随时结束</span>
-          <button class="btn btn-sm" style="font-size:11px; padding:4px 10px; border:1px solid #dc2626; color:#dc2626; background:#fff;" onclick="app.endInterviewEarly()">
-            <i class="ri-stop-circle-line"></i> 结束面试
-          </button>
+          <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 已回答 0 轮 · 输入"结束"可随时完成面试</span>
         </div>
         <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
           <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
           <div class="msg-content">
             <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
             你好！我是启航 AI 面试官，今天将针对「${txt}」岗位进行模拟面试。<br><br>
-            你可以回答任意多轮，随时可以点击「结束面试」生成评估报告。<br><br>
+            我会根据你的回答不断深入追问，请尽量详细回答。输入「结束」即可完成面试并生成评估报告。<br><br>
             <strong>${firstQ.q}</strong>
           </div>
         </div>
@@ -1458,6 +1455,24 @@ const app = {
     const chatBox = document.getElementById('interview-chat-box');
     const txt = input.value.trim();
     if (!txt || !this.interviewSession) return;
+
+    // 检测结束指令
+    if (/^(结束|完成|退出|结束面试|完成面试|done|end)$/i.test(txt)) {
+      if (this.interviewSession.answers.length < 3) {
+        alert('至少回答3道题后再结束，这样报告才更准确。');
+        return;
+      }
+      input.value = '';
+      chatBox.innerHTML += `
+        <div class="chat-msg user" style="display:flex; gap:12px; flex-direction:row-reverse; margin-bottom:14px;">
+          <div class="msg-avatar" style="width:32px; height:32px; background:linear-gradient(135deg, #94a3b8, #64748b);"><i class="ri-user-line"></i></div>
+          <div class="msg-content">${txt}</div>
+        </div>
+      `;
+      chatBox.scrollTop = chatBox.scrollHeight;
+      this.finishInterview();
+      return;
+    }
 
     chatBox.innerHTML += `
       <div class="chat-msg user" style="display:flex; gap:12px; flex-direction:row-reverse; margin-bottom:14px;">
@@ -1504,9 +1519,6 @@ const app = {
         chatBox.innerHTML += `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 已回答 ${result.round} 轮</span>
-            <button class="btn btn-sm" style="font-size:11px; padding:4px 10px; border:1px solid #dc2626; color:#dc2626; background:#fff;" onclick="app.endInterviewEarly()">
-              <i class="ri-stop-circle-line"></i> 结束面试
-            </button>
           </div>
           <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
             <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
@@ -1521,20 +1533,8 @@ const app = {
     }, 1200);
   },
 
-  endInterviewEarly() {
-    if (!this.interviewSession) return;
-    if (this.interviewSession.answers.length < 2) {
-      if (!confirm('你只回答了不到2题，报告可能不够准确。确定要结束吗？')) return;
-    } else {
-      if (!confirm('确定结束面试并生成评估报告吗？')) return;
-    }
-    this.finishInterview();
-  },
-
   finishInterview() {
     const chatBox = document.getElementById('interview-chat-box');
-    const endBtn = chatBox.querySelector('[onclick="app.endInterviewEarly()"]');
-    if (endBtn) endBtn.closest('div').remove();
 
     chatBox.innerHTML += `
       <div id="interview-report-loading" style="text-align:center; padding:30px; margin-top:10px;">
