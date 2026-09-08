@@ -2063,7 +2063,7 @@
       const j = Math.floor(Math.random() * (i + 1));
       [unique[i], unique[j]] = [unique[j], unique[i]];
     }
-    return { jobName, jobTypes, pool: unique, asked: [], answers: [], currentQ: 0, round: 0, followups: [], followupProgress: {}, startTime: Date.now() };
+    return { jobName, jobTypes, pool: unique, asked: [], answers: [], currentQ: 0, round: 0, followups: [], followupProgress: {}, competencyScores: {}, startTime: Date.now() };
   }
 
   function detectJobTypes(jobName) {
@@ -2109,129 +2109,109 @@
     return followups.slice(0, 1).map(q => ({ id: 'fu_' + Date.now(), cat: '深度追问', q, tips: '基于你刚才的回答深入展开', w: 15 }));
   }
 
-  function analyzeAnswer(answer, question) {
-    if (!answer || answer.trim().length < 5) {
-      return { score: 10, level: '无效', feedback: '回答过短，请详细展开', keywords: [], suggestion: '建议至少说 2-3 句话，包含具体案例或数据' };
-    }
+  // ═══════════════════════════════════════════════════
+  //  胜任力评估体系（Competency Framework）
+  //  基于 HireVue / Final Round AI 等专业面试系统标准
+  // ═══════════════════════════════════════════════════
 
-    const text = answer.trim();
+  const COMPETENCIES = {
+    communication: { name: '沟通表达', icon: 'ri-chat-quote-line',
+      anchors: { 5:'逻辑清晰、结构化表达，善用案例和数据佐证', 4:'表达清晰有案例支撑', 3:'基本清楚但缺乏结构', 2:'表达混乱逻辑跳跃', 1:'语无伦次' }},
+    problem_solving: { name: '问题解决', icon: 'ri-lightbulb-line',
+      anchors: { 5:'系统拆解问题，找到根因并提出创新方案', 4:'有分析思路能提出有效方案', 3:'能解决问题但缺系统方法', 2:'缺乏思路方案简单', 1:'无法有效分析解决' }},
+    execution: { name: '执行力', icon: 'ri-flag-line',
+      anchors: { 5:'目标明确计划周密，压力下高效交付', 4:'能按时交付结果达标', 3:'能完成但缺主动性', 2:'执行力不足常延期', 1:'缺乏执行意愿或能力' }},
+    leadership: { name: '领导力', icon: 'ri-team-line',
+      anchors: { 5:'激发团队潜能推动变革有全局视野', 4:'能带领团队达成目标', 3:'有管理意识影响力有限', 2:'更像执行者而非领导者', 1:'缺乏领导意识' }},
+    learning: { name: '学习成长', icon: 'ri-graduation-cap-line',
+      anchors: { 5:'主动学习新技能并快速应用到工作中', 4:'有学习习惯能跟上行业发展', 3:'被动学习缺乏主动性', 2:'学习能力不足难适应变化', 1:'拒绝学习' }},
+    resilience: { name: '抗压韧性', icon: 'ri-shield-line',
+      anchors: { 5:'高压下保持冷静从挫折中快速恢复', 4:'能承受压力有应对逆境经验', 3:'能扛一般压力极端不确定', 2:'抗压较弱容易受挫', 1:'面对压力容易崩溃' }},
+  };
+
+  function analyzeSTAR(text) {
+    const t = (text || '').trim();
+    const len = t.length;
+    const hasSituation = /当时|在.*的时候|有一次|之前在|背景是|情况是|那时|那个时候/.test(t);
+    const hasTask = /我的任务|负责|需要完成|目标是|被要求|被指派|我的职责|要做的/.test(t);
+    const hasAction = /我做了|我采取|我通过|我决定|我主动|我的做法|具体来说|首先.*然后|第一步|我联系|我组织|我协调|我分析/.test(t);
+    const hasResult = /\d+[%％万元人天次个月年]|提升了?\d+|增长了?\d+|节省了?\d+|降低|最终|结果|效果|达到|完成|实现了?|成功|赢得了?/.test(t);
+    const elements = [hasSituation, hasTask, hasAction, hasResult];
+    const completeness = Math.round((elements.filter(Boolean).length / 4) * 100);
+    let specificity = 0;
+    if (/公司|团队|项目|客户|产品|部门|季度|年度/.test(t)) specificity += 30;
+    if (/\d+/.test(t)) specificity += 30;
+    if (/当时|有一次|曾经|具体来说/.test(t)) specificity += 20;
+    if (len > 100) specificity += 20;
+    const quantified = (t.match(/\d+[%％万元人天次个月年]|增长|提升|节省|降低|优化|改善/g) || []).length;
+    const quantScore = Math.min(quantified * 20, 100);
+    const personalContrib = /我做了|我决定|我主动|我的方案|我提出|我负责/.test(t) ? 80 : /我们|团队/.test(t) ? 50 : 40;
+    const starScore = Math.round(completeness * 0.3 + Math.min(specificity, 100) * 0.25 + quantScore * 0.25 + personalContrib * 0.2);
+    return { hasSituation, hasTask, hasAction, hasResult, completeness, specificity: Math.min(specificity, 100), quantScore: Math.min(quantScore, 100), personalContrib, wordCount: len, starScore };
+  }
+
+  function scoreAnswer(text, question) {
+    if (!text || text.trim().length < 5) {
+      return { score: 10, level: '无效', color: '#dc2626', star: analyzeSTAR(''),
+        components: { starComponent: 0, specificityComponent: 0, quantComponent: 0, personalComponent: 0, depthComponent: 0 },
+        feedbackParts: ['回答过短或无效'], suggestions: ['请详细展开，至少说2-3句话，包含具体案例'] };
+    }
+    const star = analyzeSTAR(text);
     const len = text.length;
-    let score = 50; // 基础分
-
-    // 1. 长度评分
-    if (len >= 100) score += 15;
-    else if (len >= 50) score += 10;
-    else if (len >= 20) score += 5;
-    else score -= 10;
-
-    // 2. 结构化表达检测
-    const structurePatterns = [
-      /首先|第一|1[.、]/,
-      /其次|第二|2[.、]/,
-      /最后|第三|3[.、]/,
-      /总结|总的来说|综上/
-    ];
-    const structureCount = structurePatterns.filter(p => p.test(text)).length;
-    score += structureCount * 5;
-
-    // 3. 量化数据检测
-    const quantifyPattern = /\d+[%％万元人天次个月年]|提升了?\d+|增长了?\d+|节省了?\d+|带领\d+人|管理\d+/;
-    if (quantifyPattern.test(text)) score += 10;
-
-    // 4. 案例/经历描述
-    const casePatterns = [
-      /当时|有一次|曾经|之前|在.*公司/,
-      /具体来说|举个例子|比如|例如/,
-      /结果|最终|后来|最后/
-    ];
-    const caseCount = casePatterns.filter(p => p.test(text)).length;
-    score += caseCount * 5;
-
-    // 5. 积极/专业词汇
-    const positiveWords = /主动|积极|负责|主导|统筹|推动|优化|提升|达成|突破|学习|成长|改进/;
-    const positiveCount = (text.match(positiveWords) || []).length;
-    score += Math.min(10, positiveCount * 3);
-
-    // 6. 消极词汇扣分
-    const negativeWords = /不知道|不清楚|随便|无所谓|还行|一般|可能|大概|应该/;
-    const negativeCount = (text.match(negativeWords) || []).length;
-    score -= negativeCount * 5;
-
-    // 7. 套话检测
-    const genericPhrases = /性格开朗|工作认真|吃苦耐劳|学习能力强|团队精神/;
-    if (genericPhrases.test(text) && len < 50) score -= 10;
-
-    // 限制分数范围
-    score = Math.max(10, Math.min(100, score));
-
-    // 评级
+    const starComponent = star.starScore;
+    const specificityComponent = star.specificity;
+    const quantComponent = star.quantScore;
+    const personalComponent = star.personalContrib;
+    const depthComponent = len >= 150 ? 90 : len >= 100 ? 75 : len >= 60 ? 60 : len >= 30 ? 40 : 20;
+    const totalScore = Math.round(starComponent * 0.30 + specificityComponent * 0.25 + quantComponent * 0.20 + personalComponent * 0.10 + depthComponent * 0.15);
     let level, color;
-    if (score >= 85) { level = '优秀'; color = '#16a34a'; }
-    else if (score >= 70) { level = '良好'; color = '#2ea56a'; }
-    else if (score >= 55) { level = '一般'; color = '#d97706'; }
-    else { level = '较差'; color = '#dc2626'; }
-
-    // 生成反馈
-    const feedback = generateFeedback(score, text, question);
-
-    // 提取关键词
-    const keywords = extractKeywords(text);
-
-    return { score, level, color, feedback, keywords, suggestion: feedback.suggestion };
+    if (totalScore >= 85) { level = '优秀'; color = '#16a34a'; }
+    else if (totalScore >= 70) { level = '良好'; color = '#2ea56a'; }
+    else if (totalScore >= 55) { level = '一般'; color = '#d97706'; }
+    else { level = '待提升'; color = '#dc2626'; }
+    const feedbackParts = [];
+    if (!star.hasSituation) feedbackParts.push('缺少情境描述（Situation）');
+    if (!star.hasTask) feedbackParts.push('缺少任务说明（Task）');
+    if (!star.hasAction) feedbackParts.push('缺少行动描述（Action）');
+    if (!star.hasResult) feedbackParts.push('缺少结果量化（Result）');
+    if (len < 50) feedbackParts.push('回答过短，建议展开到100字以上');
+    if (!/\d+/.test(text)) feedbackParts.push('缺少量化数据');
+    const suggestions = [];
+    if (!star.hasSituation) suggestions.push('用1-2句话描述当时的情境和背景');
+    if (!star.hasTask) suggestions.push('明确说明你个人负责的具体任务');
+    if (!star.hasAction) suggestions.push('详细描述你采取的具体行动步骤（这是回答的核心部分）');
+    if (!star.hasResult) suggestions.push('用数据量化你行动带来的结果');
+    if (star.specificity < 50) suggestions.push('加入具体的公司名、项目名、时间节点等细节');
+    return { score: Math.min(totalScore, 100), level, color, star, components: { starComponent, specificityComponent, quantComponent, personalComponent, depthComponent }, feedbackParts, suggestions };
   }
 
-  function generateFeedback(score, text, question) {
-    const parts = [];
-    let suggestion = '';
-
-    if (score >= 85) {
-      parts.push('回答结构清晰，有具体案例支撑');
-      suggestion = '保持这个水平，面试时注意语速和眼神交流';
-    } else if (score >= 70) {
-      parts.push('回答有条理，但可以更具体');
-      suggestion = '建议补充 1-2 个量化数据或实际案例来增强说服力';
-    } else if (score >= 55) {
-      parts.push('回答基本完整，但缺乏亮点');
-      suggestion = '用 STAR 法则重新组织：情境→任务→行动→结果';
-    } else {
-      parts.push('回答较简略，缺少实质内容');
-      suggestion = '准备 2-3 个成功案例，每个用 3-4 句话讲清楚';
-    }
-
-    // 具体建议
-    if (text.length < 50) parts.push('回答过短，建议展开到 100 字以上');
-    if (!/\d+/.test(text)) parts.push('缺少量化数据，如数字、百分比、时间等');
-    if (!/当时|有一次|曾经|之前/.test(text)) parts.push('缺少具体案例，建议用真实经历佐证');
-
-    return { text: parts.join('；'), suggestion };
-  }
-
-  function extractKeywords(text) {
-    const keywords = [];
-    const patterns = [
-      { regex: /管理|带领|统筹|领导/, cat: '管理' },
-      { regex: /沟通|协调|协作|谈判/, cat: '沟通' },
-      { regex: /数据|分析|报表|KPI/, cat: '数据' },
-      { regex: /优化|提升|改进|效率/, cat: '优化' },
-      { regex: /学习|培训|进修|考证/, cat: '学习' },
-      { regex: /客户|用户|服务|满意度/, cat: '服务' },
-      { regex: /项目|产品|上线|交付/, cat: '项目' }
-    ];
-
-    for (const p of patterns) {
-      if (p.regex.test(text)) keywords.push(p.cat);
-    }
-    return keywords;
+  function detectCompetencies(text) {
+    const t = (text || '').toLowerCase();
+    const matched = [];
+    if (/沟通|汇报|协调|说服|表达|谈判|反馈|演讲/.test(t)) matched.push('communication');
+    if (/问题|解决|分析|排查|诊断|根因|方案|创新|优化/.test(t)) matched.push('problem_solving');
+    if (/执行|交付|完成|落地|推进|实现|达成|目标|deadline|按时/.test(t)) matched.push('execution');
+    if (/管理|带领|团队|领导|决策|授权|培养|激励|招聘/.test(t)) matched.push('leadership');
+    if (/学习|培训|提升|进修|考证|新技能|掌握|了解/.test(t)) matched.push('learning');
+    if (/压力|挑战|挫折|困难|加班|高强度|紧急|危机|失败/.test(t)) matched.push('resilience');
+    return matched.length > 0 ? matched : ['communication'];
   }
 
   function getInterviewFeedback(session, userAnswer) {
     const q = session.asked[session.asked.length - 1];
-    const analysis = analyzeAnswer(userAnswer, q);
+    const analysis = scoreAnswer(userAnswer, q);
+
+    // 记录本次回答的胜任力
+    const detectedComps = detectCompetencies(userAnswer);
+    for (const c of detectedComps) {
+      if (!session.competencyScores[c]) session.competencyScores[c] = [];
+      session.competencyScores[c].push(analysis.score);
+    }
 
     session.answers.push({ question: q, answer: userAnswer, analysis });
     session.round++;
 
-    // 智能追问：多级链式 + 深度分析
+    // 智能追问
     const followups = generateFollowups(userAnswer, q, session);
     if (followups.length > 0) {
       const fu = followups[0];
@@ -2239,55 +2219,63 @@
       session.followups = [...(session.followups || []), fu];
     }
 
-    // 获取下一个问题
     const nextQ = getNextQuestion(session);
     session.currentQ++;
 
-    // 生成 AI 回应
+    // 生成AI回应
+    let starTag = 'STAR [';
+    starTag += analysis.star.hasSituation ? '✅S' : '❌S';
+    starTag += analysis.star.hasTask ? ' ✅T' : ' ❌T';
+    starTag += analysis.star.hasAction ? ' ✅A' : ' ❌A';
+    starTag += analysis.star.hasResult ? ' ✅R' : ' ❌R';
+    starTag += ']';
+
     let aiResponse = '';
     if (analysis.score >= 80) {
-      const praises = ['回答得很好，有理有据。', '不错，逻辑清晰，有具体案例。', '很好，这个回答很有深度。', '说得很好，有数据支撑更有说服力。'];
-      aiResponse = praises[Math.floor(Math.random() * praises.length)];
+      aiResponse = starTag + ' 评分 ' + analysis.score + '/100（' + analysis.level + '）。回答有具体案例和数据支撑，继续保持。';
     } else if (analysis.score >= 60) {
-      aiResponse = '回答有条理，但还可以更深入一些。';
+      const missing = [];
+      if (!analysis.star.hasSituation) missing.push('情境');
+      if (!analysis.star.hasTask) missing.push('任务');
+      if (!analysis.star.hasAction) missing.push('行动');
+      if (!analysis.star.hasResult) missing.push('结果');
+      aiResponse = starTag + ' 评分 ' + analysis.score + '/100（' + analysis.level + '）。' + (missing.length > 0 ? '建议补充：' + missing.join('、') : '可以更深入展开。');
     } else {
-      aiResponse = '回答比较简略，建议用具体案例展开说明。';
+      aiResponse = starTag + ' 评分 ' + analysis.score + '/100（' + analysis.level + '）。' + (analysis.suggestions[0] || '建议用STAR法则组织回答。');
     }
 
-    // 追问或下一题
     if (session.followups && session.followups.length > 0) {
-      aiResponse += '\n\n' + session.followups[0].q;
+      aiResponse += '\n\n📌 追问：' + session.followups[0].q;
     } else {
-      aiResponse += '\n\n' + nextQ.q;
+      aiResponse += '\n\n💬 下一题：' + nextQ.q;
     }
 
     return {
-      feedback: analysis.feedback,
-      score: analysis.score,
-      level: analysis.level,
-      color: analysis.color,
-      isLast: false,
-      aiResponse,
-      nextQuestion: nextQ,
-      round: session.round,
+      feedback: analysis.feedback, score: analysis.score,
+      level: analysis.level, color: analysis.color,
+      isLast: false, aiResponse, nextQuestion: nextQ,
+      round: session.round, star: analysis.star,
+      competencyFeedback: detectedComps.map(c => ({ key: c, name: COMPETENCIES[c]?.name, score: analysis.score })),
     };
   }
 
   function endInterview(session) {
     return {
-      feedback: '',
-      score: 0,
-      level: '',
-      isLast: true,
-      aiResponse: '好的，面试到此结束。正在为你生成面试评估报告...',
+      feedback: '', score: 0, level: '', isLast: true,
+      aiResponse: '好的，面试到此结束。正在为你生成专业面试评估报告...',
       round: session.round,
     };
   }
+
+  // ═══════════════════════════════════════════════════
+  //  专业胜任力面试报告生成器
+  // ═══════════════════════════════════════════════════
 
   function generateInterviewReport(session) {
     const totalScore = Math.round(session.answers.reduce((s, a) => s + a.analysis.score, 0) / session.answers.length);
     const duration = Math.round((Date.now() - session.startTime) / 1000);
 
+    // 1. 按类别统计
     const categoryScores = {};
     for (const a of session.answers) {
       const cat = a.question.cat;
@@ -2299,44 +2287,91 @@
       avgByCategory[cat] = Math.round(scores.reduce((s, v) => s + v, 0) / scores.length);
     }
 
+    // 2. 胜任力综合评分
+    const competencyResults = {};
+    for (const [key, comp] of Object.entries(COMPETENCIES)) {
+      const scores = session.competencyScores[key] || [];
+      const avg = scores.length > 0 ? Math.round(scores.reduce((s, v) => s + v, 0) / scores.length) : 0;
+      let level;
+      if (avg >= 85) level = '优秀';
+      else if (avg >= 70) level = '良好';
+      else if (avg >= 55) level = '一般';
+      else level = '待提升';
+      competencyResults[key] = { name: comp.name, score: avg, level, anchor: comp.anchors[Math.min(5, Math.max(1, Math.round(avg / 20)))] || '' };
+    }
+
+    // 3. STAR完整性统计
+    let starComplete = 0, starPartial = 0, starMissing = 0;
+    for (const a of session.answers) {
+      const s = a.analysis.star;
+      const count = [s.hasSituation, s.hasTask, s.hasAction, s.hasResult].filter(Boolean).length;
+      if (count === 4) starComplete++;
+      else if (count >= 2) starPartial++;
+      else starMissing++;
+    }
+
+    // 4. 各维度组件均分
+    const compAvg = { star: 0, specificity: 0, quant: 0, personal: 0, depth: 0 };
+    for (const a of session.answers) {
+      const c = a.analysis.components || {};
+      compAvg.star += (c.starComponent || 0);
+      compAvg.specificity += (c.specificityComponent || 0);
+      compAvg.quant += (c.quantComponent || 0);
+      compAvg.personal += (c.personalComponent || 0);
+      compAvg.depth += (c.depthComponent || 0);
+    }
+    const n = session.answers.length || 1;
+    compAvg.star = Math.round(compAvg.star / n);
+    compAvg.specificity = Math.round(compAvg.specificity / n);
+    compAvg.quant = Math.round(compAvg.quant / n);
+    compAvg.personal = Math.round(compAvg.personal / n);
+    compAvg.depth = Math.round(compAvg.depth / n);
+
+    // 5. 排序找出强项弱项
     const sorted = Object.entries(avgByCategory).sort((a, b) => b[1] - a[1]);
     const strengths = sorted.filter(([, s]) => s >= 70).map(([cat]) => cat);
     const weaknesses = sorted.filter(([, s]) => s < 60).map(([cat]) => cat);
 
+    // 6. 总体评级
     let level, color, suggestion;
     if (totalScore >= 85) {
       level = '面试表现优秀';
       color = '#16a34a';
-      suggestion = '你的面试表现整体出色。保持自信和条理，面试时注意语速控制和眼神交流。';
+      suggestion = '你的面试表现整体出色，结构化表达和数据意识都很强。建议继续保持自信和条理，面试时注意语速控制和眼神交流。';
     } else if (totalScore >= 70) {
       level = '面试表现良好';
       color = '#2ea56a';
-      suggestion = '基础扎实。建议在薄弱环节重点准备，多用 STAR 法则组织回答。';
+      suggestion = '基础扎实，STAR结构基本完整。建议在薄弱环节重点准备，多用具体案例和量化数据来增强说服力。';
     } else if (totalScore >= 55) {
       level = '面试表现一般';
       color = '#d97706';
-      suggestion = '有一定基础但缺乏亮点。建议准备 3-5 个成功案例并反复练习。';
+      suggestion = '有一定基础但缺乏亮点。建议准备3-5个STAR格式的成功案例，每个案例包含具体情境、任务、行动步骤和可量化的结果。';
     } else {
       level = '需要加强准备';
       color = '#dc2626';
-      suggestion = '建议系统准备：① 梳理核心优势 ② 准备量化案例 ③ 反复模拟练习。';
+      suggestion = '建议系统准备：① 用STAR法则梳理3-5个核心案例 ② 每个案例准备量化数据 ③ 反复模拟练习，提升表达流利度。';
     }
 
-    const allKeywords = [...new Set(session.answers.flatMap(a => a.analysis.keywords))];
+    // 7. 关键词
+    const allKeywords = [...new Set(session.answers.flatMap(a => a.analysis.keywords || []))];
 
     return {
       jobName: session.jobName,
-      totalScore,
-      level,
-      color,
-      suggestion,
+      totalScore, level, color, suggestion,
       duration: `${Math.floor(duration / 60)}分${duration % 60}秒`,
       totalQuestions: session.answers.length,
       answeredQuestions: session.answers.length,
+      // 胜任力雷达数据
+      competencies: competencyResults,
+      competencyRadar: Object.entries(competencyResults).map(([k, v]) => ({ key: k, name: v.name, score: v.score })),
+      // STAR分析
+      starAnalysis: { complete: starComplete, partial: starPartial, missing: starMissing },
+      // 维度组件
+      componentScores: compAvg,
+      // 分类统计
       categoryScores: avgByCategory,
-      strengths,
-      weaknesses,
-      keywords: allKeywords,
+      strengths, weaknesses, keywords: allKeywords,
+      // 详细回答分析
       details: session.answers.map(a => ({
         question: a.question.q,
         category: a.question.cat,
@@ -2345,13 +2380,15 @@
         level: a.analysis.level,
         color: a.analysis.color,
         feedback: a.analysis.feedback.text,
-        suggestion: a.analysis.suggestion
+        suggestion: a.analysis.suggestions.join('；'),
+        star: a.analysis.star,
+        components: a.analysis.components,
       }))
     };
   }
 
   return {
     scoreJob, buildReport, gapSkills, gapCoursePlan, reasonText, jobById, courseById, levelOf, detectAgeBias, diagnoseResume, generateAssessmentAnalysis, computeTraitScores,
-    initInterviewSession, getInterviewFeedback, endInterview, generateInterviewReport
+    initInterviewSession, getInterviewFeedback, endInterview, generateInterviewReport, COMPETENCIES,
   };
 }));
