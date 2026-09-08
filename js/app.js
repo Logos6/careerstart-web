@@ -577,26 +577,27 @@ const app = {
       let skillScore = 0;
       let traitScore = 0;
       
-      // 计算兴趣匹配度
+      // 计算兴趣匹配度（需有实际选择）
       if (answers.interests && answers.interests.length > 0) {
         interestScore = Math.min(answers.interests.length * 15, 100);
       }
       
-      // 计算技能覆盖度
+      // 计算技能覆盖度（需有实际选择）
       if (answers.skills && answers.skills.length > 0) {
         skillScore = Math.min(answers.skills.length * 12, 100);
       }
       
-      // 计算能力评分
+      // 计算能力评分（需有实际修改，默认值5不算）
       if (answers.traits) {
         const traitValues = Object.values(answers.traits);
-        if (traitValues.some(v => v > 0)) {
+        const hasModifiedTraits = traitValues.some(v => v !== 5); // 默认值是5，改过才算
+        if (hasModifiedTraits) {
           const avgTrait = traitValues.reduce((a, b) => a + b, 0) / traitValues.length;
           traitScore = Math.round(avgTrait * 10);
         }
       }
       
-      // 综合竞争力（无数据时全部归零）
+      // 综合竞争力（全部为0时显示 --）
       const hasData = (interestScore + skillScore + traitScore) > 0;
       const totalScore = hasData
         ? Math.round(interestScore * 0.35 + skillScore * 0.25 + traitScore * 0.2 + 50 * 0.2)
