@@ -565,8 +565,74 @@ const app = {
     } else {
       if (this._generatingReport) return;
       this._generatingReport = true;
-      this.calculateAndShowReport();
+      this.showLoadingThenReport();
     }
+  },
+
+  // 加载动画 → 报告过渡
+  showLoadingThenReport() {
+    const pcLayout = document.querySelector('.assess-pc-layout');
+    if (pcLayout) pcLayout.style.display = 'none';
+
+    // 创建加载动画覆盖层
+    const overlay = document.createElement('div');
+    overlay.id = 'report-loading-overlay';
+    overlay.innerHTML = `
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; animation: fadeIn 0.4s ease;">
+        <div style="position:relative; width:80px; height:80px; margin-bottom:28px;">
+          <div style="position:absolute; inset:0; border:4px solid #e2e8f0; border-radius:50%;"></div>
+          <div style="position:absolute; inset:0; border:4px solid transparent; border-top-color:#7c3aed; border-radius:50%; animation:spin 1s linear infinite;"></div>
+          <div style="position:absolute; inset:8px; border:4px solid transparent; border-top-color:#a78bfa; border-radius:50%; animation:spin 1.5s linear infinite reverse;"></div>
+          <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+            <i class="ri-brain-line" style="font-size:28px; color:#7c3aed;"></i>
+          </div>
+        </div>
+        <div style="font-size:20px; font-weight:700; color:#1f2937; margin-bottom:10px;">AI 正在深度分析中</div>
+        <div style="font-size:14px; color:#6b7280; text-align:center; line-height:1.8;">
+          <div id="loading-step-text">正在匹配岗位数据库...</div>
+          <div style="margin-top:12px; width:200px; height:4px; background:#e2e8f0; border-radius:2px; overflow:hidden;">
+            <div id="loading-progress-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#7c3aed,#a78bfa); border-radius:2px; transition:width 0.6s ease;"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    overlay.style.cssText = 'position:fixed; inset:0; z-index:9999; background:rgba(255,255,255,0.95); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center;';
+    document.body.appendChild(overlay);
+
+    // 进度动画序列
+    const steps = [
+      { text: '正在匹配岗位数据库...', pct: 20 },
+      { text: '正在分析兴趣聚类...', pct: 40 },
+      { text: '正在计算技能覆盖度...', pct: 60 },
+      { text: '正在生成六维能力画像...', pct: 80 },
+      { text: '正在生成深度分析报告...', pct: 95 },
+    ];
+
+    let stepIdx = 0;
+    const stepText = document.getElementById('loading-step-text');
+    const progressBar = document.getElementById('loading-progress-bar');
+
+    const timer = setInterval(() => {
+      if (stepIdx < steps.length) {
+        if (stepText) stepText.textContent = steps[stepIdx].text;
+        if (progressBar) progressBar.style.width = steps[stepIdx].pct + '%';
+        stepIdx++;
+      }
+    }, 400);
+
+    // 延迟后生成报告
+    setTimeout(() => {
+      clearInterval(timer);
+      if (progressBar) progressBar.style.width = '100%';
+      setTimeout(() => {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.4s ease';
+        setTimeout(() => {
+          overlay.remove();
+          this.calculateAndShowReport();
+        }, 400);
+      }, 300);
+    }, 2200);
   },
 
   // 动态竞争力分析
