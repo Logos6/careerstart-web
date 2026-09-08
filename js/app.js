@@ -1429,8 +1429,7 @@ const app = {
 
     setTimeout(() => {
       this.interviewSession = CareerEngine.initInterviewSession(txt);
-      const firstQ = this.interviewSession.pool.shift();
-      this.interviewSession.asked.push(firstQ.id);
+      const firstQ = CareerEngine.getNextQuestion(this.interviewSession);
 
       // 切换输入框为聊天模式
       const inputBar = document.querySelector('.pc-chat-input-bar');
@@ -1455,8 +1454,8 @@ const app = {
         <div style="margin-bottom:14px; padding:12px 16px; background:linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%); border-radius:10px; border:1px solid #c7d2fe;">
           <div style="font-size:12px; font-weight:700; color:#4338ca; margin-bottom:6px;"><i class="ri-lightbulb-flash-line"></i> 面试须知</div>
           <div style="font-size:11px; color:#475569; line-height:1.6;">
-            本次面试共15轮，建议用<strong>STAR法则</strong>（情境→任务→行动→结果）组织回答。<br>
-            每轮回答后会给出结构化评估和改进建议。输入「结束」可提前完成。
+            本次面试共15轮，从自我介绍开始，逐步深入。<br>
+            每轮回答后会给出评估和改进建议。输入「结束」可提前完成。
           </div>
         </div>
         <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
@@ -1465,7 +1464,7 @@ const app = {
             <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
             您好！感谢您参加今天的模拟面试。<br><br>
             我是本次的AI面试官，今天将针对<strong>「${txt}」</strong>岗位进行一场结构化面试。<br><br>
-            <strong>面试流程：</strong>本次面试共15轮，每轮我会提出一个问题，建议您用STAR法则组织回答。<br><br>
+            <strong>面试流程：</strong>本次面试共15轮，从自我介绍开始，逐步深入到专业能力、行为面试和岗位匹配。<br><br>
             <strong>评估维度：</strong>我们将从<strong>专业能力、沟通表达、问题解决、团队协作、学习成长、抗压韧性</strong>六个维度评估您的表现。<br><br>
             准备好了吗？那我们开始第一个问题：<br><br>
             <strong>${firstQ.q}</strong>
@@ -1630,30 +1629,30 @@ const app = {
         </div>
       ` : '';
 
-      // STAR分析HTML
+      // 回答结构分析HTML
       const starA = report.starAnalysis || {};
       const starHtml = `
         <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
           <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
-            <i class="ri-flow-chart"></i> STAR法则分析
+            <i class="ri-flow-chart"></i> 回答结构分析
           </h4>
           <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px;">
             <div style="text-align:center; padding:10px; background:#dcfce7; border-radius:8px;">
               <div style="font-size:20px; font-weight:900; color:#16a34a;">${starA.complete||0}</div>
-              <div style="font-size:11px; color:#166534;">完整STAR</div>
+              <div style="font-size:11px; color:#166534;">结构完整</div>
             </div>
             <div style="text-align:center; padding:10px; background:#fef3c7; border-radius:8px;">
               <div style="font-size:20px; font-weight:900; color:#d97706;">${starA.partial||0}</div>
-              <div style="font-size:11px; color:#92400e;">部分STAR</div>
+              <div style="font-size:11px; color:#92400e;">部分完整</div>
             </div>
             <div style="text-align:center; padding:10px; background:#fee2e2; border-radius:8px;">
               <div style="font-size:20px; font-weight:900; color:#dc2626;">${starA.missing||0}</div>
-              <div style="font-size:11px; color:#991b1b;">缺少结构</div>
+              <div style="font-size:11px; color:#991b1b;">需要补充</div>
             </div>
           </div>
           <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:6px;">
             ${[
-              { label: 'STAR完整度', val: (report.componentScores||{}).star },
+              { label: '结构完整度', val: (report.componentScores||{}).star },
               { label: '具体性', val: (report.componentScores||{}).specificity },
               { label: '量化程度', val: (report.componentScores||{}).quant },
               { label: '个人贡献', val: (report.componentScores||{}).personal },
