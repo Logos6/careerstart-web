@@ -637,6 +637,10 @@
     const phase = getCurrentPhase(session);
     const categories = phase.categories;
 
+    // 获取薄弱维度（间隔重复）
+    const weakDims = getWeakDimensions();
+    const weakDimNames = weakDims.map(w => w.dimension);
+
     // 从当前阶段的类别中随机选一个未问过的题
     const candidates = [];
     for (const catKey of categories) {
@@ -664,7 +668,12 @@
     // 按难度排序，优先选中等难度
     candidates.sort((a, b) => {
       const targetDifficulty = session.round < 5 ? 1 : session.round < 10 ? 2 : 3;
-      return Math.abs(a.difficulty - targetDifficulty) - Math.abs(b.difficulty - targetDifficulty);
+      const diffA = Math.abs(a.difficulty - targetDifficulty);
+      const diffB = Math.abs(b.difficulty - targetDifficulty);
+      // 如果维度是薄弱维度，优先选择
+      const weakBonusA = weakDimNames.includes(a.dimension) ? -1 : 0;
+      const weakBonusB = weakDimNames.includes(b.dimension) ? -1 : 0;
+      return (diffA + weakBonusA) - (diffB + weakBonusB);
     });
 
     // 从前5个候选中随机选1个
@@ -879,6 +888,9 @@
       else starMissing++;
     }
 
+    // 置信度分析
+    const confidenceAnalysis = analyzeConfidence(session);
+
     return {
       jobName: session.jobName,
       totalScore: weightedTotal,
@@ -892,6 +904,7 @@
       strengths,
       weaknesses,
       starAnalysis: { complete: starComplete, partial: starPartial, missing: starMissing },
+      confidenceAnalysis,
       details: session.answers.map(a => ({
         question: a.question.q,
         category: a.question.tags?.[0] || '未分类',
@@ -903,6 +916,107 @@
         dimensionScores: a.evaluation.analysis,
       })),
     };
+  }
+
+  // ═══════════════════════════════════════════════════
+  //  7. 置信度分析模块
+  // ═══════════════════════════════════════════════════
+
+  function analyzeConfidence(session) {
+    let highConfidence = 0;
+    let mediumConfidence = 0;
+    let lowConfidence = 0;
+
+    for (const a of session.answers) {
+      const text = (a.answer || '').trim();
+      const len = text.length;
+      const score = a.evaluation.score;
+
+      // 高置信：回答详细 + 有数据 + 有案例 + 高分
+      const hasData = /\d+[%％万元]/.test(text);
+      const hasExample = /比如|例如|举个例子|有一次/.test(text);
+      const hasSTAR = /当时|那时候|之前/.test(text) && /我做了|我通过|我采取/.test(text) && /结果|最终|完成后/.test(text);
+
+      if (len >= 80 && score >= 70 && (hasData || hasExample || hasSTAR)) {
+        highConfidence++;
+      } else if (len >= 30 && score >= 40) {
+        mediumConfidence++;
+      } else {
+        lowConfidence++;
+      }
+    }
+
+    const total = session.answers.length || 1;
+    return {
+      high: Math.round(highConfidence / total * 100),
+      medium: Math.round(mediumConfidence / total * 100),
+      low: Math.round(lowConfidence / total * 100),
+      label: highConfidence > total * 0.5 ? '自信' : lowConfidence > total * 0.3 ? '需增强' : '适中',
+    };
+  }
+
+  // ═══════════════════════════════════════════════════
+  //  8. 间隔重复模块 — 跟踪薄弱维度
+  // ═══════════════════════════════════════════════════
+
+  const STORAGE_KEY = 'careerstart_interview_history';
+
+  function getWeakDimensions() {
+    try {
+      const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      if (history.length === 0) return [];
+
+      // 统计每个维度的平均分
+      const dimTotals = {};
+      const dimCounts = {};
+      for (const session of history) {
+        for (const [dim, score] of Object.entries(session.dimensionScores || {})) {
+          dimTotals[dim] = (dimTotals[dim] || 0) + score;
+          dimCounts[dim] = (dimCounts[dim] || 0) + 1;
+        }
+      }
+
+      // 找出平均分低于60的维度
+      const weak = [];
+      for (const [dim, total] of Object.entries(dimTotals)) {
+        const avg = total / (dimCounts[dim] || 1);
+        if (avg < 60) {
+          weak.push({ dimension: dim, avgScore: Math.round(avg) });
+        }
+      }
+
+      return weak.sort((a, b) => a.avgScore - b.avgScore);
+    } catch {
+      return [];
+    }
+  }
+
+  function recordSessionToHistory(report) {
+    try {
+      const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      history.push({
+        date: new Date().toISOString(),
+        jobName: report.jobName,
+        totalScore: report.totalScore,
+        level: report.level,
+        dimensionScores: report.dimensionScores,
+        duration: report.duration,
+        totalQuestions: report.totalQuestions,
+      });
+      // 只保留最近20次
+      if (history.length > 20) history.splice(0, history.length - 20);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    } catch {
+      // ignore
+    }
+  }
+
+  function getInterviewHistory() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    } catch {
+      return [];
+    }
   }
 
   // ═══════════════════════════════════════════════════
@@ -919,6 +1033,9 @@
     processAnswer,
     // 报告
     generateReport,
+    recordSessionToHistory,
+    getWeakDimensions,
+    getInterviewHistory,
     // 数据（供外部使用）
     QUESTION_BANK,
     DIMENSIONS,
