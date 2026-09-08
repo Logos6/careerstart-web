@@ -1452,22 +1452,12 @@ const app = {
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 输入"结束"可随时完成面试</span>
         </div>
-        <div style="margin-bottom:14px; padding:12px 16px; background:linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%); border-radius:10px; border:1px solid #c7d2fe;">
-          <div style="font-size:12px; font-weight:700; color:#4338ca; margin-bottom:6px;"><i class="ri-lightbulb-flash-line"></i> 面试须知</div>
-          <div style="font-size:11px; color:#475569; line-height:1.6;">
-            本次面试共15轮，从背景探索开始，逐步深入到专业能力、行为面试和岗位匹配。<br>
-            每轮回答后会给出评估和改进建议。输入「结束」可提前完成。
-          </div>
-        </div>
         <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
           <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
           <div class="msg-content">
             <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
-            您好！感谢您参加今天的模拟面试。<br><br>
-            我是本次的AI面试官，今天将针对<strong>「${txt}」</strong>岗位进行一场结构化面试。<br><br>
-            <strong>面试流程：</strong>本次面试共15轮，从背景探索开始，逐步深入到专业能力、行为面试和岗位匹配。<br><br>
-            <strong>评估维度：</strong>我们将从<strong>专业能力、沟通表达、问题解决、团队协作、学习成长、抗压韧性</strong>六个维度评估您的表现。<br><br>
-            准备好了吗？那我们开始第一个问题：<br><br>
+            你好，欢迎参加今天的面试。我是你的面试官，今天我们会聊一聊你的职业经历和能力。<br><br>
+            放轻松，就像跟一位行业前辈聊天一样。准备好了吗？那我们开始——<br><br>
             <strong>${firstQ.q}</strong>
           </div>
         </div>
@@ -1539,60 +1529,25 @@ const app = {
       const loadingEl = document.getElementById('interview-loading');
       if (loadingEl) loadingEl.remove();
 
-      const scoreClass = result.score >= 70 ? 'good' : result.score >= 50 ? 'medium' : 'bad';
-
-      // STAR状态标签
-      let starHtml = '';
-      if (result.star) {
-        const s = result.star;
-        starHtml = `<div style="display:flex; gap:4px; margin-top:4px; flex-wrap:wrap;">
-          <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:${s.hasSituation?'#dcfce7':'#fee2e2'}; color:${s.hasSituation?'#166534':'#991b1b'};">S ${s.hasSituation?'✓':'✗'}</span>
-          <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:${s.hasTask?'#dcfce7':'#fee2e2'}; color:${s.hasTask?'#166534':'#991b1b'};">T ${s.hasTask?'✓':'✗'}</span>
-          <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:${s.hasAction?'#dcfce7':'#fee2e2'}; color:${s.hasAction?'#166534':'#991b1b'};">A ${s.hasAction?'✓':'✗'}</span>
-          <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:${s.hasResult?'#dcfce7':'#fee2e2'}; color:${s.hasResult?'#166534':'#991b1b'};">R ${s.hasResult?'✓':'✗'}</span>
-        </div>`;
-      }
-
-      chatBox.innerHTML += `
-        <div style="margin-bottom:10px; padding:10px 14px; background:#f8fafc; border-radius:10px; border-left:3px solid ${result.color};">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-            <span class="score-tag ${scoreClass}">${result.level} ${result.score}分</span>
-            <span style="font-size:10px; color:var(--text-muted);">第 ${result.round} 轮</span>
-          </div>
-          ${starHtml}
-          <div style="font-size:12px; color:#475569; line-height:1.5; margin-top:4px;">${result.feedback?.text || (result.feedbackParts ? result.feedbackParts.join('；') : '')}</div>
-        </div>
-      `;
-
+      // 直接显示面试官的回复（像真人对话一样）
       setTimeout(() => {
         this.updateInterviewProgress(result.round);
-        // 如果没有下一题，显示结束消息
-        if (!result.nextQuestion && !this.interviewSession.followups.length) {
-          chatBox.innerHTML += `
-            <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-              <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-              <div class="msg-content">
-                <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
-                ${result.aiResponse.replace(/\n/g, '<br>')}
-              </div>
+        chatBox.innerHTML += `
+          <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+            <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+            <div class="msg-content">
+              <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
+              ${result.aiResponse.replace(/\n/g, '<br>')}
             </div>
-          `;
-          chatBox.scrollTop = chatBox.scrollHeight;
-          // 自动生成报告
-          setTimeout(() => this.finishInterview(), 1500);
-        } else {
-          chatBox.innerHTML += `
-            <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-              <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-              <div class="msg-content">
-                <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
-                ${result.aiResponse.replace(/\n/g, '<br>')}
-              </div>
-            </div>
-          `;
-          chatBox.scrollTop = chatBox.scrollHeight;
+          </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 如果是最后一题，自动生成报告
+        if (result.isLast || (!result.nextQuestion && !this.interviewSession.followups.length)) {
+          setTimeout(() => this.finishInterview(), 2000);
         }
-      }, 500);
+      }, 800);
     }, 1200);
   },
 
