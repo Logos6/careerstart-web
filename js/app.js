@@ -1760,7 +1760,7 @@ const app = {
             <div style="padding:16px 24px; display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border-top:1px solid var(--border-color);">
               <span style="font-size:11px; color:var(--text-muted);"><i class="ri-history-line"></i> 已保存至面试记录</span>
               <div style="display:flex; gap:8px;">
-                <button class="btn btn-outline" style="font-size:12px; padding:6px 14px;" onclick="app.downloadReport()"><i class="ri-download-line"></i> 下载报告</button>
+                <button class="btn btn-outline-primary" style="font-size:12px; padding:6px 14px;" onclick="app.downloadReport()"><i class="ri-download-line"></i> 下载报告</button>
                 <button class="btn btn-primary" style="font-size:12px; padding:6px 14px;" onclick="app.resetInterview()"><i class="ri-refresh-line"></i> 再来一次</button>
               </div>
             </div>
