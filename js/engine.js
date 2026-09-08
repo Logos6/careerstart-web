@@ -2493,11 +2493,10 @@
   }
 
   // 获取下一个问题（核心逻辑）
+  // 注意：round 由外部（startInterview / getInterviewFeedback）管理递增
   function getNextQuestion(session) {
     // 1. 优先返回追问
     if (session.followups.length > 0) return session.followups.shift();
-
-    session.round++;
 
     // 2. 第1轮：必问自我介绍
     if (session.round === 1) {
