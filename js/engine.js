@@ -2435,8 +2435,8 @@
     const difficultyOrder = { basic: 0, intermediate: 1, advanced: 2 };
     const targetDiff = flowStep.difficulty;
     candidates.sort((a, b) => {
-      const da = difficultyOrder[a.difficulty] || 1;
-      const db = difficultyOrder[b.difficulty] || 1;
+      const da = difficultyOrder[classifyDifficulty(a)] || 0;
+      const db = difficultyOrder[classifyDifficulty(b)] || 0;
       return Math.abs(da - difficultyOrder[targetDiff]) - Math.abs(db - difficultyOrder[targetDiff]);
     });
 
