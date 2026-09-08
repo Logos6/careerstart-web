@@ -8,7 +8,7 @@ const app = {
     persona: '',
     interests: [],
     skills: [],
-    traits: { logic: 0, creative: 0, social: 0, exec: 0, leader: 0, handcraft: 0 },
+    traits: { logic: 5, creative: 5, social: 5, exec: 5, leader: 5, handcraft: 5 },
     prefs: []
   },
   userData: {
@@ -497,10 +497,10 @@ const app = {
               <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:12px;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                   <strong>${t.label}</strong>
-                  <span style="color:var(--primary); font-weight:700;">${this.userAnswers.traits[t.id]} 分</span>
+                  <span id="trait-val-${t.id}" style="color:var(--primary); font-weight:700;">${this.userAnswers.traits[t.id]} 分</span>
                 </div>
                 <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">${t.desc}</p>
-                <input type="range" min="1" max="10" value="${this.userAnswers.traits[t.id]}" style="width:100%;" onchange="app.setTraitScore('${t.id}', this.value)">
+                <input type="range" min="1" max="10" value="${this.userAnswers.traits[t.id]}" style="width:100%;" oninput="app.userAnswers.traits['${t.id}']=parseInt(this.value,10); document.getElementById('trait-val-${t.id}').textContent=this.value+' 分';">
               </div>
             `).join('')}
           </div>
@@ -554,7 +554,6 @@ const app = {
 
   setTraitScore(traitId, val) {
     this.userAnswers.traits[traitId] = parseInt(val, 10);
-    this.renderAssessStep();
     this.updateCompetitiveAnalysis();
   },
 
@@ -1010,7 +1009,7 @@ const app = {
   startNewAssessment() {
     this.userData.lastAssessment = null;
     this.userData.assessmentHistory = [];
-    this.userAnswers = { persona: '', interests: [], skills: [], traits: { logic: 0, creative: 0, social: 0, exec: 0, leader: 0, handcraft: 0 }, prefs: [] };
+    this.userAnswers = { persona: '', interests: [], skills: [], traits: { logic: 5, creative: 5, social: 5, exec: 5, leader: 5, handcraft: 5 }, prefs: [] };
     this.assessStep = 0;
     this.saveUserData();
 
