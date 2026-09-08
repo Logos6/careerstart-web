@@ -1,5 +1,5 @@
-// Web 网页端通用计算逻辑与数据接口
-// 完全沿用原生 engine.js 的 6维算法、能力匹配、年龄歧视检测等核心逻辑
+// Web 网页端通用计算逻辑与数据接口 v2.0
+// 7维评分模型：兴趣聚类×30% + 技能覆盖×25% + 性格适配×18% + 偏好兼容×12% + 人设匹配×8% + 经验迁移×5% + 置信度×2%
 
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
@@ -10,70 +10,404 @@
 }(typeof self !== 'undefined' ? self : this, function (D) {
 
   const INTERESTS = D.INTERESTS;
+  const INTEREST_GROUPS = D.INTEREST_GROUPS;
   const SKILL_GROUPS = D.SKILL_GROUPS;
   const TRAITS = D.TRAITS;
   const PREF_ITEMS = D.PREF_ITEMS;
+  const PREF_GROUPS = D.PREF_GROUPS;
   const JOBS = D.JOBS;
-  const COURSES = D.COURSES;
-  const PERSONAS = D.PERSONAS;
-  const STEP_DEFS = D.STEP_DEFS;
-  const PERSONA_STEPS = D.PERSONA_STEPS;
 
   const ALL_SKILLS = SKILL_GROUPS.flatMap(g => g.items);
   const SKILL_LABELS = Object.fromEntries(ALL_SKILLS.map(x => [x.id, x.label]));
   const PERSONA_NAMES = { mid: "35+ 重新出发", mom: "宝妈重返职场" };
 
-  function scoreJob(job, a) {
-    let interest = 0;
-    if (a.interests.length) {
-      let sum = 0, hit = 0;
-      for (const id of a.interests) {
-        const w = job.fit.interests[id] || 0;
-        if (w > 0) { sum += w; hit++; }
+  // ==================== 兴趣聚类映射 ====================
+  // 将67个细粒度兴趣ID映射到岗位fit数据使用的粗粒度key
+  const INTEREST_CLUSTER_MAP = {
+    // 互联网与科技 → tech
+    tech: ['tech','ecom','soft','data','ai','game','social','finintech','iot','iot2','enterprise'],
+    // 金融与商务 → finance, business
+    finance: ['bank','insurance','invest','finother','audit','finance'],
+    business: ['consulting','hr','business','trade','sales','retail'],
+    // 制造与工程 → make
+    make: ['auto','auto2','auto3','newenergy','material','textile','furniture','elec','energy','make','construct','construct2','construct3','realestate','realestate2'],
+    // 教育与培训 → care, people
+    care: ['edu','edu2','medical','medical2','beauty','health','pharma','care'],
+    // 媒体与文化 → media, design
+    media: ['media','ad','art','design'],
+    // 专业服务 → service
+    service: ['legal','service','admin','security','logistics','transport','food','life','life2','hospitality','tourism','farming','people','nature'],
+  };
+
+  // 反向映射：粗粒度key → 细粒度兴趣ID列表
+  const CLUSTER_TO_INTERESTS = {};
+  for (const [cluster, ids] of Object.entries(INTEREST_CLUSTER_MAP)) {
+    for (const id of ids) {
+      if (!CLUSTER_TO_INTERESTS[id]) CLUSTER_TO_INTERESTS[id] = [];
+      CLUSTER_TO_INTERESTS[id].push(cluster);
+    }
+  }
+
+  // ==================== 技能聚类映射 ====================
+  // 相近技能可以互相迁移，降低缺口惩罚
+  const SKILL_CLUSTER = {
+    '办公通用': ['office','wps','typing','file','meeting','reception','scheduling','correspond','stamp','asset','purchase','inventory'],
+    '数字技术': ['coding','frontend','backend','mobile','database','datatool','aitool','pm','testing','network','cloud2','security','linux','git','api'],
+    '设计创意': ['uidesign','graphic','logo','poster','packaging','interior','cad','3d','animation','video','photo','retouch','handwrite','typeset'],
+    '写作内容': ['writing','copywriting','seo','article','script','translate','edit','proofread','brand','pr'],
+    '语言能力': ['foreign','english','japanese','korean','french','german','spanish','arabic','russian','thai','vietnamese','portuguese','cantonese'],
+    '演讲沟通': ['speaking','train','negotiate','host','persuade','listen','mediation'],
+    '销售市场': ['sales','b2b','b2c','telemark','online','channel','market','promote','fission','operate','data2','content2','community2','live2'],
+    '管理协调': ['coordinate','team','lead','plan','delegate','review','mentor','change','risk','budget'],
+    '财务法务': ['accounting','tax','audit2','finance','cost','law','contract','ip','compliance','labor'],
+    '人力行政': ['recruit','interview','onboard','train2','payroll','social2','employee','hrsystem','doc2','secretary'],
+    '运营电商': ['shop','product','price','ads','seo2','crm','aftermarket','logistics2','quality2','complain'],
+    '教育培训': ['teach','lesson','classroom','student','exam','tutor2','online2','courseware'],
+    '客服服务': ['hotline','complaint','vip','survey','after','visit','counsel'],
+    '医疗健康': ['nurse','pharm','diagnose','rehab','nutrition','acupuncture','elder2','child2','psych2','firstaid'],
+    '制造技术': ['drive','repair','weld','electric','plumb','machine','assemble','inspect','blueprint','safety','warehouse','forklift'],
+    '生活服务': ['cook','bake','barista','floral','hair','nail','makeup','clean','laundry','moving','lock','appliance','sewing'],
+    '农业畜牧': ['farm','breed','fish','forest','irrigation','agriproduct','agritech'],
+  };
+
+  // 技能ID → 所属聚类
+  const SKILL_TO_CLUSTER = {};
+  for (const [cluster, ids] of Object.entries(SKILL_CLUSTER)) {
+    for (const id of ids) {
+      SKILL_TO_CLUSTER[id] = cluster;
+    }
+  }
+
+  // ==================== 偏好冲突矩阵 ====================
+  // 定义互斥偏好对：如果用户选了A但岗位需要B，扣分
+  const PREF_CONFLICTS = {
+    remote: ['outdoor','field','travel'],
+    solo: ['team'],
+    lowstress: ['challenge','fast'],
+    stable: ['startup'],
+    lowot: ['fast','challenge'],
+    parttime: ['highpay','growth'],
+    noshift: [],
+    flextime: ['early96','early10'],
+    weekend: ['6day'],
+    bigco: ['smallco','startup'],
+    state: ['startup','foreign'],
+    smallco: ['bigco','state'],
+    startup: ['bigco','state','stable','stable2'],
+    foreign: ['state'],
+    routine: ['diverse','challenge'],
+    local: ['outdoor','field','travel'],
+  };
+
+  // ==================== 岗位类别 → 人设权重映射 ====================
+  // 不同类别岗位对35+/宝妈的友好度不同，动态调整人设权重
+  const PERSONA_WEIGHT_BY_CAT = {
+    '教育': 0.15, '健康': 0.12, '职能': 0.10, '社区': 0.12,
+    '灵活就业': 0.08, '销售': 0.06, '互联网': 0.04, '管理': 0.05,
+    '制造': 0.05, '电商': 0.05, '咨询': 0.04, '农业': 0.08,
+    '默认': 0.06,
+  };
+
+  // ==================== 核心评分函数 ====================
+
+  /**
+   * 维度1：兴趣聚类匹配（权重30%）
+   * 将用户选择的67个细粒度兴趣映射到粗粒度聚类，再与岗位fit比较
+   */
+  function scoreInterest(userInterests, jobFit) {
+    if (!userInterests || !userInterests.length || !jobFit || !jobFit.interests) return 0;
+
+    // 将用户兴趣展开为粗粒度聚类
+    const userClusters = new Set();
+    for (const id of userInterests) {
+      const clusters = CLUSTER_TO_INTERESTS[id] || [];
+      clusters.forEach(c => userClusters.add(c));
+    }
+
+    if (userClusters.size === 0) return 0;
+
+    // 计算聚类匹配
+    let matchSum = 0, matchCount = 0;
+    for (const cluster of userClusters) {
+      const weight = jobFit.interests[cluster] || 0;
+      if (weight > 0) {
+        matchSum += weight;
+        matchCount++;
       }
-      const cover = hit / a.interests.length;
-      const strength = hit ? sum / hit : 0;
-      interest = strength * (0.55 + 0.45 * cover);
     }
-    let skill = 0;
-    if (a.skills.length) {
-      let sum = 0;
-      for (const id of a.skills) sum += job.fit.skills[id] || 0;
-      skill = Math.min(1, sum / Math.max(2, a.skills.length * 0.8));
+
+    const coverage = matchCount / userClusters.size;
+    const strength = matchCount > 0 ? matchSum / matchCount : 0;
+
+    // 覆盖度和强度的加权组合（覆盖度更重要）
+    return strength * (0.5 + 0.5 * coverage);
+  }
+
+  /**
+   * 维度2：技能覆盖与缺口分析（权重25%）
+   * 匹配已有技能 + 分析技能缺口严重度 + 临近技能迁移
+   */
+  function scoreSkill(userSkills, jobFit) {
+    if (!userSkills || !userSkills.length || !jobFit || !jobFit.skills) return { score: 0, gapSkills: [], strongSkills: [] };
+
+    const jobSkills = jobFit.skills;
+    const userSet = new Set(userSkills);
+
+    // 2a. 已有技能匹配
+    let matchedSum = 0, matchCount = 0;
+    const strongSkills = [];
+    for (const skillId of userSkills) {
+      const w = jobSkills[skillId] || 0;
+      if (w > 0) {
+        matchedSum += w;
+        matchCount++;
+        if (w >= 0.7) strongSkills.push(skillId);
+      }
     }
-    let trait = 0, wSum = 0;
+    const matchScore = matchCount > 0 ? Math.min(1, matchedSum / Math.max(2, userSkills.length * 0.6)) : 0;
+
+    // 2b. 技能缺口分析
+    const requiredSkills = Object.entries(jobSkills).filter(([, w]) => w >= 0.5);
+    const gapSkills = [];
+    let gapPenalty = 0;
+    for (const [skillId, weight] of requiredSkills) {
+      if (!userSet.has(skillId)) {
+        gapSkills.push({ id: skillId, weight, cluster: SKILL_TO_CLUSTER[skillId] || '' });
+        gapPenalty += weight * 0.15; // 每个缺口按权重的15%扣分
+      }
+    }
+
+    // 2c. 临近技能迁移奖励
+    let transferBonus = 0;
+    for (const gap of gapSkills) {
+      if (!gap.cluster) continue;
+      const clusterSkills = SKILL_CLUSTER[gap.cluster] || [];
+      for (const userSkill of userSkills) {
+        if (clusterSkills.includes(userSkill)) {
+          transferBonus += 0.05; // 同聚类技能提供5%迁移奖励
+          break;
+        }
+      }
+    }
+
+    const finalScore = Math.max(0, Math.min(1, matchScore - gapPenalty + transferBonus));
+    return { score: finalScore, gapSkills, strongSkills };
+  }
+
+  /**
+   * 维度3：性格特质适配（权重18%）
+   * 加权平均 + 最低门槛检测
+   */
+  function scoreTrait(userTraits, jobFit) {
+    if (!userTraits || !jobFit || !jobFit.traits) return { score: 0, topTrait: null, gapTraits: [] };
+
+    const jobTraits = jobFit.traits;
+    let weightedSum = 0, totalWeight = 0;
+    const gapTraits = [];
+    let topTrait = { label: '', score: 0 };
+
     for (const t of TRAITS) {
-      const w = job.fit.traits[t.id] || 0.3;
-      trait += (a.traits[t.id] / 10) * w;
-      wSum += w;
+      const userScore = (userTraits[t.id] || 5) / 10; // 归一化到0-1
+      const jobWeight = jobTraits[t.id] || 0.3;
+      weightedSum += userScore * jobWeight;
+      totalWeight += jobWeight;
+
+      // 记录最强特质
+      if (userScore > topTrait.score) {
+        topTrait = { label: t.label, score: userScore, id: t.id };
+      }
+
+      // 岗位高要求但用户低分的特质
+      if (jobWeight >= 0.8 && userScore < 0.6) {
+        gapTraits.push({ label: t.label, userScore: Math.round(userScore * 10), jobWeight });
+      }
     }
-    trait /= wSum;
-    let pref = 0.5;
-    if (a.prefs.length) {
-      let sum = 0;
-      for (const id of a.prefs) sum += job.fit.prefs[id] || 0;
-      pref = Math.min(1, sum / a.prefs.length);
+
+    const score = totalWeight > 0 ? weightedSum / totalWeight : 0;
+    return { score, topTrait, gapTraits };
+  }
+
+  /**
+   * 维度4：工作偏好兼容（权重12%）
+   * 匹配偏好 + 冲突检测 + 协商空间
+   */
+  function scorePref(userPrefs, jobFit) {
+    if (!userPrefs || !userPrefs.length || !jobFit || !jobFit.prefs) return { score: 0.5, conflicts: [], matchedPrefs: [] };
+
+    const jobPrefs = jobFit.prefs;
+    let matchSum = 0, conflictSum = 0;
+    const matchedPrefs = [];
+    const conflicts = [];
+
+    for (const prefId of userPrefs) {
+      const jobWeight = jobPrefs[prefId] || 0;
+
+      // 直接匹配
+      if (jobWeight >= 0.5) {
+        matchSum += jobWeight;
+        matchedPrefs.push(prefId);
+      }
+
+      // 冲突检测
+      const conflictKeys = PREF_CONFLICTS[prefId] || [];
+      for (const conflictKey of conflictKeys) {
+        if (jobPrefs[conflictKey] && jobPrefs[conflictKey] >= 0.6) {
+          conflictSum += 0.2;
+          conflicts.push({ user: prefId, job: conflictKey });
+        }
+      }
     }
-    const persona = a.persona ? job.persona[a.persona] : 0.7;
-    const total = interest * 0.35 + skill * 0.25 + trait * 0.20 + pref * 0.15 + persona * 0.05;
-    return { total: Math.round(total * 100), parts: { interest, skill, trait, pref, persona } };
+
+    const matchScore = userPrefs.length > 0 ? matchSum / userPrefs.length : 0.5;
+    const finalScore = Math.max(0, Math.min(1, matchScore - conflictSum * 0.3));
+
+    return { score: finalScore, conflicts, matchedPrefs };
+  }
+
+  /**
+   * 维度5：人设适配（权重8%，动态调整）
+   * 根据岗位类别动态调整人设权重
+   */
+  function scorePersona(persona, job, userPersona) {
+    if (!persona || !job || !userPersona) return { score: 0.7, weight: 0.06 };
+
+    // 动态权重：根据岗位类别调整
+    let weight = PERSONA_WEIGHT_BY_CAT['默认'];
+    for (const [key, w] of Object.entries(PERSONA_WEIGHT_BY_CAT)) {
+      if (job.cat && job.cat.includes(key)) {
+        weight = w;
+        break;
+      }
+    }
+
+    const score = persona[userPersona] || 0.7;
+    return { score, weight };
+  }
+
+  /**
+   * 维度6：经验迁移度（权重5%）
+   * 评估用户背景与岗位的匹配程度
+   */
+  function scoreTransfer(userSkills, jobFit, userPersona) {
+    if (!userSkills || !userSkills.length) return 0.5;
+
+    // 计算技能多样性（跨聚类数量）
+    const clusters = new Set();
+    for (const skillId of userSkills) {
+      const cluster = SKILL_TO_CLUSTER[skillId];
+      if (cluster) clusters.add(cluster);
+    }
+    const diversity = Math.min(1, clusters.size / 5); // 5个聚类以上为满分
+
+    // 35+和宝妈有经验迁移优势
+    const personaBonus = (userPersona === 'mid' || userPersona === 'mom') ? 0.15 : 0;
+
+    return Math.min(1, diversity * 0.7 + personaBonus + 0.15);
+  }
+
+  /**
+   * 维度7：置信度（权重2%）
+   * 基于数据完整度评估匹配结果的可信度
+   */
+  function scoreConfidence(answers) {
+    let completeness = 0;
+    const total = 5; // 5个维度
+
+    if (answers.interests && answers.interests.length > 0) completeness++;
+    if (answers.skills && answers.skills.length > 0) completeness++;
+    if (answers.traits) {
+      const traitValues = Object.values(answers.traits);
+      if (traitValues.some(v => v !== 5)) completeness++; // 至少改过一个默认值
+    }
+    if (answers.prefs && answers.prefs.length > 0) completeness++;
+    if (answers.persona) completeness++;
+
+    return completeness / total;
+  }
+
+  // ==================== 综合评分 ====================
+
+  function scoreJob(job, a) {
+    // 1. 兴趣聚类匹配（30%）
+    const interestScore = scoreInterest(a.interests, job.fit);
+
+    // 2. 技能覆盖与缺口（25%）
+    const skillResult = scoreSkill(a.skills, job.fit);
+
+    // 3. 性格特质适配（18%）
+    const traitResult = scoreTrait(a.traits, job.fit);
+
+    // 4. 工作偏好兼容（12%）
+    const prefResult = scorePref(a.prefs, job.fit);
+
+    // 5. 人设适配（动态权重）
+    const personaResult = scorePersona(job.persona, job, a.persona);
+
+    // 6. 经验迁移度（5%）
+    const transferScore = scoreTransfer(a.skills, job.fit, a.persona);
+
+    // 7. 置信度（2%）
+    const confidence = scoreConfidence(a);
+
+    // 加权求和（人设权重动态调整，其余固定）
+    const fixedWeight = 1 - personaResult.weight;
+    const total = interestScore * 0.30
+      + skillResult.score * 0.25
+      + traitResult.score * 0.18
+      + prefResult.score * 0.12
+      + personaResult.score * personaResult.weight
+      + transferScore * 0.05
+      + confidence * 0.02;
+
+    // 置信度修正：数据不完整时降低总分
+    const confidenceMultiplier = 0.7 + 0.3 * confidence;
+
+    return {
+      total: Math.round(total * confidenceMultiplier * 100),
+      parts: {
+        interest: interestScore,
+        skill: skillResult.score,
+        trait: traitResult.score,
+        pref: prefResult.score,
+        persona: personaResult.score,
+        transfer: transferScore,
+        confidence: confidence,
+      },
+      details: {
+        strongSkills: skillResult.strongSkills,
+        gapSkills: skillResult.gapSkills,
+        topTrait: traitResult.topTrait,
+        gapTraits: traitResult.gapTraits,
+        matchedPrefs: prefResult.matchedPrefs,
+        prefConflicts: prefResult.conflicts,
+        personaWeight: personaResult.weight,
+      }
+    };
   }
 
   function buildReport(a) {
+    if (!a || !JOBS || JOBS.length === 0) {
+      return { time: Date.now(), persona: '', interests: [], skills: [], traits: {}, prefs: [], top: [], alt: null };
+    }
     const scored = JOBS.map(j => ({ job: j, ...scoreJob(j, a) }))
       .sort((x, y) => y.total - x.total);
-    const top1 = scored[0];
-    const top1Major = top1.job.cat.split(" ")[0];
-    const alt = scored.find(s => s.job.cat.split(" ")[0] !== top1Major && s.total >= 55) || scored[3];
+    const top = scored.slice(0, 3);
+    const top1 = top[0];
+    if (!top1) {
+      return { time: Date.now(), persona: a.persona, interests: a.interests, skills: a.skills, traits: a.traits, prefs: a.prefs, top: [], alt: null };
+    }
+    const top1Major = top1.job.cat ? top1.job.cat.split(" ")[0] : '';
+    const alt = scored.find(s => s.job.cat ? s.job.cat.split(" ")[0] !== top1Major && s.total >= 50 : false) || scored[3] || null;
     return {
       time: Date.now(),
       persona: a.persona,
-      interests: [...a.interests],
-      skills: [...a.skills],
-      traits: { ...a.traits },
-      prefs: [...a.prefs],
-      top: scored.slice(0, 3),
+      interests: [...(a.interests || [])],
+      skills: [...(a.skills || [])],
+      traits: { ...(a.traits || {}) },
+      prefs: [...(a.prefs || [])],
+      top,
       alt,
+      allScored: scored,
     };
   }
 
@@ -739,152 +1073,153 @@
     ];
   }
 
-  // ==================== 测评深度分析引擎 ====================
+  // ==================== 测评深度分析引擎 v2.0 ====================
   function generateAssessmentAnalysis(a, report) {
     const sections = [];
+    if (!report || !report.top || report.top.length === 0) {
+      sections.push({ title: '综合建议', icon: 'ri-lightbulb-flash-line', paragraphs: ['暂无匹配数据，请重新完成测评。'] });
+      return sections;
+    }
 
-    // ── 1. 你是谁 ──
+    const top1 = report.top[0];
+    const top1Details = top1.details || {};
+
+    // ── 1. 你是谁（含置信度） ──
     const personaLabel = a.persona === 'mom' ? '全职妈妈' : '35+ 职场人';
     const personaDesc = a.persona === 'mom'
       ? '你正处于重返职场的关键阶段。全职照顾家庭的经历并不是「空白期」，而是一段积累了耐心、时间管理、多任务处理能力的成长期。关键是把这些能力翻译成职场语言。'
       : '你是一位有丰富职场经验的 35+ 求职者。多年的积累是你最大的资产——行业认知、人脉资源、处理复杂问题的能力，这些都是年轻候选人无法快速获得的。';
+    const confidence = Math.round((top1.parts.confidence || 0.8) * 100);
     sections.push({
       title: '你的画像',
       icon: 'ri-user-star-line',
       paragraphs: [
         `作为「${personaLabel}」，${personaDesc}`,
-        `这个定位决定了你的求职策略：不要和 25 岁的人比「精力旺盛」，而要和他们比「经验深度」和「解决问题的能力」。`
+        `本次测评数据完整度 ${confidence}%，匹配结果${confidence >= 80 ? '可信度较高' : '仅供参考，建议补充更多信息后重新测评'}。`
       ]
     });
 
-    // ── 2. 兴趣驱动力 ──
-    if (a.interests.length > 0) {
+    // ── 2. 兴趣驱动力（使用聚类匹配） ──
+    if (a.interests && a.interests.length > 0) {
       const interestLabels = a.interests.map(id => INTERESTS.find(x => x.id === id)?.label).filter(Boolean);
-      const topJobInterests = report.top[0].job.fit.interests;
-      const alignedInterests = a.interests.filter(id => (topJobInterests[id] || 0) >= 0.6);
-      const alignedLabels = alignedInterests.map(id => INTERESTS.find(x => x.id === id)?.label).filter(Boolean);
+      // 展示匹配的粗粒度聚类
+      const userClusters = new Set();
+      for (const id of a.interests) {
+        const clusters = CLUSTER_TO_INTERESTS[id] || [];
+        clusters.forEach(c => userClusters.add(c));
+      }
+      const clusterLabels = Array.from(userClusters);
+      const matchPercent = Math.round(top1.parts.interest * 100);
 
       const interestSection = {
         title: '兴趣驱动力',
         icon: 'ri-compass-3-line',
         paragraphs: [
-          `你选择了 ${interestLabels.length} 个兴趣方向：${interestLabels.join('、')}。兴趣不是「喜欢什么」这么简单——它决定了你在什么领域能自发投入、持续深耕而不觉得累。`
+          `你选择了 ${interestLabels.length} 个兴趣方向，覆盖「${clusterLabels.join('、')}」等多个领域。兴趣不是「喜欢什么」这么简单——它决定了你在什么领域能自发投入、持续深耕而不觉得累。`,
+          `兴趣匹配度 ${matchPercent}%——${matchPercent >= 70 ? '你选的兴趣方向与目标岗位高度吻合，工作中更容易进入心流状态' : matchPercent >= 50 ? '兴趣方向与岗位有一定重合，部分工作内容会让你有成就感' : '兴趣与岗位存在错位，跨领域入行需要更多适应期'}。`
         ]
       };
-      if (alignedLabels.length > 0) {
-        interestSection.paragraphs.push(
-          `好消息是，你最匹配的岗位「${report.top[0].job.name}」正好需要这些兴趣：${alignedLabels.join('、')}。这意味着你在做这份工作时，会更容易进入「心流」状态，不容易职业倦怠。`
-        );
-      } else {
-        interestSection.paragraphs.push(
-          `不过，你选择的兴趣方向和最匹配的岗位之间有一定错位。这不一定坏事——说明你有跨领域的潜力，但也意味着入行初期需要更多适应。`
-        );
-      }
       sections.push(interestSection);
     }
 
-    // ── 3. 技能盘点 ──
-    if (a.skills.length > 0) {
+    // ── 3. 技能盘点（含缺口分析 + 迁移技能） ──
+    if (a.skills && a.skills.length > 0) {
       const skillLabels = a.skills.map(id => SKILL_LABELS[id]).filter(Boolean);
-      const jobSkills = report.top[0].job.fit.skills;
-      const strongSkills = a.skills.filter(id => (jobSkills[id] || 0) >= 0.7).map(id => SKILL_LABELS[id]).filter(Boolean);
-      const weakSkills = Object.entries(jobSkills).filter(([id, w]) => w >= 0.5 && !a.skills.includes(id)).map(([id]) => SKILL_LABELS[id]).filter(Boolean);
+      const matchPercent = Math.round(top1.parts.skill * 100);
+      const strongSkills = (top1Details.strongSkills || []).map(id => SKILL_LABELS[id]).filter(Boolean);
+      const gapSkills = (top1Details.gapSkills || []).slice(0, 5);
 
       const skillSection = {
         title: '技能盘点',
         icon: 'ri-tools-line',
         paragraphs: [
-          `你目前掌握的技能：${skillLabels.join('、')}。`
+          `你目前掌握的技能：${skillLabels.join('、')}。技能覆盖度 ${matchPercent}%。`
         ]
       };
       if (strongSkills.length > 0) {
         skillSection.paragraphs.push(
-          `其中 ${strongSkills.join('、')} 和目标岗位「${report.top[0].job.name}」的需求高度吻合，这是你的核心竞争力。在简历和面试中，要重点展示这些技能的实际应用案例。`
+          `✅ 核心匹配技能：${strongSkills.join('、')}——这些是你的「硬通货」，在简历和面试中要重点展示实际应用案例。`
         );
       }
-      if (weakSkills.length > 0) {
+      if (gapSkills.length > 0) {
+        const gapLabels = gapSkills.map(g => SKILL_LABELS[g.id] || g.id).join('、');
+        // 检查是否有临近技能可迁移
+        const transferable = gapSkills.filter(g => {
+          const cluster = SKILL_TO_CLUSTER[g.id];
+          if (!cluster) return false;
+          const clusterSkills = SKILL_CLUSTER[cluster] || [];
+          return a.skills.some(s => clusterSkills.includes(s));
+        });
         skillSection.paragraphs.push(
-          `但这个岗位还需要你目前不具备的技能：${weakSkills.slice(0, 3).join('、')}。这不代表你不能做这份工作——35+ 求职者学新技能的速度和深度远超应届生，因为你有大量可迁移的经验。建议在简历中体现你的学习能力，或提前自学补上。`
+          `⚠️ 技能缺口：${gapLabels}。${transferable.length > 0 ? '好消息是你已有同领域的临近技能，学习成本会大幅降低。' : '建议提前自学补上，或在简历中用相关经验证明你的学习能力。'}`
         );
       }
       sections.push(skillSection);
     }
 
-    // ── 4. 性格特质 ──
-    const traitAnalysis = [];
-    const sortedTraits = TRAITS.map(t => ({ ...t, score: a.traits[t.id] || 0 })).sort((a, b) => b.score - a.score);
+    // ── 4. 性格特质（含差距分析） ──
+    const sortedTraits = TRAITS.map(t => ({ ...t, score: a.traits[t.id] || 5 })).sort((x, y) => y.score - x.score);
     const topTraits = sortedTraits.slice(0, 2);
-    const weakTraits = sortedTraits.slice(-2);
-
-    const jobTraitReqs = {};
-    for (const t of TRAITS) {
-      jobTraitReqs[t.id] = report.top[0].job.fit.traits[t.id] || 0.5;
-    }
-    const sortedJobTraits = TRAITS.map(t => ({ id: t.id, label: t.label, req: jobTraitReqs[t.id] })).sort((a, b) => b.req - a.req);
-    const topJobTraits = sortedJobTraits.slice(0, 2);
+    const matchPercent = Math.round(top1.parts.trait * 100);
+    const gapTraits = (top1Details.gapTraits || []);
 
     const traitSection = {
       title: '性格特质',
       icon: 'ri-brain-line',
       paragraphs: [
-        `你的六维能力画像中，最突出的两个维度是「${topTraits[0].label}」（${topTraits[0].score}/10）和「${topTraits[1].label}」（${topTraits[1].score}/10）。这说明你是一个 ${topTraits[0].score >= 7 ? '在' + topTraits[0].label + '方面有明显优势的人' : topTraits[0].label + '基础不错的人'}。`
+        `你的六维能力画像中，最突出的两个维度是「${topTraits[0].label}」（${topTraits[0].score}/10）和「${topTraits[1].label}」（${topTraits[1].score}/10）。`,
+        `性格适配度 ${matchPercent}%。${top1Details.topTrait ? (top1.score >= 75 ? `「${top1Details.topTrait.label}」与目标岗位高度吻合，这是你面试时最值得强调的卖点。` : `「${top1Details.topTrait.label}」是你最突出的特质，但目标岗位更看重其他维度。`) : ''}`
       ]
     };
-
-    const matchTrait = topTraits[0].label === topJobTraits[0].label || topTraits[0].label === topJobTraits[1].label;
-    if (matchTrait) {
+    if (gapTraits.length > 0) {
+      const gapLabels = gapTraits.map(g => `「${g.label}」（你${g.userScore}/10，岗位要求${Math.round(g.jobWeight * 10)}/10）`).join('；');
       traitSection.paragraphs.push(
-        `而「${report.top[0].job.name}」最看重的恰恰是「${topJobTraits[0].label}」——和你的优势高度吻合。这是你面试时最值得强调的卖点。`
-      );
-    } else {
-      traitSection.paragraphs.push(
-        `「${report.top[0].job.name}」最看重的是「${topJobTraits[0].label}」和「${topJobTraits[1].label}」，这和你的核心优势有一定错位。好消息是，性格特质不是固定不变的——你可以在工作中有意识地锻炼这些维度。`
-      );
-    }
-
-    if (weakTraits[0].score <= 5) {
-      traitSection.paragraphs.push(
-        `你的「${weakTraits[0].label}」维度偏弱（${weakTraits[0].score}/10）。如果目标岗位需要这个能力，建议在简历中用具体案例证明，比如：虽然不是强项，但在 XX 项目中成功运用了。`
+        `需要提升的维度：${gapLabels}。好消息是，性格特质不是固定不变的——你可以在工作中有意识地锻炼这些维度，用实际案例证明你的成长潜力。`
       );
     }
     sections.push(traitSection);
 
-    // ── 5. 工作偏好 ──
-    if (a.prefs.length > 0) {
+    // ── 5. 工作偏好（含冲突检测） ──
+    if (a.prefs && a.prefs.length > 0) {
       const prefLabels = a.prefs.map(id => PREF_ITEMS.find(x => x.id === id)?.label).filter(Boolean);
-      const jobPrefs = report.top[0].job.fit.prefs;
-      const matchedPrefs = a.prefs.filter(id => (jobPrefs[id] || 0) >= 0.6).map(id => PREF_ITEMS.find(x => x.id === id)?.label).filter(Boolean);
-      const conflictPrefs = a.prefs.filter(id => (jobPrefs[id] || 0) < 0.3).map(id => PREF_ITEMS.find(x => x.id === id)?.label).filter(Boolean);
+      const matchPercent = Math.round(top1.parts.pref * 100);
+      const matchedPrefs = (top1Details.matchedPrefs || []).map(id => PREF_ITEMS.find(x => x.id === id)?.label).filter(Boolean);
+      const conflicts = top1Details.prefConflicts || [];
 
       const prefSection = {
         title: '工作偏好',
         icon: 'ri-heart-pulse-line',
         paragraphs: [
-          `你期望的工作状态：${prefLabels.join('、')}。`
+          `你期望的工作状态：${prefLabels.join('、')}。偏好兼容度 ${matchPercent}%。`
         ]
       };
       if (matchedPrefs.length > 0) {
         prefSection.paragraphs.push(
-          `其中「${matchedPrefs.join('、')}」在目标岗位中可以得到满足。这很重要——工作内容匹配只能决定你「能不能做」，而工作偏好匹配决定你「做得开不开心」。`
+          `✅ 可满足偏好：${matchedPrefs.join('、')}。工作内容匹配决定你「能不能做」，而工作偏好匹配决定你「做得开不开心」。`
         );
       }
-      if (conflictPrefs.length > 0) {
+      if (conflicts.length > 0) {
+        const conflictDesc = conflicts.map(c => {
+          const userLabel = PREF_ITEMS.find(x => x.id === c.user)?.label || c.user;
+          const jobLabel = PREF_ITEMS.find(x => x.id === c.job)?.label || c.job;
+          return `你期望「${userLabel}」但岗位倾向「${jobLabel}」`;
+        }).join('；');
         prefSection.paragraphs.push(
-          `但要注意：你期望的「${conflictPrefs.join('、')}」在目标岗位中可能无法完全满足。这不是说不能选这个岗位，而是你需要想清楚：这些偏好是你「必须有的底线」还是「最好有但可以妥协」的？如果是底线，可以考虑备选岗位。`
+          `⚠️ 偏好冲突：${conflictDesc}。这不是说不能选这个岗位，而是你需要想清楚：这些偏好是你「必须有的底线」还是「最好有但可以妥协」的？`
         );
       }
       sections.push(prefSection);
     }
 
-    // ── 6. 总结 ──
-    const top1 = report.top[0];
+    // ── 6. 综合建议 ──
     const top2 = report.top[1];
     const top3 = report.top[2];
+    const transferPercent = Math.round((top1.parts.transfer || 0.5) * 100);
     sections.push({
       title: '综合建议',
       icon: 'ri-lightbulb-flash-line',
       paragraphs: [
-        `综合你的兴趣、技能、性格和偏好，你最匹配的方向是「${top1.job.name}」（匹配度 ${top1.total}%）。${top1.job.desc}`,
+        `综合你的兴趣、技能、性格和偏好，你最匹配的方向是「${top1.job.name}」（匹配度 ${top1.total}%）。经验迁移度 ${transferPercent}%——${transferPercent >= 60 ? '你的技能组合跨领域覆盖较好，转型适应期会更短' : '建议聚焦目标领域，集中提升核心技能'}。`,
         top2 ? `备选方向是「${top2.job.name}」（${top2.total}%）和「${top3.job.name}」（${top3.total}%）。如果你对第一选择不确定，可以同时关注这两个方向。` : '',
         `接下来你可以：① 针对目标岗位优化简历（突出匹配的技能和经历）；② 查看「岗位详情」了解具体要求；③ 使用「AI 简历诊断」检查简历质量。`
       ].filter(Boolean)
