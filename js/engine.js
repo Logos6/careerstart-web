@@ -2292,17 +2292,222 @@
   }
 
   // ═══════════════════════════════════════════════════
-  //  面试流程框架 v2.0（动态自适应）
+  //  面试流程框架 v3.0（基于真实面试运行机制）
+  //  核心原则：走流程 → 做判断
   // ═══════════════════════════════════════════════════
 
-  // 面试阶段定义
+  // ──── 面试官人格系统 ────
+  // 真实面试中，不同岗位由不同风格的面试官面试
+  // 技术总监：直接、追原理、不太关心情感
+  // HR经理：亲切、问稳定性、关注价值观
+  // 业务主管：务实、问结果、关注ROI
+  // 团队主管：综合、问协作、关注成长性
+  const INTERVIEWER_PERSONAS = {
+    tech_director: {
+      name: '技术总监',
+      greeting: '你好，我是技术负责人，今天主要想了解你的技术能力和解决问题的思路。',
+      style: '专业深度型',
+      reactions: {
+        good: ['嗯，思路很清晰。', '不错，这个方案可以。', '嗯，理解了。'],
+        mid: ['好的。', '嗯，大概了解了。', '行。'],
+        weak: ['嗯。', '好的。'],
+      },
+      transitions: [
+        '接下来我想了解一个技术问题——',
+        '那我再问一个——',
+        '嗯，关于技术方面——',
+      ],
+      probingStyle: '追原理和细节',
+      probes: {
+        project: ['这个项目的技术架构是什么？为什么选这个方案？', '这个方案的瓶颈在哪里？'],
+       困难: ['这个技术问题的根因是什么？你怎么定位的？'],
+        success: ['这个优化的效果数据是多少？上线后有监控吗？'],
+        vague: ['能再具体一些吗？比如用了什么技术栈？', '具体是什么场景？'],
+      },
+      closing: '好的，今天的技术面试就到这里。感谢你的时间。',
+    },
+    hr_manager: {
+      name: 'HR经理',
+      greeting: '你好，我是HR，今天咱们轻松聊聊，了解一下你的经历和想法。',
+      style: '综合素质型',
+      reactions: {
+        good: ['嗯，说得挺好的。', '理解，这个经历不错。', '嗯，清楚了。'],
+        mid: ['好的，我大概了解了。', '嗯，明白了。', '行。'],
+        weak: ['嗯，好的。', '知道了。'],
+      },
+      transitions: [
+        '接下来我想了解一下——',
+        '那我再问一个——',
+        '好的，那我们聊聊——',
+      ],
+      probingStyle: '引导式提问',
+      probes: {
+        career: ['你为什么选择这个方向？', '你对未来有什么规划？'],
+        stability: ['你为什么离开上一家公司？', '你最看重工作的哪些方面？'],
+        vague: ['能举个具体的例子吗？', '具体是什么情况？'],
+      },
+      closing: '好的，今天就聊到这里。我们会在几个工作日内给你答复，感谢你的时间。',
+    },
+    business_lead: {
+      name: '业务主管',
+      greeting: '你好，我是业务负责人，今天主要看看你的经验和能力跟我们岗位的匹配度。',
+      style: '务实结果型',
+      reactions: {
+        good: ['嗯，结果不错。', '好的，理解了。', '嗯，这个案例挺有价值的。'],
+        mid: ['好的，了解了。', '嗯，行。'],
+        weak: ['嗯。', '好的。'],
+      },
+      transitions: [
+        '接下来我想了解一下——',
+        '那我再问一个——',
+        '好的，那我们聊聊——',
+      ],
+      probingStyle: '追结果和数据',
+      probes: {
+        project: ['这个项目的ROI是多少？', '最终的结果数据怎么样？'],
+        success: ['你在这个项目中的具体贡献是什么？', '团队有多少人？你负责哪块？'],
+        vague: ['能给个具体数字吗？', '效果如何？有数据支撑吗？'],
+      },
+      closing: '好的，今天就到这里。感谢你的分享，后续有消息会通知你。',
+    },
+    team_lead: {
+      name: '团队主管',
+      greeting: '你好，我是团队负责人，今天咱们聊聊你的经历和能力。',
+      style: '综合评估型',
+      reactions: {
+        good: ['嗯，说得不错。', '好的，理解了。', '嗯，这个经历挺有价值的。'],
+        mid: ['好的，我大概了解了。', '嗯，明白了。', '行，了解了。'],
+        weak: ['嗯，好的。', '行，我知道了。'],
+      },
+      transitions: [
+        '接下来我想了解一下——',
+        '那我再问一个——',
+        '好的，那我们聊聊——',
+        '嗯，下一个问题——',
+      ],
+      probingStyle: '综合深挖',
+      probes: {
+        project: ['这个项目团队多少人？你具体负责什么？', '遇到什么困难了吗？怎么解决的？'],
+        team: ['团队内部有没有分歧？你怎么处理的？'],
+        success: ['结果怎么样？有数据吗？你个人贡献是什么？'],
+        vague: ['能再具体一些吗？', '能举个例子吗？'],
+      },
+      closing: '好的，今天就聊到这里。感谢你的参与，后续有消息会通知你。',
+    },
+  };
+
+  // 根据岗位选择面试官人格
+  function selectPersona(jobName) {
+    const text = (jobName || '').toLowerCase();
+    if (/技术|开发|工程师|架构|后端|前端|测试|运维|AI|算法|数据/.test(text)) {
+      return INTERVIEWER_PERSONAS.tech_director;
+    }
+    if (/管理|总监|主管|经理|leader|VP|CEO/.test(text)) {
+      return INTERVIEWER_PERSONAS.team_lead;
+    }
+    if (/销售|商务|BD|客户|拓展/.test(text)) {
+      return INTERVIEWER_PERSONAS.business_lead;
+    }
+    return INTERVIEWER_PERSONAS.hr_manager;
+  }
+
+  // ──── 动态追问引擎 ────
+  // 核心：根据候选人具体说了什么来追问，不是走预设链
+  function generateProbing(answer, question, persona, session) {
+    const text = (answer || '').trim();
+    const len = text.length;
+    const probing = [];
+
+    // 1. 回答太短 → 追问展开
+    if (len < 30) {
+      const shortProbes = [
+        '能再展开说说吗？具体的细节是什么？',
+        '能再详细一些吗？比如当时的背景是什么？',
+        '这个回答有点简洁，能给我讲一个具体的故事吗？',
+      ];
+      probing.push(shortProbes[Math.floor(Math.random() * shortProbes.length)]);
+      return probing.slice(0, 1);
+    }
+
+    // 2. 分析回答内容，提取线索
+    const hasProject = /项目|产品|功能|上线|发布|迭代|重构|迁移/.test(text);
+    const hasTeam = /团队|小组|部门|同事|协作|配合|跨部门/.test(text);
+    const hasData = /\d+[%％万元人天次个月年]|提升了?\d+|增长了?\d+|节省了?\d+|DAU|GMV|ROI|KPI/.test(text);
+    const hasDifficulty = /困难|挑战|压力|问题|难点|瓶颈|踩坑/.test(text);
+    const hasSuccess = /成功|完成|达成|实现|效果好|做得好|成果/.test(text);
+    const hasFailure = /失败|错误|没做好|教训|复盘|不足/.test(text);
+    const hasVague = len < 60 && !hasProject && !hasData && !hasDifficulty;
+
+    // 3. 根据内容选择追问方向
+    if (hasProject && !hasData) {
+      // 提到了项目但没说数据 → 追问结果
+      const projectProbes = persona.probes.project || [
+        '这个项目的最终结果怎么样？有没有数据支撑？',
+        '你在这个项目中的具体贡献是什么？',
+      ];
+      probing.push(projectProbes[Math.floor(Math.random() * projectProbes.length)]);
+    } else if (hasDifficulty && !hasFailure) {
+      // 提到了困难但没说怎么解决 → 追问解决方法
+      probing.push('你是怎么解决这个困难的？具体采取了什么措施？');
+    } else if (hasSuccess && !hasData) {
+      // 说了成功但没数据 → 追问量化
+      const successProbes = persona.probes.success || [
+        '效果如何？能给个具体数字吗？',
+        '你在这个成果中的具体贡献是什么？',
+      ];
+      probing.push(successProbes[Math.floor(Math.random() * successProbes.length)]);
+    } else if (hasFailure) {
+      // 提到了失败 → 追问反思
+      probing.push('从这次经历中你学到了什么？后来有改进吗？');
+    } else if (hasTeam) {
+      // 提到了团队 → 追问协作细节
+      probing.push('你在团队中具体负责什么？团队有多少人？');
+    } else if (hasVague) {
+      // 回答太笼统 → 追问具体案例
+      const vagueProbes = persona.probes.vague || [
+        '能举一个具体的例子吗？',
+        '能再具体一些吗？',
+      ];
+      probing.push(vagueProbes[Math.floor(Math.random() * vagueProbes.length)]);
+    }
+
+    // 4. 如果前面有回答，可以引用前面的内容
+    if (session.answers.length >= 2 && probing.length === 0) {
+      const prev = session.answers[session.answers.length - 2];
+      if (prev && prev.answer) {
+        const prevKeywords = extractKeywords(prev.answer);
+        if (prevKeywords.length > 0 && Math.random() > 0.6) {
+          const refProbes = [
+            '你刚才提到了' + prevKeywords[0] + '相关的内容，能再深入讲讲吗？',
+            '前面你说到了' + prevKeywords[0] + '，我想再了解一下——',
+          ];
+          probing.push(refProbes[Math.floor(Math.random() * refProbes.length)]);
+        }
+      }
+    }
+
+    // 5. 挑战式追问（随机触发，测试深度）
+    if (probing.length === 0 && len > 60 && Math.random() > 0.7) {
+      const challengeProbes = [
+        '如果让你重新做一次，你会有什么不同的做法？',
+        '你觉得这件事有什么不足的地方？',
+        '有没有可能是因为其他原因？',
+        '你的同事会怎么评价这件事？',
+      ];
+      probing.push(challengeProbes[Math.floor(Math.random() * challengeProbes.length)]);
+    }
+
+    return probing.slice(0, 1); // 每轮最多1个追问
+  }
+
+  // ──── 面试阶段定义 ────
+  // 不再是固定轮次，而是"考察够了就进入下一阶段"
   const INTERVIEW_PHASES = {
-    warmup:     { label: '暖场', maxRounds: 1 },
-    background: { label: '背景', maxRounds: 2 },
-    ability:    { label: '能力', maxRounds: 4 },
-    behavior:   { label: '行为', maxRounds: 3 },
-    depth:      { label: '深度', maxRounds: 3 },
-    closing:    { label: '收尾', maxRounds: 2 },
+    opening:    { label: '开场', targetRounds: 2 },
+    background: { label: '背景', targetRounds: 3 },
+    ability:    { label: '能力', targetRounds: 4 },
+    behavior:   { label: '行为', targetRounds: 3 },
+    closing:    { label: '收尾', targetRounds: 2 },
   };
 
   // 关键词提取：从回答中识别候选人提到的内容
@@ -2469,6 +2674,7 @@
 
   function initInterviewSession(jobName) {
     const jobTypes = detectJobTypes(jobName);
+    const persona = selectPersona(jobName);
 
     // 构建分类到题目的索引（直接从 INTERVIEW_DB 构建）
     const categoryIndex = {};
@@ -2477,104 +2683,81 @@
     }
 
     return {
-      jobName, jobTypes, categoryIndex,
+      jobName, jobTypes, categoryIndex, persona,
       asked: [], answers: [], round: 0,
-      phase: 'warmup',
-      phaseRound: 0,
+      phase: 'opening',
+      phaseRounds: 0,
       followups: [],
       usedFollowups: [],
       competencyScores: {},
+      questionMap: {},  // id → question object（用于查找 probing/closing 等非DB题目）
       startTime: Date.now(),
     };
   }
 
   // 获取下一个问题（核心逻辑）
-  // 注意：round 由外部（startInterview / getInterviewFeedback）管理递增
+  // 基于面试官人格和当前阶段动态选题
   function getNextQuestion(session) {
     // 1. 优先返回追问
     if (session.followups.length > 0) return session.followups.shift();
 
-    // 2. 第1-3轮：背景探索（随机自我介绍/职业背景/转型动机）
-    if (session.round <= 3) {
-      // 检查上一轮回答是否有可追问的关键词
-      const lastEntry = session.answers[session.answers.length - 1];
-      if (lastEntry && lastEntry.answer) {
-        const keywords = extractKeywords(lastEntry.answer);
-        for (const kw of keywords) {
-          const templates = FOLLOWUP_TEMPLATES[kw];
-          if (templates) {
-            const usedKey = kw + '_' + session.round;
-            if (!session.usedFollowups.includes(usedKey)) {
-              session.usedFollowups.push(usedKey);
-              const fq = templates[Math.floor(Math.random() * templates.length)];
-              return { id: 'fu_' + Date.now(), q: fq, cat: '追问', tips: '基于候选人回答的深度追问', w: 15 };
+    const phase = session.phase || 'opening';
+    const round = session.round || 0;
+
+    // 2. 总轮次上限（15轮）
+    if (round >= 15) return null;
+
+    // 3. 根据当前阶段选题
+    let q = null;
+    switch (phase) {
+      case 'opening':
+        q = pickFromCategory(session, ['self_intro', 'career_gap', 'career_change', 'general'], 'basic');
+        break;
+
+      case 'background':
+        q = pickFromCategory(session, ['career_gap', 'career_change', 'general', 'self_intro'], 'basic');
+        break;
+
+      case 'ability':
+        // 交替问行业问题和通用能力
+        if (round % 2 === 0) {
+          const jobQs = [];
+          for (const t of session.jobTypes) {
+            if (JOB_QUESTIONS[t]) jobQs.push(...JOB_QUESTIONS[t]);
+          }
+          if (jobQs.length > 0) {
+            const unused = jobQs.filter((_, i) => !session.asked.includes('jq_' + i));
+            if (unused.length > 0) {
+              const idx = Math.floor(Math.random() * unused.length);
+              const jq = unused[idx];
+              const qid = 'jq_' + round + '_' + idx;
+              session.asked.push(qid);
+              q = { id: qid, q: jq, cat: '行业问题', tips: '考察对岗位和行业的理解', w: 20 };
+              session.questionMap[qid] = q;
             }
           }
         }
-      }
-      // 从背景分类中选题
-      return pickFromCategory(session, ['self_intro', 'career_gap', 'career_change', 'general'], 'basic');
-    }
+        if (!q) q = pickFromCategory(session, ['general', 'teamwork', 'pressure', 'decision'], 'intermediate');
+        break;
 
-    // 4. 第4-7轮：能力+行业问题
-    if (session.round <= 7) {
-      // 交替问行业问题和通用能力问题
-      if (session.round % 2 === 0) {
-        // 行业问题
-        const jobQs = [];
-        for (const t of session.jobTypes) {
-          if (JOB_QUESTIONS[t]) jobQs.push(...JOB_QUESTIONS[t]);
+      case 'behavior':
+        q = pickFromCategory(session, ['teamwork', 'pressure', 'decision', 'customer_service'], 'advanced');
+        break;
+
+      case 'closing':
+        if (round >= 13) {
+          q = { id: 'closing_1', q: '你有什么想问我的吗？', cat: '反问环节', tips: '考察候选人的主动性和思考深度', w: 10 };
+          session.asked.push(q.id);
+          session.questionMap[q.id] = q;
+        } else {
+          q = pickFromCategory(session, ['general', 'career_gap'], 'intermediate');
         }
-        if (jobQs.length > 0) {
-          const unused = jobQs.filter((_, i) => !session.asked.includes('jq_' + i));
-          if (unused.length > 0) {
-            const idx = Math.floor(Math.random() * unused.length);
-            const q = unused[idx];
-            const qid = 'jq_' + session.round + '_' + idx;
-            session.asked.push(qid);
-            return { id: qid, q, cat: '行业问题', tips: '考察对岗位和行业的理解', w: 20 };
-          }
-        }
-      }
-      // 通用能力问题
-      return pickFromCategory(session, ['general', 'teamwork', 'pressure', 'decision'], 'intermediate');
-    }
+        break;
 
-    // 5. 第8-11轮：行为面试+深度追问
-    if (session.round <= 11) {
-      const lastEntry = session.answers[session.answers.length - 1];
-      if (lastEntry && lastEntry.answer) {
-        const keywords = extractKeywords(lastEntry.answer);
-        for (const kw of keywords) {
-          const templates = FOLLOWUP_TEMPLATES[kw];
-          if (templates) {
-            const usedKey = kw + '_' + session.round;
-            if (!session.usedFollowups.includes(usedKey)) {
-              session.usedFollowups.push(usedKey);
-              const fq = templates[Math.floor(Math.random() * templates.length)];
-              return { id: 'fu_' + Date.now(), q: fq, cat: '深度追问', tips: '深入挖掘行为细节', w: 20 };
-            }
-          }
-        }
-      }
-      // 行为面试题
-      return pickFromCategory(session, ['teamwork', 'pressure', 'decision', 'customer_service'], 'advanced');
+      default:
+        q = pickFromCategory(session, ['general'], 'basic');
     }
-
-    // 6. 第12-14轮：匹配+收尾
-    if (session.round <= 14) {
-      if (session.round === 12) {
-        return pickFromCategory(session, ['general'], 'intermediate'); // 职业规划
-      }
-      if (session.round === 13) {
-        return pickFromCategory(session, ['general'], 'intermediate'); // 求职动机
-      }
-      // 反问环节
-      return { id: 'closing_1', q: '最后，你有什么想问我的吗？', cat: '反问环节', tips: '考察候选人的主动性和思考深度', w: 10 };
-    }
-
-    // 7. 第15轮：结束语
-    return null;
+    return q;
   }
 
   // 按分类选题（随机选取）
@@ -2747,9 +2930,30 @@
     return matched.length > 0 ? matched : ['communication'];
   }
 
+  // 根据ID查找题目对象
+  function findQuestionById(session, qid) {
+    if (!qid) return null;
+    // 从 session.questionMap 中查找（probing/closing 等动态题目）
+    if (session.questionMap && session.questionMap[qid]) return session.questionMap[qid];
+    // 从 categoryIndex 中查找
+    for (const questions of Object.values(session.categoryIndex || {})) {
+      const found = questions.find(q => q.id === qid);
+      if (found) return found;
+    }
+    // 从 INTERVIEW_DB 中查找
+    for (const questions of Object.values(INTERVIEW_DB)) {
+      const found = questions.find(q => q.id === qid);
+      if (found) return found;
+    }
+    return null;
+  }
+
   function getInterviewFeedback(session, userAnswer) {
-    const q = session.asked[session.asked.length - 1];
+    // session.asked 存的是题目ID，需要查找完整对象
+    const qid = session.asked[session.asked.length - 1];
+    const q = findQuestionById(session, qid) || { id: qid, q: '（未知问题）', cat: '未知', tips: '', w: 10 };
     const analysis = scoreAnswer(userAnswer, q);
+    const persona = session.persona || INTERVIEWER_PERSONAS.team_lead;
 
     // 记录本次回答的胜任力
     const detectedComps = detectCompetencies(userAnswer);
@@ -2761,74 +2965,86 @@
     session.answers.push({ question: q, answer: userAnswer, analysis });
     session.round++;
 
-    // 智能追问
-    const followups = generateFollowups(userAnswer, q, session);
-    if (followups.length > 0) {
-      const fu = followups[0];
-      updateFollowupProgress(session, fu);
-      session.followups = [...(session.followups || []), fu];
+    // ──── 动态追问 ────
+    const probing = generateProbing(userAnswer, q, persona, session);
+
+    // ──── 判断是否该进入下一阶段 ────
+    const shouldAdvance = session.phaseRounds >= (INTERVIEW_PHASES[session.phase]?.targetRounds || 3);
+    if (shouldAdvance && session.phase !== 'closing') {
+      const phaseOrder = ['opening', 'background', 'ability', 'behavior', 'closing'];
+      const idx = phaseOrder.indexOf(session.phase);
+      if (idx < phaseOrder.length - 1) {
+        session.phase = phaseOrder[idx + 1];
+        session.phaseRounds = 0;
+      }
     }
 
-    const nextQ = getNextQuestion(session);
-    session.currentQ++;
+    // ──── 获取下一个问题 ────
+    let nextQ = null;
+    if (probing.length > 0) {
+      // 有追问时，追问就是下一个问题
+      nextQ = { id: 'probing_' + Date.now(), q: probing[0], cat: '追问', tips: '基于候选人回答的深度追问', w: 15 };
+      session.asked.push(nextQ.id);
+      session.questionMap[nextQ.id] = nextQ;
+    } else {
+      // 没有追问，从题库选下一题
+      nextQ = getNextQuestion(session);
+    }
 
-    // 生成专业AI回应（模拟真实面试官风格）
+    // ──── 生成面试官回复 ────
     let aiResponse = '';
 
-    // STAR状态
-    let starMsg = '【回答结构】';
-    starMsg += analysis.star.hasSituation ? ' ✓情境' : ' ✗情境';
-    starMsg += analysis.star.hasTask ? ' ✓任务' : ' ✗任务';
-    starMsg += analysis.star.hasAction ? ' ✓行动' : ' ✗行动';
-    starMsg += analysis.star.hasResult ? ' ✓结果' : ' ✗结果';
-
-    // 评分反馈
-    let scoreMsg = '';
-    if (analysis.score >= 80) {
-      scoreMsg = `评分 ${analysis.score}/100（${analysis.level}）`;
-    } else if (analysis.score >= 60) {
-      const missing = [];
-      if (!analysis.star.hasSituation) missing.push('情境描述');
-      if (!analysis.star.hasTask) missing.push('任务说明');
-      if (!analysis.star.hasAction) missing.push('行动步骤');
-      if (!analysis.star.hasResult) missing.push('结果量化');
-      scoreMsg = `评分 ${analysis.score}/100（${analysis.level}）`;
-      if (missing.length > 0) scoreMsg += `\n建议补充：${missing.join('、')}`;
+    // 1. 对回答的反应（带人格风格）
+    let reaction;
+    if (analysis.score >= 75) {
+      reaction = persona.reactions.good[Math.floor(Math.random() * persona.reactions.good.length)];
+    } else if (analysis.score >= 50) {
+      reaction = persona.reactions.mid[Math.floor(Math.random() * persona.reactions.mid.length)];
     } else {
-      scoreMsg = `评分 ${analysis.score}/100（${analysis.level}）`;
-      if (analysis.suggestions[0]) scoreMsg += `\n${analysis.suggestions[0]}`;
+      reaction = persona.reactions.weak[Math.floor(Math.random() * persona.reactions.weak.length)];
     }
 
-    // 组合反馈
-    aiResponse = starMsg + '\n' + scoreMsg;
-
-    // 追问或下一题
-    if (session.followups && session.followups.length > 0) {
-      aiResponse += '\n\n追问：' + session.followups[0].q;
+    // 2. 生成回复
+    if (probing.length > 0) {
+      // 有追问：反应 + 自然追问语 + 追问内容
+      const digDeeper = [
+        '你刚才提到了这一点，我想再了解一下——',
+        '这个挺有意思的，能展开说说吗？',
+        '关于你刚才说的，我想多了解一下——',
+        '嗯，那我想追问一下——',
+      ];
+      const transition = digDeeper[Math.floor(Math.random() * digDeeper.length)];
+      aiResponse = reaction + '\n\n' + transition + '\n\n' + probing[0];
     } else if (nextQ) {
-      aiResponse += '\n\n下一题：' + nextQ.q;
+      // 无追问：反应 + 自然过渡 + 下一题
+      const transition = persona.transitions[Math.floor(Math.random() * persona.transitions.length)];
+      aiResponse = reaction + '\n\n' + transition + '\n\n' + nextQ.q;
     } else {
-      aiResponse += '\n\n面试结束，感谢您的参与！正在生成评估报告...';
+      // 面试结束
+      aiResponse = reaction + '\n\n' + persona.closing;
     }
+
+    session.phaseRounds = (session.phaseRounds || 0) + 1;
 
     return {
       feedbackParts: analysis.feedbackParts, score: analysis.score,
       level: analysis.level, color: analysis.color,
-      isLast: false, aiResponse, nextQuestion: nextQ,
+      isLast: !nextQ, aiResponse, nextQuestion: nextQ,
       round: session.round, star: analysis.star,
       competencyFeedback: detectedComps.map(c => ({ key: c, name: COMPETENCIES[c]?.name, score: analysis.score })),
     };
   }
 
   function endInterview(session) {
+    const persona = session.persona || INTERVIEWER_PERSONAS.team_lead;
     const round = session.round || 0;
     let closingMsg = '';
     if (round === 0) {
-      closingMsg = '感谢您参加今天的面试。由于回答轮次较少，报告可能不够全面，建议您再次尝试以获得更准确的评估。正在生成评估报告...';
+      closingMsg = '今天的面试轮次较少，报告可能不够全面，建议您再次尝试。正在生成评估报告...';
     } else if (round <= 3) {
-      closingMsg = '感谢您今天的参与。由于面试轮次较少，部分评估维度可能不够充分。正在为您生成评估报告，建议您稍后再次练习以获得更完整的评估。';
+      closingMsg = '今天聊的内容不算多，部分维度可能考察得不够充分。正在为您生成评估报告，建议稍后再练习一次。';
     } else {
-      closingMsg = '感谢您今天的参与和分享！您的面试表现已全面记录。正在为您生成专业评估报告，包含六维能力雷达图和针对性改进建议，请稍候...';
+      closingMsg = '好的，今天的面试就到这里。感谢你的参与，我对你的情况有了比较全面的了解。正在为你生成评估报告，包含能力分析和改进建议，请稍候...';
     }
     return {
       feedbackParts: [], score: 0, level: '', isLast: true,
