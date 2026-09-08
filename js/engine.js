@@ -2292,99 +2292,154 @@
   }
 
   // ═══════════════════════════════════════════════════
-  //  面试流程框架（15轮结构化面试）
+  //  面试流程框架 v2.0（动态自适应）
   // ═══════════════════════════════════════════════════
 
-  const INTERVIEW_FLOW = [
-    // Round 1: 开场暖场（必问自我介绍）
-    { round: 1, phase: '暖场', categories: ['self_intro'], difficulty: 'basic', required: true },
-    // Round 2-3: 背景探索
-    { round: 2, phase: '背景', categories: ['self_intro', 'career_gap', 'career_change'], difficulty: 'basic' },
-    { round: 3, phase: '背景', categories: ['self_intro', 'general'], difficulty: 'basic' },
-    // Round 4-6: 核心能力（专业问题 + 行业问题）
-    { round: 4, phase: '能力', categories: ['professional', 'job_industry'], difficulty: 'basic' },
-    { round: 5, phase: '能力', categories: ['professional', 'job_industry'], difficulty: 'basic' },
-    { round: 6, phase: '能力', categories: ['professional', 'job_industry'], difficulty: 'intermediate' },
-    // Round 7-9: 行为面试
-    { round: 7, phase: '行为', categories: ['teamwork', 'decision'], difficulty: 'intermediate' },
-    { round: 8, phase: '行为', categories: ['pressure', 'teamwork'], difficulty: 'intermediate' },
-    { round: 9, phase: '行为', categories: ['customer_service', 'decision'], difficulty: 'intermediate' },
-    // Round 10-12: 深度追问（专业深度 + 行业深度）
-    { round: 10, phase: '深度', categories: ['professional', 'job_industry'], difficulty: 'advanced' },
-    { round: 11, phase: '深度', categories: ['professional', 'job_industry'], difficulty: 'advanced' },
-    { round: 12, phase: '深度', categories: ['professional', 'job_industry'], difficulty: 'advanced' },
-    // Round 13-14: 岗位匹配
-    { round: 13, phase: '匹配', categories: ['general'], difficulty: 'intermediate' },
-    { round: 14, phase: '匹配', categories: ['general'], difficulty: 'intermediate' },
-    // Round 15: 收尾
-    { round: 15, phase: '收尾', categories: ['general'], difficulty: 'basic' },
+  // 面试阶段定义
+  const INTERVIEW_PHASES = {
+    warmup:     { label: '暖场', maxRounds: 1 },
+    background: { label: '背景', maxRounds: 2 },
+    ability:    { label: '能力', maxRounds: 4 },
+    behavior:   { label: '行为', maxRounds: 3 },
+    depth:      { label: '深度', maxRounds: 3 },
+    closing:    { label: '收尾', maxRounds: 2 },
+  };
+
+  // 关键词提取：从回答中识别候选人提到的内容
+  const KEYWORD_PATTERNS = {
+    project:   /项目|产品|功能|上线|发布|迭代|重构|迁移/gi,
+    team:      /团队|小组|部门|同事|协作|配合|跨部门/gi,
+    data:      /数据|指标|转化|增长|留存|DAU|GMV|ROI|KPI|OKR/gi,
+    conflict:  /冲突|分歧|矛盾|争议|反对|不同意/gi,
+    pressure:  /加班|紧急|deadline|高压|强度|熬夜|通宵/gi,
+    learning:  /学习|培训|课程|认证|自学|看书|研究/gi,
+    failure:   /失败|错误|踩坑|复盘|教训|没做好/gi,
+    customer:  /客户|用户|反馈|投诉|需求|满意度/gi,
+    tech:      /技术|架构|系统|性能|优化|算法|代码/gi,
+    leadership:/管理|带人|负责|主导|推动|决策/gi,
+  };
+
+  // 根据关键词生成追问模板
+  const FOLLOWUP_TEMPLATES = {
+    project: [
+      '你提到的这个项目，当时团队有多少人？你在其中具体负责哪一块？',
+      '这个项目最终的成果如何？有没有可以量化的数据？',
+      '项目过程中遇到的最大挑战是什么？你是怎么解决的？',
+    ],
+    team: [
+      '能具体说说你是怎么和团队协作的吗？举个例子？',
+      '团队内部有没有出现过分歧？你是怎么处理的？',
+      '你觉得在一个团队中，最重要的是什么？',
+    ],
+    data: [
+      '你提到的这个数据指标，优化前后的具体变化是多少？',
+      '你是通过什么方法提升这个指标的？能拆解一下步骤吗？',
+      '这个数据结果得到了谁的认可？后来有没有持续保持？',
+    ],
+    conflict: [
+      '当时具体是什么分歧？对方的立场是什么？',
+      '你最终是怎么说服对方的？用了什么策略？',
+      '这件事之后，你们的合作关系有什么变化吗？',
+    ],
+    pressure: [
+      '能描述一下当时具体的高压场景吗？',
+      '你是怎么调节自己的状态的？有没有什么方法？',
+      '在那种压力下，你是怎么保证工作质量的？',
+    ],
+    learning: [
+      '你最近学的这个东西，对你的工作有什么具体帮助？',
+      '你是怎么安排时间学习的？有没有什么学习方法分享？',
+      '学完之后有没有实际应用到工作中？效果如何？',
+    ],
+    failure: [
+      '能具体说说当时是什么情况？',
+      '事后你做了什么来避免类似问题再次发生？',
+      '这件事对你后来的工作方式有什么影响？',
+    ],
+    customer: [
+      '能举一个具体的例子吗？当时的场景是什么？',
+      '你是怎么判断客户的真实需求的？',
+      '最终的结果如何？客户满意吗？',
+    ],
+    tech: [
+      '能展开说说这个技术方案的选型过程吗？',
+      '为什么选择这个方案而不是其他方案？',
+      '这个技术方案上线后的效果如何？有没有遇到什么坑？',
+    ],
+    leadership: [
+      '你是怎么推动这件事落地的？遇到了什么阻力？',
+      '团队成员的能力参差不齐，你是怎么处理的？',
+      '你觉得好的管理者应该具备什么特质？',
+    ],
+  };
+
+  // 通用追问（当没有识别到特定关键词时使用）
+  const GENERIC_FOLLOWUPS = [
+    '能再展开说说吗？具体的细节是什么？',
+    '这件事最终的结果如何？有没有数据支撑？',
+    '如果现在让你重新做一次，你会有什么不同的做法？',
+    '你觉得这件事最能体现你的什么能力？',
   ];
 
-  // 通用面试问题分类映射
-  const CATEGORY_MAP = {
-    self_intro: ['自我介绍', '核心优势', '职业亮点', '岗位理解', '竞争优势', '职业故事', '技能盘点', '职业阶段', '工作风格', '个人品牌', '行业认知', '职业转型', '领导力', '解决问题', '成长性'],
-    career_gap: ['空白期解释', '回归动机', '技能更新', '稳定性担忧', '全职妈妈优势', '工作家庭平衡', '薪资期望', '职业连续性', '面试准备', '空窗期学习', '适应能力', '职业规划', '年龄担忧', '心态调整', '价值证明'],
-    career_change: ['转行动机', '技能迁移', '差距分析', '准备程度', '行业认知', '薪资谈判', '风险评估', '稳定性', '成功案例', '自我认知'],
-    general: ['离职原因', '冲突处理', '失败反思', '薪资谈判', '职业规划', '学习能力', '沟通能力', '适应能力', '求职动机', '优缺点', '抗压能力', '团队合作', '反问环节', '稳定性'],
-    teamwork: ['冲突解决', '跨部门协作', '向上管理', '团队贡献', '沟通风格', '反馈能力'],
-    pressure: ['压力认知', '情绪管理', '高压环境', '挫折应对', '自我调节', '完美主义', '抗压能力', '冲突处理', '压力面试', '动力维持'],
-    decision: ['决策风格', '风险评估', '创新思维', '战略思维', '问题分析'],
-    customer_service: ['投诉处理', '客户满意度', '服务标准', '团队培训', '情绪管理'],
-    remote_work: ['自律能力', '沟通协作', '时间管理', '工作效率'],
-    entrepreneurship: ['创业经历', '商业思维', '资源整合', '风险管理'],
-    mom_special: ['回归准备', '能力优势', '时间管理', '职业规划', '稳定性'],
-    // 通用专业能力分类（用于能力轮和深度轮）
-    professional: ['专业能力', '项目经验', '问题解决', '学习能力', '抗压能力', '沟通能力', '团队协作', '创新能力', '领导力', '执行力', '分析能力', '决策能力'],
-    // 行业分类（动态填充，根据岗位匹配）
-    job_industry: [],
-    // 行业分类保持原样
-    management: ['领导力', '战略规划', '团队管理', '决策能力', '变革管理'],
-    technical: ['项目经验', '技术深度', '系统设计', '代码质量', '技术选型'],
-    sales: ['客户开发', '谈判技巧', '业绩目标', '客户关系', '市场洞察'],
-    marketing: ['品牌策略', '市场分析', '推广方案', '数据分析', '创意策划'],
-    operations: ['运营策略', '数据分析', '用户增长', '内容运营', '活动策划'],
-    finance: ['财务分析', '预算管理', '风险控制', '合规审计', '成本优化'],
-    hr_admin: ['招聘管理', '员工关系', '培训发展', '薪酬绩效', '组织文化'],
-    design: ['设计理念', '用户体验', '设计流程', '作品展示', '设计工具'],
-    data_analytics: ['数据思维', '分析方法', '工具使用', '业务理解', '数据治理'],
-    ecommerce_retail: ['电商运营', '店铺管理', '选品策略', '直播带货', '供应链'],
-    new_energy: ['行业认知', '技术理解', '政策解读', '项目经验', '市场趋势'],
-    ai_tech: ['模型理解', '应用场景', '技术趋势', '项目经验', '伦理思考'],
-    banking_insurance: ['金融知识', '风险意识', '合规要求', '客户服务', '产品理解'],
-    logistics: ['供应链管理', '仓储优化', '配送效率', '成本控制', '系统流程'],
-    pharma_med: ['专业知识', '合规意识', '临床经验', '客户服务', '学术推广'],
-    culture_media: ['内容创作', '平台运营', '粉丝增长', '商业变现', '版权意识'],
-    construction_re: ['项目管理', '施工经验', '安全规范', '成本控制', '质量把控'],
-    hospitality: ['服务意识', '客户体验', '团队管理', '运营效率', '品质控制'],
-    education: ['教学能力', '课程设计', '学生管理', '教育理念', '专业发展'],
-    healthcare: ['专业知识', '患者沟通', '团队协作', '应急处理', '职业素养'],
-    legal: ['专业知识', '案例分析', '风险评估', '沟通协调', '合规意识'],
+  // 根据岗位类型生成行业问题
+  const JOB_QUESTIONS = {
+    culture_media: [
+      '你平时关注哪些内容平台？最近有没有看到什么让你印象深刻的爆款内容？',
+      '如果让你从0到1运营一个账号，你会怎么做？能说说你的思路吗？',
+      '你怎么看待内容创作和数据分析之间的关系？',
+      '能分享一个你参与过的内容项目吗？具体做了什么？效果如何？',
+    ],
+    operations: [
+      '你认为运营的核心指标是什么？为什么？',
+      '能说说你做过的最成功的一次活动策划吗？从策划到执行的完整过程？',
+      '如果用户增长停滞了，你会从哪些方面去分析和突破？',
+      '你怎么理解用户运营和内容运营的关系？',
+    ],
+    technical: [
+      '能说说你做过的最有挑战性的技术项目吗？',
+      '你在技术选型的时候，通常会考虑哪些因素？',
+      '能描述一下你处理过的最复杂的bug或技术问题吗？',
+      '你怎么看待代码质量和开发效率之间的平衡？',
+    ],
+    sales: [
+      '能分享一个你拿下最难搞的客户的经历吗？',
+      '你的销售方法论是什么？能拆解一下你的成交流程吗？',
+      '面对客户说"太贵了"，你通常怎么应对？',
+      '你怎么维护客户关系？有没有自己的CRM方法？',
+    ],
+    design: [
+      '能说说你最满意的一个设计作品吗？设计思路是什么？',
+      '你怎么平衡用户需求和业务目标之间的冲突？',
+      '能描述一下你的设计流程吗？从接到需求到最终交付？',
+      '你怎么看待设计系统化？有没有相关经验？',
+    ],
+    management: [
+      '你是怎么制定团队目标的？能说说你的目标拆解方法吗？',
+      '团队中有人能力很强但不好管理，你会怎么处理？',
+      '你是怎么做绩效考核的？有什么心得？',
+      '能分享一个你推动变革或改进的成功案例吗？',
+    ],
+    general: [
+      '能说说你过去工作中最有成就感的一件事吗？',
+      '你怎么看待加班和工作效率的关系？',
+      '你未来3年的职业规划是什么？',
+      '你觉得自己最大的优势和需要改进的地方分别是什么？',
+    ],
   };
 
   // 根据岗位名称匹配行业分类
   const JOB_KEYWORDS = {
-    management: ['管理', '总监', '主管', '经理', 'leader', 'CEO', 'COO', 'VP'],
+    culture_media: ['新媒体', '自媒体', '内容', '短视频', 'MCN', '文案', '编导', '主播', '网红', '博主', '运营'],
+    operations: ['运营', '产品运营', '用户运营', '内容运营', '活动策划', '社群'],
     technical: ['开发', '工程师', '程序员', '架构', '后端', '前端', '测试', '运维', 'Java', 'Python', 'Go', 'React', 'Vue'],
     sales: ['销售', '客户经理', 'BD', '商务', '拓展', '经纪人'],
-    marketing: ['市场', '推广', '品牌', '营销', '广告', 'PR'],
-    operations: ['运营', '产品运营', '用户运营', '内容运营', '活动策划', '社群'],
+    design: ['设计', 'UI', 'UX', '视觉', '平面', '交互', '美工'],
+    management: ['管理', '总监', '主管', '经理', 'leader', 'CEO', 'COO', 'VP'],
     finance: ['财务', '会计', '审计', '税务', '出纳', 'Finance'],
     hr_admin: ['人事', 'HR', '招聘', '行政', '人力资源', 'HRBP'],
-    design: ['设计', 'UI', 'UX', '视觉', '平面', '交互', '美工'],
     data_analytics: ['数据分析', 'BI', '数据', '数据挖掘', '算法'],
     ecommerce_retail: ['电商', '店铺', '直播', '带货', '选品', '淘宝', '京东', '抖音'],
-    ai_tech: ['AI', '人工智能', '大模型', '机器学习', '深度学习', 'NLP', 'LLM'],
-    banking_insurance: ['银行', '金融', '保险', '理财', '信贷', '证券', '基金'],
-    logistics: ['物流', '仓储', '配送', '供应链', '快递'],
-    pharma_med: ['医药', '医疗', '护理', '药', '临床', '医院', '制药'],
-    culture_media: ['新媒体', '自媒体', '内容', '短视频', 'MCN', '文案', '编导', '主播', '网红', '博主'],
-    construction_re: ['建筑', '工程', '施工', '监理', '房产', '土木'],
-    hospitality: ['酒店', '餐饮', '服务员', '前厅', '宴会'],
-    agriculture: ['农业', '养殖', '种植', '畜牧', '农产品', '农场'],
-    new_energy: ['新能源', '光伏', '储能', '电池', '风电', '充电桩'],
     education: ['教育', '老师', '教师', '培训', '课程', '助教', '讲师'],
-    healthcare: ['护士', '护理', '保健', '康复', '理疗'],
-    legal: ['法务', '律师', '合规', '法律顾问', '知识产权'],
   };
 
   function detectJobTypes(jobName) {
@@ -2398,27 +2453,21 @@
         }
       }
     }
-    // 如果没有匹配到任何行业分类，返回通用分类
-    if (types.length === 0) {
-      types.push('general');
-    }
+    if (types.length === 0) types.push('general');
     return types;
+  }
+
+  // 从回答中提取关键词
+  function extractKeywords(answer) {
+    const found = [];
+    for (const [key, pattern] of Object.entries(KEYWORD_PATTERNS)) {
+      if (pattern.test(answer)) found.push(key);
+    }
+    return found;
   }
 
   function initInterviewSession(jobName) {
     const jobTypes = detectJobTypes(jobName);
-    
-    // 动态填充 job_industry 分类
-    CATEGORY_MAP.job_industry = [];
-    for (const t of jobTypes) {
-      if (CATEGORY_MAP[t]) {
-        CATEGORY_MAP.job_industry.push(...CATEGORY_MAP[t]);
-      }
-    }
-    // 如果没有匹配到行业分类，添加通用专业分类
-    if (CATEGORY_MAP.job_industry.length === 0) {
-      CATEGORY_MAP.job_industry = ['专业能力', '项目经验', '问题解决', '学习能力'];
-    }
 
     // 构建分类到题目的索引
     const categoryIndex = {};
@@ -2430,67 +2479,160 @@
         }
       }
     }
-    
+
     return {
       jobName, jobTypes, categoryIndex,
-      asked: [], answers: [], currentQ: 0, round: 0,
-      followups: [], followupProgress: {},
-      competencyScores: {}, startTime: Date.now()
+      asked: [], answers: [], round: 0,
+      phase: 'warmup',
+      phaseRound: 0,
+      followups: [],
+      usedFollowups: [],
+      competencyScores: {},
+      startTime: Date.now(),
     };
   }
 
+  // 获取下一个问题（核心逻辑）
   function getNextQuestion(session) {
-    // 优先返回追问
-    if (session.followups && session.followups.length > 0) return session.followups.shift();
+    // 1. 优先返回追问
+    if (session.followups.length > 0) return session.followups.shift();
 
-    const round = session.round + 1; // 下一轮（从1开始）
-    if (round > 15) {
-      // 超过15轮，随机补充问题
-      const allQ = Object.values(INTERVIEW_DB).flat();
-      const available = allQ.filter(q => !session.asked.includes(q.id));
-      if (available.length === 0) return null;
-      const rq = available[Math.floor(Math.random() * available.length)];
-      session.asked.push(rq.id);
-      return { ...rq, id: 'fu_' + Date.now(), cat: '补充问题' };
+    session.round++;
+
+    // 2. 第1轮：必问自我介绍
+    if (session.round === 1) {
+      const q = findQuestion(session, ['g1', 'si1']);
+      if (q) return q;
+      // 备用：从 self_intro 分类中找
+      return pickFromCategory(session, ['self_intro'], 'basic');
     }
 
-    // 根据流程框架选择题目
-    const flowStep = INTERVIEW_FLOW.find(f => f.round === round);
-    if (!flowStep) return null;
+    // 3. 第2-3轮：背景探索（从上一轮回答中提取追问）
+    if (session.round <= 3) {
+      // 检查上一轮回答是否有可追问的关键词
+      const lastAnswer = session.answers[session.answers.length - 1];
+      if (lastAnswer) {
+        const keywords = extractKeywords(lastAnswer);
+        for (const kw of keywords) {
+          const templates = FOLLOWUP_TEMPLATES[kw];
+          if (templates) {
+            const usedKey = kw + '_' + session.round;
+            if (!session.usedFollowups.includes(usedKey)) {
+              session.usedFollowups.push(usedKey);
+              const fq = templates[Math.floor(Math.random() * templates.length)];
+              return { id: 'fu_' + Date.now(), q: fq, cat: '追问', tips: '基于候选人回答的深度追问', w: 15 };
+            }
+          }
+        }
+      }
+      // 没有可追问的，从背景分类中选题
+      return pickFromCategory(session, ['self_intro', 'career_gap', 'career_change', 'general'], 'basic');
+    }
 
-    // 从指定分类中选题
+    // 4. 第4-7轮：能力+行业问题
+    if (session.round <= 7) {
+      // 交替问行业问题和通用能力问题
+      if (session.round % 2 === 0) {
+        // 行业问题
+        const jobQs = [];
+        for (const t of session.jobTypes) {
+          if (JOB_QUESTIONS[t]) jobQs.push(...JOB_QUESTIONS[t]);
+        }
+        if (jobQs.length > 0) {
+          const unused = jobQs.filter((_, i) => !session.asked.includes('jq_' + i));
+          if (unused.length > 0) {
+            const idx = Math.floor(Math.random() * unused.length);
+            const q = unused[idx];
+            const qid = 'jq_' + session.round + '_' + idx;
+            session.asked.push(qid);
+            return { id: qid, q, cat: '行业问题', tips: '考察对岗位和行业的理解', w: 20 };
+          }
+        }
+      }
+      // 通用能力问题
+      return pickFromCategory(session, ['general', 'teamwork', 'pressure', 'decision'], 'intermediate');
+    }
+
+    // 5. 第8-11轮：行为面试+深度追问
+    if (session.round <= 11) {
+      const lastAnswer = session.answers[session.answers.length - 1];
+      if (lastAnswer) {
+        const keywords = extractKeywords(lastAnswer);
+        for (const kw of keywords) {
+          const templates = FOLLOWUP_TEMPLATES[kw];
+          if (templates) {
+            const usedKey = kw + '_' + session.round;
+            if (!session.usedFollowups.includes(usedKey)) {
+              session.usedFollowups.push(usedKey);
+              const fq = templates[Math.floor(Math.random() * templates.length)];
+              return { id: 'fu_' + Date.now(), q: fq, cat: '深度追问', tips: '深入挖掘行为细节', w: 20 };
+            }
+          }
+        }
+      }
+      // 行为面试题
+      return pickFromCategory(session, ['teamwork', 'pressure', 'decision', 'customer_service'], 'advanced');
+    }
+
+    // 6. 第12-14轮：匹配+收尾
+    if (session.round <= 14) {
+      if (session.round === 12) {
+        return pickFromCategory(session, ['general'], 'intermediate'); // 职业规划
+      }
+      if (session.round === 13) {
+        return pickFromCategory(session, ['general'], 'intermediate'); // 求职动机
+      }
+      // 反问环节
+      return { id: 'closing_1', q: '最后，你有什么想问我的吗？', cat: '反问环节', tips: '考察候选人的主动性和思考深度', w: 10 };
+    }
+
+    // 7. 第15轮：结束语
+    return null;
+  }
+
+  // 按分类选题
+  function pickFromCategory(session, catKeys, targetDifficulty) {
     let candidates = [];
-    for (const catKey of flowStep.categories) {
+    for (const catKey of catKeys) {
       if (session.categoryIndex[catKey]) {
         candidates.push(...session.categoryIndex[catKey]);
       }
     }
-
-    // 过滤已问过的题目
     candidates = candidates.filter(q => !session.asked.includes(q.id));
     if (candidates.length === 0) {
-      // 分类题目用完，从所有题目中补充
+      // 从所有题目中补充
       const allQ = Object.values(INTERVIEW_DB).flat();
       candidates = allQ.filter(q => !session.asked.includes(q.id));
     }
     if (candidates.length === 0) return null;
 
-    // 按难度优先选择
+    // 按难度排序
     const difficultyOrder = { basic: 0, intermediate: 1, advanced: 2 };
-    const targetDiff = flowStep.difficulty;
     candidates.sort((a, b) => {
       const da = difficultyOrder[classifyDifficulty(a)] || 0;
       const db = difficultyOrder[classifyDifficulty(b)] || 0;
-      return Math.abs(da - difficultyOrder[targetDiff]) - Math.abs(db - difficultyOrder[targetDiff]);
+      return Math.abs(da - difficultyOrder[targetDifficulty]) - Math.abs(db - difficultyOrder[targetDifficulty]);
     });
 
-    // 选第一个（最匹配难度的）
     const q = candidates[0];
     session.asked.push(q.id);
     return q;
   }
 
-  // 删除了第二个generateFollowups（引用未定义的FOLLOWUP_RULES，导致崩溃）
+  // 按ID查找特定题目
+  function findQuestion(session, ids) {
+    for (const catKey of Object.keys(session.categoryIndex)) {
+      for (const q of session.categoryIndex[catKey]) {
+        if (ids.includes(q.id) && !session.asked.includes(q.id)) {
+          session.asked.push(q.id);
+          return q;
+        }
+      }
+    }
+    return null;
+  }
+
+  // 追问功能由第一个generateFollowups（第1978行）负责
   // 追问功能由第一个generateFollowups（第1978行）负责
 
   // ═══════════════════════════════════════════════════
