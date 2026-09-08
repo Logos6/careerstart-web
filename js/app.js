@@ -564,6 +564,8 @@ const app = {
       this.renderAssessStep();
       this.updateCompetitiveAnalysis();
     } else {
+      if (this._generatingReport) return;
+      this._generatingReport = true;
       this.calculateAndShowReport();
     }
   },
@@ -638,33 +640,37 @@ const app = {
   },
 
   calculateAndShowReport() {
-    const report = CareerEngine.buildReport(this.userAnswers);
-    document.querySelector('.assess-pc-layout').style.display = 'none';
+    try {
+      console.log('[Report] 开始生成报告, userAnswers:', JSON.parse(JSON.stringify(this.userAnswers)));
+      const report = CareerEngine.buildReport(this.userAnswers);
+      console.log('[Report] buildReport 完成, top:', report.top?.length);
+      document.querySelector('.assess-pc-layout').style.display = 'none';
 
-    const resBox = document.getElementById('assess-result-view');
-    const content = document.getElementById('result-pc-content');
-    resBox.style.display = 'block';
+      const resBox = document.getElementById('assess-result-view');
+      const content = document.getElementById('result-pc-content');
+      resBox.style.display = 'block';
 
-    // 保存测评历史
-    const historyEntry = {
-      date: new Date().toISOString(),
-      answers: { ...this.userAnswers },
-      topJob: report.top[0].job.name,
-      score: report.top[0].total,
-      top3: report.top.slice(0, 3).map(t => ({ name: t.job.name, score: t.total, desc: t.job.desc }))
-    };
-    this.userData.assessmentHistory.push(historyEntry);
-    this.userData.lastAssessment = historyEntry;
-    this.saveUserData();
-    this.updateHomePreview();
-    this.updateHomeCourses();
+      // 保存测评历史
+      const historyEntry = {
+        date: new Date().toISOString(),
+        answers: { ...this.userAnswers },
+        topJob: report.top[0].job.name,
+        score: report.top[0].total,
+        top3: report.top.slice(0, 3).map(t => ({ name: t.job.name, score: t.total, desc: t.job.desc }))
+      };
+      this.userData.assessmentHistory.push(historyEntry);
+      this.userData.lastAssessment = historyEntry;
+      this.saveUserData();
+      this.updateHomePreview();
+      this.updateHomeCourses();
 
-    // 生成深度分析
-    const analysis = CareerEngine.generateAssessmentAnalysis(this.userAnswers, report);
+      // 生成深度分析
+      const analysis = CareerEngine.generateAssessmentAnalysis(this.userAnswers, report);
+      console.log('[Report] generateAssessmentAnalysis 完成, sections:', analysis?.length);
 
-    const top1 = report.top[0];
-    const top2 = report.top[1];
-    const top3 = report.top[2];
+      const top1 = report.top[0];
+      const top2 = report.top[1];
+      const top3 = report.top[2];
 
     // 六维度雷达图数据
     const traitData = [
@@ -783,6 +789,14 @@ const app = {
 
     // 绘制雷达图
     this.drawRadarChart('assess-radar', traitData);
+    } catch (e) {
+      console.error('[Report] 报告生成失败:', e);
+      alert('报告生成时出错：' + e.message + '\n\n请打开浏览器控制台（F12 → Console）查看详细错误信息。');
+      this._generatingReport = false;
+      // 恢复界面，让用户可以重试
+      document.querySelector('.assess-pc-layout').style.display = 'grid';
+      document.getElementById('assess-result-view').style.display = 'none';
+    }
   },
 
   // 绘制雷达图
