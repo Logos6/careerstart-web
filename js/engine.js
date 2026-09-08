@@ -3064,7 +3064,7 @@
     // 1. 按类别统计
     const categoryScores = {};
     for (const a of session.answers) {
-      const cat = a.question.cat;
+      const cat = (a.question && a.question.cat) || '未分类';
       if (!categoryScores[cat]) categoryScores[cat] = [];
       categoryScores[cat].push(a.analysis.score);
     }
@@ -3159,14 +3159,14 @@
       strengths, weaknesses, keywords: allKeywords,
       // 详细回答分析
       details: session.answers.map(a => ({
-        question: a.question.q,
-        category: a.question.cat,
+        question: (a.question && a.question.q) || '（未知问题）',
+        category: (a.question && a.question.cat) || '未分类',
         answer: a.answer,
         score: a.analysis.score,
         level: a.analysis.level,
         color: a.analysis.color,
         feedback: (a.analysis.feedbackParts || []).join('；'),
-        suggestion: a.analysis.suggestions.join('；'),
+        suggestion: (a.analysis.suggestions || []).join('；'),
         star: a.analysis.star,
         components: a.analysis.components,
       }))
