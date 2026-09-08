@@ -1409,13 +1409,9 @@ const app = {
     const txt = input.value.trim();
     if (!txt) { alert('请输入目标岗位名称'); return; }
 
-    // 检查登录和使用次数
     if (!this.checkUsage('interview')) return;
-
-    // 记录使用次数
     this.recordUsage('interview');
 
-    // 显示加载动画
     chatBox.innerHTML = `
       <div style="text-align:center; padding:40px 20px;">
         <div style="width:56px; height:56px; margin:0 auto 16px; background:linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(99,102,241,0.3);">
@@ -1431,22 +1427,25 @@ const app = {
     `;
     input.value = '';
 
-    // 初始化面试会话
     setTimeout(() => {
       this.interviewSession = CareerEngine.initInterviewSession(txt);
-      const firstQ = this.interviewSession.questions[0];
+      const firstQ = this.interviewSession.pool.shift();
+      this.interviewSession.asked.push(firstQ.id);
 
       chatBox.innerHTML = `
-        <div class="interview-progress">
-          <span style="font-size:11px; color:var(--text-muted);">问题 1/${this.interviewSession.questions.length}</span>
-          <div class="interview-progress-bar"><div class="interview-progress-fill" style="width:${Math.round(100/this.interviewSession.questions.length)}%"></div></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 已回答 0 轮 · 可随时结束</span>
+          <button class="btn btn-sm" style="font-size:11px; padding:4px 10px; border:1px solid #dc2626; color:#dc2626; background:#fff;" onclick="app.endInterviewEarly()">
+            <i class="ri-stop-circle-line"></i> 结束面试
+          </button>
         </div>
         <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
           <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
           <div class="msg-content">
             <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
             你好！我是启航 AI 面试官，今天将针对「${txt}」岗位进行模拟面试。<br><br>
-            ${firstQ.question}
+            你可以回答任意多轮，随时可以点击「结束面试」生成评估报告。<br><br>
+            <strong>${firstQ.q}</strong>
           </div>
         </div>
       `;
@@ -1460,7 +1459,6 @@ const app = {
     const txt = input.value.trim();
     if (!txt || !this.interviewSession) return;
 
-    // 显示用户消息
     chatBox.innerHTML += `
       <div class="chat-msg user" style="display:flex; gap:12px; flex-direction:row-reverse; margin-bottom:14px;">
         <div class="msg-avatar" style="width:32px; height:32px; background:linear-gradient(135deg, #94a3b8, #64748b);"><i class="ri-user-line"></i></div>
@@ -1470,7 +1468,6 @@ const app = {
     input.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // 显示分析中提示
     chatBox.innerHTML += `
       <div id="interview-loading" style="text-align:center; padding:12px; margin-bottom:10px;">
         <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 14px; background:#f1f5f9; border-radius:20px;">
@@ -1486,84 +1483,81 @@ const app = {
     `;
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // 分析回答并生成反馈
     setTimeout(() => {
       const result = CareerEngine.getInterviewFeedback(this.interviewSession, txt);
 
-      // 移除加载提示
       const loadingEl = document.getElementById('interview-loading');
       if (loadingEl) loadingEl.remove();
 
-      // 显示评分标签
       const scoreClass = result.score >= 70 ? 'good' : result.score >= 50 ? 'medium' : 'bad';
       chatBox.innerHTML += `
-        <div style="margin-bottom:10px; padding:10px 14px; background:#f8fafc; border-radius:10px; border-left:3px solid ${result.score >= 70 ? '#16a34a' : result.score >= 50 ? '#d97706' : '#dc2626'};">
+        <div style="margin-bottom:10px; padding:10px 14px; background:#f8fafc; border-radius:10px; border-left:3px solid ${result.color};">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
             <span class="score-tag ${scoreClass}">${result.level} ${result.score}分</span>
+            <span style="font-size:10px; color:var(--text-muted);">第 ${result.round} 轮</span>
           </div>
           <div style="font-size:12px; color:#475569; line-height:1.5;">${result.feedback}</div>
         </div>
       `;
 
-      // 显示 AI 追问或下一题
       setTimeout(() => {
-        const progress = Math.round(((this.interviewSession.answers.length) / this.interviewSession.questions.length) * 100);
         chatBox.innerHTML += `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 已回答 ${result.round} 轮</span>
+            <button class="btn btn-sm" style="font-size:11px; padding:4px 10px; border:1px solid #dc2626; color:#dc2626; background:#fff;" onclick="app.endInterviewEarly()">
+              <i class="ri-stop-circle-line"></i> 结束面试
+            </button>
+          </div>
           <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
             <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
             <div class="msg-content">
               <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
-              ${result.aiResponse}
-            </div>
-          </div>
-          ${!result.isLast ? `
-          <div class="interview-progress">
-            <span style="font-size:11px; color:var(--text-muted);">问题 ${this.interviewSession.currentQ + 1}/${this.interviewSession.questions.length}</span>
-            <div class="interview-progress-bar"><div class="interview-progress-fill" style="width:${progress}%"></div></div>
-          </div>
-          ` : ''}
+              ${result.aiResponse.replace(/\n/g, '<br>')}
             </div>
           </div>
         `;
         chatBox.scrollTop = chatBox.scrollHeight;
-
-        // 如果是最后一题，生成报告
-        if (result.isLast) {
-          this.finishInterview();
-        }
       }, 500);
     }, 1200);
   },
 
+  endInterviewEarly() {
+    if (!this.interviewSession) return;
+    if (this.interviewSession.answers.length < 2) {
+      if (!confirm('你只回答了不到2题，报告可能不够准确。确定要结束吗？')) return;
+    } else {
+      if (!confirm('确定结束面试并生成评估报告吗？')) return;
+    }
+    this.finishInterview();
+  },
+
   finishInterview() {
     const chatBox = document.getElementById('interview-chat-box');
+    const endBtn = chatBox.querySelector('[onclick="app.endInterviewEarly()"]');
+    if (endBtn) endBtn.closest('div').remove();
 
-    // 显示生成报告动画
+    chatBox.innerHTML += `
+      <div id="interview-report-loading" style="text-align:center; padding:30px; margin-top:10px;">
+        <div style="width:56px; height:56px; margin:0 auto 16px; border:3px solid #e2e8f0; border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;"></div>
+        <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:6px;">AI 面试评估报告生成中</div>
+        <div style="font-size:12px; color:var(--text-muted);">正在综合分析你的面试表现...</div>
+      </div>
+    `;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
     setTimeout(() => {
-      chatBox.innerHTML += `
-        <div id="interview-report-loading" style="text-align:center; padding:30px; margin-top:10px;">
-          <div style="width:56px; height:56px; margin:0 auto 16px; border:3px solid #e2e8f0; border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;"></div>
-          <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:6px;">AI 面试评估报告生成中</div>
-          <div style="font-size:12px; color:var(--text-muted);">正在综合分析你的面试表现...</div>
-        </div>
-      `;
-      chatBox.scrollTop = chatBox.scrollHeight;
+      const report = CareerEngine.generateInterviewReport(this.interviewSession);
+      const loadingEl = document.getElementById('interview-report-loading');
+      if (loadingEl) loadingEl.remove();
 
-      // 生成报告
-      setTimeout(() => {
-        const report = CareerEngine.generateInterviewReport(this.interviewSession);
-        const loadingEl = document.getElementById('interview-report-loading');
-        if (loadingEl) loadingEl.remove();
-
-        // 保存历史
-        this.userData.interviewHistory = this.userData.interviewHistory || [];
-        this.userData.interviewHistory.push({
-          date: new Date().toISOString(),
-          job: report.jobName,
-          score: report.totalScore,
-          level: report.level
-        });
-        this.saveUserData();
+      this.userData.interviewHistory = this.userData.interviewHistory || [];
+      this.userData.interviewHistory.push({
+        date: new Date().toISOString(),
+        job: report.jobName,
+        score: report.totalScore,
+        level: report.level
+      });
+      this.saveUserData();
 
         // 渲染报告
         const severityColor = { '优秀': '#16a34a', '良好': '#2ea56a', '一般': '#d97706', '较差': '#dc2626' };
