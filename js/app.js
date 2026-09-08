@@ -1445,12 +1445,20 @@ const app = {
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 已回答 0 轮 · 输入"结束"可随时完成面试</span>
         </div>
+        <div style="margin-bottom:14px; padding:12px 16px; background:linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%); border-radius:10px; border:1px solid #c7d2fe;">
+          <div style="font-size:12px; font-weight:700; color:#4338ca; margin-bottom:6px;"><i class="ri-lightbulb-flash-line"></i> STAR面试法则提示</div>
+          <div style="font-size:11px; color:#475569; line-height:1.6;">
+            回答时请尽量包含：<strong>S</strong>（情境）→ <strong>T</strong>（任务）→ <strong>A</strong>（行动）→ <strong>R</strong>（结果）<br>
+            每道题回答后，系统会实时评估你的 STAR 完整度和回答质量。
+          </div>
+        </div>
         <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
           <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
           <div class="msg-content">
             <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
-            你好！我是启航 AI 面试官，今天将针对「${txt}」岗位进行模拟面试。<br><br>
-            我会根据你的回答不断深入追问，请尽量详细回答。输入「结束」即可完成面试并生成评估报告。<br><br>
+            你好！我是启航 AI 面试官，今天将针对「${txt}」岗位进行结构化模拟面试。<br><br>
+            我会从<strong>沟通表达、问题解决、执行力、领导力、学习成长、抗压韧性</strong>六个维度评估你的表现。<br><br>
+            请尽量用<strong>STAR法则</strong>（情境→任务→行动→结果）来组织回答。输入「结束」即可完成面试。<br><br>
             <strong>${firstQ.q}</strong>
           </div>
         </div>
@@ -1510,13 +1518,27 @@ const app = {
       if (loadingEl) loadingEl.remove();
 
       const scoreClass = result.score >= 70 ? 'good' : result.score >= 50 ? 'medium' : 'bad';
+
+      // STAR状态标签
+      let starHtml = '';
+      if (result.star) {
+        const s = result.star;
+        starHtml = `<div style="display:flex; gap:4px; margin-top:4px; flex-wrap:wrap;">
+          <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:${s.hasSituation?'#dcfce7':'#fee2e2'}; color:${s.hasSituation?'#166534':'#991b1b'};">S ${s.hasSituation?'✓':'✗'}</span>
+          <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:${s.hasTask?'#dcfce7':'#fee2e2'}; color:${s.hasTask?'#166534':'#991b1b'};">T ${s.hasTask?'✓':'✗'}</span>
+          <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:${s.hasAction?'#dcfce7':'#fee2e2'}; color:${s.hasAction?'#166534':'#991b1b'};">A ${s.hasAction?'✓':'✗'}</span>
+          <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:${s.hasResult?'#dcfce7':'#fee2e2'}; color:${s.hasResult?'#166534':'#991b1b'};">R ${s.hasResult?'✓':'✗'}</span>
+        </div>`;
+      }
+
       chatBox.innerHTML += `
         <div style="margin-bottom:10px; padding:10px 14px; background:#f8fafc; border-radius:10px; border-left:3px solid ${result.color};">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
             <span class="score-tag ${scoreClass}">${result.level} ${result.score}分</span>
             <span style="font-size:10px; color:var(--text-muted);">第 ${result.round} 轮</span>
           </div>
-          <div style="font-size:12px; color:#475569; line-height:1.5;">${result.feedback}</div>
+          ${starHtml}
+          <div style="font-size:12px; color:#475569; line-height:1.5; margin-top:4px;">${result.feedback?.text || (result.feedbackParts ? result.feedbackParts.join('；') : '')}</div>
         </div>
       `;
 
@@ -1564,8 +1586,67 @@ const app = {
       });
       this.saveUserData();
 
-      // 渲染报告
-      const severityColor = { '优秀': '#16a34a', '良好': '#2ea56a', '一般': '#d97706', '较差': '#dc2626' };
+      // 胜任力雷达HTML
+      const compEntries = Object.entries(report.competencies || {});
+      const radarHtml = compEntries.length > 0 ? `
+        <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+          <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+            <i class="ri-radar-line"></i> 胜任力评估
+          </h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            ${compEntries.map(([key, comp]) => `
+              <div style="padding:10px 12px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <span style="font-size:12px; font-weight:600; color:var(--text-main);">${comp.name}</span>
+                  <span style="font-size:11px; font-weight:700; color:${comp.score>=70?'#16a34a':comp.score>=50?'#d97706':'#dc2626'};">${comp.score}分</span>
+                </div>
+                <div style="background:#e2e8f0; height:4px; border-radius:2px; overflow:hidden;">
+                  <div style="background:${comp.score>=70?'#16a34a':comp.score>=50?'#d97706':'#dc2626'}; height:100%; width:${comp.score}%; border-radius:2px;"></div>
+                </div>
+                <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${comp.anchor || ''}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : '';
+
+      // STAR分析HTML
+      const starA = report.starAnalysis || {};
+      const starHtml = `
+        <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+          <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+            <i class="ri-flow-chart"></i> STAR法则分析
+          </h4>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px;">
+            <div style="text-align:center; padding:10px; background:#dcfce7; border-radius:8px;">
+              <div style="font-size:20px; font-weight:900; color:#16a34a;">${starA.complete||0}</div>
+              <div style="font-size:11px; color:#166534;">完整STAR</div>
+            </div>
+            <div style="text-align:center; padding:10px; background:#fef3c7; border-radius:8px;">
+              <div style="font-size:20px; font-weight:900; color:#d97706;">${starA.partial||0}</div>
+              <div style="font-size:11px; color:#92400e;">部分STAR</div>
+            </div>
+            <div style="text-align:center; padding:10px; background:#fee2e2; border-radius:8px;">
+              <div style="font-size:20px; font-weight:900; color:#dc2626;">${starA.missing||0}</div>
+              <div style="font-size:11px; color:#991b1b;">缺少结构</div>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:6px;">
+            ${[
+              { label: 'STAR完整度', val: (report.componentScores||{}).star },
+              { label: '具体性', val: (report.componentScores||{}).specificity },
+              { label: '量化程度', val: (report.componentScores||{}).quant },
+              { label: '个人贡献', val: (report.componentScores||{}).personal },
+              { label: '回答深度', val: (report.componentScores||{}).depth },
+            ].map(c => `
+              <div style="text-align:center;">
+                <div style="font-size:16px; font-weight:900; color:${(c.val||0)>=70?'#16a34a':(c.val||0)>=50?'#d97706':'#dc2626'};">${c.val||0}</div>
+                <div style="font-size:10px; color:#94a3b8;">${c.label}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
 
       chatBox.innerHTML += `
           <div style="background:#fff; border:1px solid var(--border-color); border-radius:12px; overflow:hidden; margin-top:10px; animation:slideUp 0.4s ease;">
@@ -1580,6 +1661,9 @@ const app = {
               <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:4px;">「${report.jobName}」面试报告</div>
               <div style="font-size:12px; color:var(--text-muted);">共 ${report.totalQuestions} 题 · 已答 ${report.answeredQuestions} 题 · 用时 ${report.duration}</div>
             </div>
+
+            ${radarHtml}
+            ${starHtml}
 
             <!-- 分类得分 -->
             <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
@@ -1636,7 +1720,14 @@ const app = {
                     <div style="padding:10px 12px; background:#fff;">
                       <div style="font-size:11px; color:#64748b; margin-bottom:4px;"><strong>Q:</strong> ${d.question}</div>
                       <div style="font-size:12px; color:#334155; margin-bottom:6px; line-height:1.5;"><strong>A:</strong> ${d.answer}</div>
+                      ${d.star ? `<div style="display:flex; gap:3px; margin-bottom:4px;">
+                        <span style="font-size:9px; padding:1px 4px; border-radius:3px; background:${d.star.hasSituation?'#dcfce7':'#fee2e2'}; color:${d.star.hasSituation?'#166534':'#991b1b'};">S</span>
+                        <span style="font-size:9px; padding:1px 4px; border-radius:3px; background:${d.star.hasTask?'#dcfce7':'#fee2e2'}; color:${d.star.hasTask?'#166534':'#991b1b'};">T</span>
+                        <span style="font-size:9px; padding:1px 4px; border-radius:3px; background:${d.star.hasAction?'#dcfce7':'#fee2e2'}; color:${d.star.hasAction?'#166534':'#991b1b'};">A</span>
+                        <span style="font-size:9px; padding:1px 4px; border-radius:3px; background:${d.star.hasResult?'#dcfce7':'#fee2e2'}; color:${d.star.hasResult?'#166534':'#991b1b'};">R</span>
+                      </div>` : ''}
                       <div style="font-size:11px; color:#475569; line-height:1.5;"><i class="ri-chat-check-line" style="color:var(--primary);"></i> ${d.feedback}</div>
+                      ${d.suggestion ? `<div style="font-size:11px; color:#7c3aed; line-height:1.5; margin-top:4px;"><i class="ri-lightbulb-line"></i> ${d.suggestion}</div>` : ''}
                     </div>
                   </div>
                 `).join('')}
