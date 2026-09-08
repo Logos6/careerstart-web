@@ -1433,10 +1433,24 @@ const app = {
     `;
     input.value = '';
 
-    setTimeout(() => {
-      // 使用新引擎创建会话
-      this.interviewSession = InterviewEngine.createSession(txt, resumeText, jdText);
-      const startResult = InterviewEngine.startInterview(this.interviewSession);
+    // 调用后端 API 开始面试
+    fetch('https://careerstart-api.netlify.app/.netlify/functions/ai-interview-v2', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'start',
+        role: txt,
+        resumeContext: resumeText || '',
+        userTags: [],
+      }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) throw new Error(data.error);
+
+      // 保存会话状态
+      this.interviewSession = data.state;
+      this._currentQuestion = data.question;
 
       // 切换输入框为聊天模式
       const inputBar = document.querySelector('.pc-chat-input-bar');
@@ -1447,19 +1461,45 @@ const app = {
         `;
       }
 
-      // 存储当前问题
-      this._currentQuestion = startResult.question;
-
       chatBox.innerHTML = `
         <div id="interview-progress-bar" class="interview-progress" style="margin-bottom:16px;">
-          <span style="font-size:11px; color:var(--primary); font-weight:700; white-space:nowrap;"><i class="ri-bar-chart-fill"></i> 第 <span id="interview-round-num">1</span> / 15 轮 | <span id="interview-phase-label">${startResult.phase}</span></span>
+          <span style="font-size:11px; color:var(--primary); font-weight:700; white-space:nowrap;"><i class="ri-bar-chart-fill"></i> 第 <span id="interview-round-num">1</span> / ${data.maxQuestions} 轮 | <span id="interview-phase-label">${data.phase}</span></span>
           <div class="interview-progress-bar">
-            <div class="interview-progress-fill" id="interview-progress-fill" style="width:6.67%;"></div>
+            <div class="interview-progress-fill" id="interview-progress-fill" style="width:${Math.round(100/data.maxQuestions)}%;"></div>
           </div>
-          <span style="font-size:10px; color:var(--text-muted); white-space:nowrap;" id="interview-time-est">预计剩余 ~12分钟</span>
+          <span style="font-size:10px; color:var(--text-muted); white-space:nowrap;" id="interview-time-est">预计剩余 ~${Math.ceil(data.maxQuestions * 0.8)}分钟</span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 输入"结束"可随时完成面试</span>
+        </div>
+        <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+          <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+          <div class="msg-content">
+            <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI面试官</div>
+            ${data.question.q}
+          </div>
+        </div>
+      `;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    })
+    .catch(err => {
+      console.error('Interview start failed:', err);
+      // fallback 到本地引擎
+      this.interviewSession = InterviewEngine.createSession(txt, resumeText, jdText);
+      const startResult = InterviewEngine.startInterview(this.interviewSession);
+      this._currentQuestion = startResult.question;
+      const inputBar = document.querySelector('.pc-chat-input-bar');
+      if (inputBar) {
+        inputBar.innerHTML = `
+          <input type="text" id="interview-input" placeholder="输入你的回答..." onkeypress="if(event.key==='Enter') app.sendInterviewMsg()">
+          <button class="btn btn-primary-gradient" onclick="app.sendInterviewMsg()"><i class="ri-send-plane-fill"></i> 发送</button>
+        `;
+      }
+      chatBox.innerHTML = `
+        <div id="interview-progress-bar" class="interview-progress" style="margin-bottom:16px;">
+          <span style="font-size:11px; color:var(--primary); font-weight:700; white-space:nowrap;"><i class="ri-bar-chart-fill"></i> 第 <span id="interview-round-num">1</span> / 15 轮 | <span id="interview-phase-label">${startResult.phase}</span></span>
+          <div class="interview-progress-bar"><div class="interview-progress-fill" id="interview-progress-fill" style="width:6.67%;"></div></div>
+          <span style="font-size:10px; color:var(--text-muted); white-space:nowrap;" id="interview-time-est">预计剩余 ~12分钟</span>
         </div>
         <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
           <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
@@ -1470,7 +1510,11 @@ const app = {
         </div>
       `;
       chatBox.scrollTop = chatBox.scrollHeight;
-    }, 1500);
+    })
+    .finally(() => {
+      const loadingArea = document.getElementById('interview-loading-area');
+      if (loadingArea) loadingArea.remove();
+    });
   },
 
   updateInterviewProgress(round) {
@@ -1532,22 +1576,70 @@ const app = {
     `;
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    setTimeout(() => {
-      // 使用新引擎处理回答
-      const result = InterviewEngine.processAnswer(this.interviewSession, txt, this._currentQuestion);
+    // 调用后端 API 提交回答
+    fetch('https://careerstart-api.netlify.app/.netlify/functions/ai-interview-v2', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'answer',
+        state: this.interviewSession,
+        answer: txt,
+      }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) throw new Error(data.error);
 
       const loadingEl = document.getElementById('interview-loading');
       if (loadingEl) loadingEl.remove();
 
-      // 存储当前问题供下次使用
-      this._currentQuestion = result.question;
+      // 更新会话状态
+      this.interviewSession = data.state;
+      this._currentQuestion = data.nextQuestion;
 
       setTimeout(() => {
-        this.updateInterviewProgress(result.round);
+        this.updateInterviewProgress(data.questionNumber);
 
         // 显示评分标签
-        const scoreTag = result.evaluation ? `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; background:${result.evaluation.color}20; color:${result.evaluation.color}; margin-left:8px;">${result.evaluation.score}分 ${result.evaluation.level}</span>` : '';
+        const eval_ = data.evaluation;
+        const scoreColor = eval_.score >= 80 ? '#10b981' : eval_.score >= 60 ? '#f59e0b' : '#ef4444';
+        const scoreTag = `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; background:${scoreColor}20; color:${scoreColor}; margin-left:8px;">${eval_.score}分 ${eval_.level}</span>`;
 
+        // AI 回复
+        let aiMsg = eval_.feedback;
+        if (data.followUp?.shouldFollowUp) {
+          aiMsg += '\n\n' + data.followUp.followUpQuestion;
+        } else if (data.nextQuestion && !data.isFinished) {
+          aiMsg += '\n\n' + data.nextQuestion.q;
+        }
+
+        chatBox.innerHTML += `
+          <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+            <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+            <div class="msg-content">
+              <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI面试官${scoreTag}</div>
+              ${aiMsg.replace(/\n/g, '<br>')}
+            </div>
+          </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 如果面试结束，自动生成报告
+        if (data.isFinished) {
+          setTimeout(() => this.finishInterview(), 2000);
+        }
+      }, 600);
+    })
+    .catch(err => {
+      console.error('Answer submit failed:', err);
+      // fallback 到本地引擎
+      const loadingEl = document.getElementById('interview-loading');
+      if (loadingEl) loadingEl.remove();
+      const result = InterviewEngine.processAnswer(this.interviewSession, txt, this._currentQuestion);
+      this._currentQuestion = result.question;
+      setTimeout(() => {
+        this.updateInterviewProgress(result.round);
+        const scoreTag = result.evaluation ? `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; background:${result.evaluation.color}20; color:${result.evaluation.color}; margin-left:8px;">${result.evaluation.score}分 ${result.evaluation.level}</span>` : '';
         chatBox.innerHTML += `
           <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
             <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
@@ -1558,13 +1650,11 @@ const app = {
           </div>
         `;
         chatBox.scrollTop = chatBox.scrollHeight;
-
-        // 如果面试结束，自动生成报告
         if (result.isFinished) {
           setTimeout(() => this.finishInterview(), 2000);
         }
       }, 800);
-    }, 1000);
+    });
   },
 
   finishInterview() {
@@ -1579,146 +1669,216 @@ const app = {
     `;
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    setTimeout(() => {
-      // 使用新引擎生成报告
-      const report = InterviewEngine.generateReport(this.interviewSession);
-      const loadingEl = document.getElementById('interview-report-loading');
-      if (loadingEl) loadingEl.remove();
-
-      // 保存面试记录
-      this.userData.interviewHistory = this.userData.interviewHistory || [];
-      this.userData.interviewHistory.push({
-        date: new Date().toISOString(),
-        job: report.jobName,
-        score: report.totalScore,
-        level: report.level
+    // 尝试调用后端 API 生成报告
+    if (this.interviewSession && this.interviewSession.sessionId) {
+      fetch('https://careerstart-api.netlify.app/.netlify/functions/ai-interview-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'report',
+          state: this.interviewSession,
+        }),
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        const report = data.report;
+        const loadingEl = document.getElementById('interview-report-loading');
+        if (loadingEl) loadingEl.remove();
+        this._renderReport(report, chatBox);
+      })
+      .catch(err => {
+        console.error('Backend report failed, using local:', err);
+        const report = InterviewEngine.generateReport(this.interviewSession);
+        const loadingEl = document.getElementById('interview-report-loading');
+        if (loadingEl) loadingEl.remove();
+        this._renderReport(report, chatBox);
       });
-      this.saveUserData();
+    } else {
+      setTimeout(() => {
+        const report = InterviewEngine.generateReport(this.interviewSession);
+        const loadingEl = document.getElementById('interview-report-loading');
+        if (loadingEl) loadingEl.remove();
+        this._renderReport(report, chatBox);
+      }, 500);
+    }
+  },
 
-      // 胜任力雷达HTML
-      const dimEntries = Object.entries(report.dimensionScores || {});
-      const dimConfig = report.dimensionConfig || {};
-      const radarHtml = dimEntries.length > 0 ? `
-        <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
-          <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
-            <i class="ri-radar-line"></i> 六维胜任力评估
-          </h4>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            ${dimEntries.map(([dim, score]) => {
-              const config = dimConfig[dim] || {};
-              return `
-              <div style="padding:10px 12px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                  <span style="font-size:12px; font-weight:600; color:var(--text-main);">${config.icon||''} ${dim}</span>
-                  <span style="font-size:11px; font-weight:700; color:${score>=70?'#16a34a':score>=50?'#d97706':'#dc2626'};">${score}分</span>
-                </div>
-                <div style="background:#e2e8f0; height:4px; border-radius:2px; overflow:hidden;">
-                  <div style="background:${score>=70?'#16a34a':score>=50?'#d97706':'#dc2626'}; height:100%; width:${score}%; border-radius:2px;"></div>
-                </div>
-                <div style="font-size:10px; color:#94a3b8; margin-top:4px;">权重 ${(config.weight*100||0).toFixed(0)}%</div>
-              </div>`;
-            }).join('')}
+  _renderReport(report, chatBox) {
+    // 保存面试记录
+    this.userData.interviewHistory = this.userData.interviewHistory || [];
+    this.userData.interviewHistory.push({
+      date: new Date().toISOString(),
+      job: report.jobName || report.role || '未指定',
+      score: report.totalScore,
+      level: report.level
+    });
+    this.saveUserData();
+
+    // 兼容两种格式：后端API格式 vs 本地引擎格式
+    const dimScores = report.dimensionScores || {};
+    const dimEntries = Object.entries(dimScores);
+    const dimConfig = {
+      '专业能力': { icon: '💻', weight: 0.25, color: '#6366f1' },
+      '沟通表达': { icon: '💬', weight: 0.20, color: '#8b5cf6' },
+      '问题解决': { icon: '🧩', weight: 0.20, color: '#06b6d4' },
+      '团队协作': { icon: '🤝', weight: 0.15, color: '#10b981' },
+      '学习成长': { icon: '📚', weight: 0.10, color: '#f59e0b' },
+      '抗压韧性': { icon: '💪', weight: 0.10, color: '#ef4444' },
+    };
+
+    const scoreColor = (s) => s >= 80 ? '#16a34a' : s >= 60 ? '#d97706' : '#dc2626';
+    const totalScore = report.totalScore || 70;
+    const reportColor = report.color || scoreColor(totalScore);
+    const jobName = report.jobName || report.role || '目标岗位';
+
+    // 胜任力雷达HTML
+    const radarHtml = dimEntries.length > 0 ? `
+      <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+        <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+          <i class="ri-radar-line"></i> 六维胜任力评估
+        </h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          ${dimEntries.map(([dim, score]) => {
+            const config = dimConfig[dim] || {};
+            return `
+            <div style="padding:10px 12px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="font-size:12px; font-weight:600; color:var(--text-main);">${config.icon||''} ${dim}</span>
+                <span style="font-size:11px; font-weight:700; color:${scoreColor(score)};">${score}分</span>
+              </div>
+              <div style="background:#e2e8f0; height:4px; border-radius:2px; overflow:hidden;">
+                <div style="background:${scoreColor(score)}; height:100%; width:${score}%; border-radius:2px;"></div>
+              </div>
+              <div style="font-size:10px; color:#94a3b8; margin-top:4px;">权重 ${((config.weight||0.1)*100).toFixed(0)}%</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    ` : '';
+
+    // STAR分析HTML
+    const starA = report.starAnalysis || {};
+    const starHtml = `
+      <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+        <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+          <i class="ri-flow-chart"></i> 回答结构分析
+        </h4>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
+          <div style="text-align:center; padding:10px; background:#dcfce7; border-radius:8px;">
+            <div style="font-size:20px; font-weight:900; color:#16a34a;">${starA.complete||0}</div>
+            <div style="font-size:11px; color:#166534;">结构完整</div>
+          </div>
+          <div style="text-align:center; padding:10px; background:#fef3c7; border-radius:8px;">
+            <div style="font-size:20px; font-weight:900; color:#d97706;">${starA.partial||0}</div>
+            <div style="font-size:11px; color:#92400e;">部分完整</div>
+          </div>
+          <div style="text-align:center; padding:10px; background:#fee2e2; border-radius:8px;">
+            <div style="font-size:20px; font-weight:900; color:#dc2626;">${starA.missing||0}</div>
+            <div style="font-size:11px; color:#991b1b;">需要补充</div>
           </div>
         </div>
-      ` : '';
+      </div>
+    `;
 
-      // STAR分析HTML
-      const starA = report.starAnalysis || {};
-      const starHtml = `
+    // 优劣势 — 兼容两种格式
+    const strengths = (report.strengths || []).map(s =>
+      typeof s === 'string' ? { dimension: s, score: '' } : s
+    );
+    const weaknesses = (report.weaknesses || []).map(w =>
+      typeof w === 'string' ? { dimension: w, score: '', comment: '' } : w
+    );
+    const suggestions = report.suggestions || (report.suggestion ? [report.suggestion] : []);
+    const summary = report.summary || '';
+
+    // 各题详情 — 兼容两种格式
+    const details = report.details || (report.questions || []).map((q, i) => ({
+      question: q.question?.q || q.text || `第${i+1}题`,
+      answer: q.answer || '',
+      score: q.evaluation?.score || q.score || 70,
+      level: q.evaluation?.level || q.level || '良好',
+      feedback: q.evaluation?.feedback || q.feedback || '',
+      dimension: q.evaluation?.dimension || q.dimension || '',
+      color: q.evaluation?.score >= 80 ? '#16a34a' : q.evaluation?.score >= 60 ? '#d97706' : '#dc2626',
+    }));
+
+    const totalQuestions = report.totalQuestions || details.length || 15;
+    const duration = report.duration || `约${Math.ceil(totalQuestions * 0.8)}分钟`;
+
+    chatBox.innerHTML += `
+      <div style="background:#fff; border:1px solid var(--border-color); border-radius:12px; overflow:hidden; margin-top:10px; animation:slideUp 0.4s ease; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+        <!-- 评分头部 -->
+        <div style="padding:28px 24px; text-align:center; background:linear-gradient(135deg,#f8f5ff 0%,#fff 100%); border-bottom:1px solid var(--border-color);">
+          <div style="width:80px; height:80px; border-radius:50%; background:conic-gradient(${reportColor} ${totalScore * 3.6}deg, #e2e8f0 0deg); margin:0 auto 16px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 12px ${reportColor}33;">
+            <div style="width:64px; height:64px; border-radius:50%; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <span style="font-size:24px; font-weight:900; color:${reportColor}; line-height:1;">${totalScore}</span>
+              <span style="font-size:10px; color:${reportColor}; font-weight:600;">${report.level || (totalScore>=80?'优秀':totalScore>=60?'良好':'需改进')}</span>
+            </div>
+          </div>
+          <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:4px;">「${jobName}」面试报告</div>
+          <div style="font-size:12px; color:var(--text-muted);">共 ${totalQuestions} 题 · 用时 ${duration}</div>
+        </div>
+
+        ${radarHtml}
+        ${starHtml}
+
+        <!-- 优劣势分析 -->
         <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
-          <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--primary);">
-            <i class="ri-flow-chart"></i> 回答结构分析
-          </h4>
-          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
-            <div style="text-align:center; padding:10px; background:#dcfce7; border-radius:8px;">
-              <div style="font-size:20px; font-weight:900; color:#16a34a;">${starA.complete||0}</div>
-              <div style="font-size:11px; color:#166534;">结构完整</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div style="padding:12px; background:#f0fdf4; border-radius:8px; border:1px solid #bbf7d0;">
+              <h4 style="font-size:13px; font-weight:700; margin-bottom:8px; color:#16a34a;"><i class="ri-thumb-up-line"></i> 优势领域</h4>
+              ${strengths.map(s => `<div style="font-size:12px; color:#475569; margin-bottom:4px; line-height:1.5;">✓ ${s.dimension}${s.score ? '（'+s.score+'分）' : ''}</div>`).join('') || '<div style="font-size:12px; color:#94a3b8;">暂无明显优势</div>'}
             </div>
-            <div style="text-align:center; padding:10px; background:#fef3c7; border-radius:8px;">
-              <div style="font-size:20px; font-weight:900; color:#d97706;">${starA.partial||0}</div>
-              <div style="font-size:11px; color:#92400e;">部分完整</div>
-            </div>
-            <div style="text-align:center; padding:10px; background:#fee2e2; border-radius:8px;">
-              <div style="font-size:20px; font-weight:900; color:#dc2626;">${starA.missing||0}</div>
-              <div style="font-size:11px; color:#991b1b;">需要补充</div>
+            <div style="padding:12px; background:#fffbeb; border-radius:8px; border:1px solid #fde68a;">
+              <h4 style="font-size:13px; font-weight:700; margin-bottom:8px; color:#d97706;"><i class="ri-error-warning-line"></i> 待提升</h4>
+              ${weaknesses.map(w => `<div style="font-size:12px; color:#475569; margin-bottom:4px; line-height:1.5;">△ ${w.dimension}${w.score ? '（'+w.score+'分）' : ''}${w.comment ? ' — '+w.comment : ''}</div>`).join('') || '<div style="font-size:12px; color:#94a3b8;">暂无明显短板</div>'}
             </div>
           </div>
         </div>
-      `;
 
-      chatBox.innerHTML += `
-          <div style="background:#fff; border:1px solid var(--border-color); border-radius:12px; overflow:hidden; margin-top:10px; animation:slideUp 0.4s ease; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
-            <!-- 评分头部 -->
-            <div style="padding:28px 24px; text-align:center; background:linear-gradient(135deg,#f8f5ff 0%,#fff 100%); border-bottom:1px solid var(--border-color);">
-              <div style="width:80px; height:80px; border-radius:50%; background:conic-gradient(${report.color} ${report.totalScore * 3.6}deg, #e2e8f0 0deg); margin:0 auto 16px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 12px ${report.color}33;">
-                <div style="width:64px; height:64px; border-radius:50%; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                  <span style="font-size:24px; font-weight:900; color:${report.color}; line-height:1;">${report.totalScore}</span>
-                  <span style="font-size:10px; color:${report.color}; font-weight:600;">${report.level}</span>
-                </div>
-              </div>
-              <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:4px;">「${report.jobName}」面试报告</div>
-              <div style="font-size:12px; color:var(--text-muted);">共 ${report.totalQuestions} 题 · 用时 ${report.duration}</div>
-            </div>
-
-            ${radarHtml}
-            ${starHtml}
-
-            <!-- 优劣势分析 -->
-            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                <div style="padding:12px; background:#f0fdf4; border-radius:8px; border:1px solid #bbf7d0;">
-                  <h4 style="font-size:13px; font-weight:700; margin-bottom:8px; color:#16a34a;"><i class="ri-thumb-up-line"></i> 优势领域</h4>
-                  ${(report.strengths||[]).map(s => `<div style="font-size:12px; color:#475569; margin-bottom:4px; line-height:1.5;">✓ ${s.dimension}（${s.score}分）</div>`).join('') || '<div style="font-size:12px; color:#94a3b8;">暂无明显优势</div>'}
-                </div>
-                <div style="padding:12px; background:#fffbeb; border-radius:8px; border:1px solid #fde68a;">
-                  <h4 style="font-size:13px; font-weight:700; margin-bottom:8px; color:#d97706;"><i class="ri-error-warning-line"></i> 待提升</h4>
-                  ${(report.weaknesses||[]).map(w => `<div style="font-size:12px; color:#475569; margin-bottom:4px; line-height:1.5;">△ ${w.dimension}（${w.score}分）— ${w.comment}</div>`).join('') || '<div style="font-size:12px; color:#94a3b8;">暂无明显短板</div>'}
-                </div>
-              </div>
-            </div>
-
-            <!-- 面试建议 -->
-            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
-              <h4 style="font-size:14px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px; color:var(--primary);">
-                <i class="ri-lightbulb-line"></i> 面试建议
-              </h4>
-              <div style="font-size:13px; color:#475569; line-height:1.8; padding:12px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">${report.suggestion}</div>
-            </div>
-
-            <!-- 各题详情 -->
-            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
-              <h4 style="font-size:14px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; color:var(--primary);">
-                <i class="ri-list-check-2"></i> 回答详情
-              </h4>
-              <div style="display:flex; flex-direction:column; gap:12px;">
-                ${(report.details||[]).map((d, i) => `
-                  <div style="border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
-                    <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:${d.color||'#f8fafc'}08; border-bottom:1px solid #f1f5f9;">
-                      <span style="font-size:11px; font-weight:700; color:#fff; background:${d.color||'#94a3b8'}; padding:2px 8px; border-radius:4px;">${d.level||''} ${d.score}分</span>
-                      <span style="font-size:12px; font-weight:600; color:var(--text-main);">${d.dimension||d.category||''}</span>
-                      <span style="margin-left:auto; font-size:10px; color:var(--text-muted);">第${i+1}题</span>
-                    </div>
-                    <div style="padding:14px; background:#fff;">
-                      <div style="font-size:11px; color:#64748b; margin-bottom:6px; padding:6px 8px; background:#f8fafc; border-radius:4px;"><strong style="color:var(--primary);">Q:</strong> ${d.question}</div>
-                      <div style="font-size:12px; color:#334155; margin-bottom:8px; line-height:1.6; padding:6px 8px; background:#fafafa; border-radius:4px;"><strong style="color:#475569;">A:</strong> ${d.answer}</div>
-                      <div style="font-size:12px; color:#475569; line-height:1.6; padding:6px 8px; background:#f0f9ff; border-radius:4px; border-left:3px solid var(--primary);"><i class="ri-chat-check-line" style="color:var(--primary);"></i> ${d.feedback}</div>
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-
-            <!-- 底部 -->
-            <div style="padding:16px 24px; display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border-top:1px solid var(--border-color);">
-              <span style="font-size:11px; color:var(--text-muted);"><i class="ri-history-line"></i> 已保存至面试记录</span>
-              <div style="display:flex; gap:8px;">
-                <button class="btn btn-primary" style="font-size:12px; padding:6px 14px;" onclick="app.resetInterview()"><i class="ri-refresh-line"></i> 再来一次</button>
-              </div>
-            </div>
+        <!-- 面试建议 -->
+        <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+          <h4 style="font-size:14px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+            <i class="ri-lightbulb-line"></i> 面试建议
+          </h4>
+          <div style="font-size:13px; color:#475569; line-height:1.8; padding:12px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+            ${summary ? summary + '<br><br>' : ''}${suggestions.map(s => '• ' + s).join('<br>')}
           </div>
-        `;
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }, 2500);
+        </div>
+
+        <!-- 各题详情 -->
+        <div style="padding:20px 24px; border-bottom:1px solid var(--border-color);">
+          <h4 style="font-size:14px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; color:var(--primary);">
+            <i class="ri-list-check-2"></i> 回答详情
+          </h4>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            ${details.map((d, i) => `
+              <div style="border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:${d.color||'#f8fafc'}08; border-bottom:1px solid #f1f5f9;">
+                  <span style="font-size:11px; font-weight:700; color:#fff; background:${d.color||'#94a3b8'}; padding:2px 8px; border-radius:4px;">${d.level||''} ${d.score}分</span>
+                  <span style="font-size:12px; font-weight:600; color:var(--text-main);">${d.dimension||d.category||''}</span>
+                  <span style="margin-left:auto; font-size:10px; color:var(--text-muted);">第${i+1}题</span>
+                </div>
+                <div style="padding:14px; background:#fff;">
+                  <div style="font-size:11px; color:#64748b; margin-bottom:6px; padding:6px 8px; background:#f8fafc; border-radius:4px;"><strong style="color:var(--primary);">Q:</strong> ${d.question}</div>
+                  <div style="font-size:12px; color:#334155; margin-bottom:8px; line-height:1.6; padding:6px 8px; background:#fafafa; border-radius:4px;"><strong style="color:#475569;">A:</strong> ${d.answer}</div>
+                  <div style="font-size:12px; color:#475569; line-height:1.6; padding:6px 8px; background:#f0f9ff; border-radius:4px; border-left:3px solid var(--primary);"><i class="ri-chat-check-line" style="color:var(--primary);"></i> ${d.feedback}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- 底部 -->
+        <div style="padding:16px 24px; display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border-top:1px solid var(--border-color);">
+          <span style="font-size:11px; color:var(--text-muted);"><i class="ri-history-line"></i> 已保存至面试记录</span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary" style="font-size:12px; padding:6px 14px;" onclick="app.resetInterview()"><i class="ri-refresh-line"></i> 再来一次</button>
+          </div>
+        </div>
+      </div>
+    `;
+    chatBox.scrollTop = chatBox.scrollHeight;
   },
 
   downloadReport() {
