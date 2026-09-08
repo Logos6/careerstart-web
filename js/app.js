@@ -1429,6 +1429,7 @@ const app = {
 
     setTimeout(() => {
       this.interviewSession = CareerEngine.initInterviewSession(txt);
+      this.interviewSession.round = 1; // 设置第一轮
       const firstQ = CareerEngine.getNextQuestion(this.interviewSession);
 
       // 切换输入框为聊天模式
@@ -1454,7 +1455,7 @@ const app = {
         <div style="margin-bottom:14px; padding:12px 16px; background:linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%); border-radius:10px; border:1px solid #c7d2fe;">
           <div style="font-size:12px; font-weight:700; color:#4338ca; margin-bottom:6px;"><i class="ri-lightbulb-flash-line"></i> 面试须知</div>
           <div style="font-size:11px; color:#475569; line-height:1.6;">
-            本次面试共15轮，从自我介绍开始，逐步深入。<br>
+            本次面试共15轮，从背景探索开始，逐步深入到专业能力、行为面试和岗位匹配。<br>
             每轮回答后会给出评估和改进建议。输入「结束」可提前完成。
           </div>
         </div>
@@ -1464,7 +1465,7 @@ const app = {
             <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
             您好！感谢您参加今天的模拟面试。<br><br>
             我是本次的AI面试官，今天将针对<strong>「${txt}」</strong>岗位进行一场结构化面试。<br><br>
-            <strong>面试流程：</strong>本次面试共15轮，从自我介绍开始，逐步深入到专业能力、行为面试和岗位匹配。<br><br>
+            <strong>面试流程：</strong>本次面试共15轮，从背景探索开始，逐步深入到专业能力、行为面试和岗位匹配。<br><br>
             <strong>评估维度：</strong>我们将从<strong>专业能力、沟通表达、问题解决、团队协作、学习成长、抗压韧性</strong>六个维度评估您的表现。<br><br>
             准备好了吗？那我们开始第一个问题：<br><br>
             <strong>${firstQ.q}</strong>
@@ -1565,16 +1566,32 @@ const app = {
 
       setTimeout(() => {
         this.updateInterviewProgress(result.round);
-        chatBox.innerHTML += `
-          <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-            <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-            <div class="msg-content">
-              <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
-              ${result.aiResponse.replace(/\n/g, '<br>')}
+        // 如果没有下一题，显示结束消息
+        if (!result.nextQuestion && !this.interviewSession.followups.length) {
+          chatBox.innerHTML += `
+            <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+              <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+              <div class="msg-content">
+                <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
+                ${result.aiResponse.replace(/\n/g, '<br>')}
+              </div>
             </div>
-          </div>
-        `;
-        chatBox.scrollTop = chatBox.scrollHeight;
+          `;
+          chatBox.scrollTop = chatBox.scrollHeight;
+          // 自动生成报告
+          setTimeout(() => this.finishInterview(), 1500);
+        } else {
+          chatBox.innerHTML += `
+            <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+              <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+              <div class="msg-content">
+                <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> AI 面试官</div>
+                ${result.aiResponse.replace(/\n/g, '<br>')}
+              </div>
+            </div>
+          `;
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
       }, 500);
     }, 1200);
   },
