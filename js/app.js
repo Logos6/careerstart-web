@@ -1486,7 +1486,9 @@ const app = {
     if (!txt || !this.interviewSession) return;
 
     // 检测结束指令
-    if (/^(结束|完成|退出|结束面试|完成面试|done|end)$/i.test(txt)) {
+    console.log('[Interview] checking end command:', txt);
+    if (/(结束|完成|退出|结束面试|完成面试|done|end)/i.test(txt)) {
+      console.log('[Interview] end command detected');
       input.value = '';
       chatBox.innerHTML += `
         <div class="chat-msg user" style="display:flex; gap:12px; flex-direction:row-reverse; margin-bottom:14px;">
