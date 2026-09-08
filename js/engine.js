@@ -2291,75 +2291,159 @@
     }
   }
 
+  // ═══════════════════════════════════════════════════
+  //  面试流程框架（15轮结构化面试）
+  // ═══════════════════════════════════════════════════
+
+  const INTERVIEW_FLOW = [
+    // Round 1: 开场暖场（必问自我介绍）
+    { round: 1, phase: '暖场', categories: ['self_intro'], difficulty: 'basic', required: true },
+    // Round 2-3: 背景探索
+    { round: 2, phase: '背景', categories: ['self_intro', 'career_gap', 'career_change'], difficulty: 'basic' },
+    { round: 3, phase: '背景', categories: ['self_intro', 'general'], difficulty: 'basic' },
+    // Round 4-6: 核心能力（专业问题 + 行业问题）
+    { round: 4, phase: '能力', categories: ['professional', 'job_industry'], difficulty: 'basic' },
+    { round: 5, phase: '能力', categories: ['professional', 'job_industry'], difficulty: 'basic' },
+    { round: 6, phase: '能力', categories: ['professional', 'job_industry'], difficulty: 'intermediate' },
+    // Round 7-9: 行为面试
+    { round: 7, phase: '行为', categories: ['teamwork', 'decision'], difficulty: 'intermediate' },
+    { round: 8, phase: '行为', categories: ['pressure', 'teamwork'], difficulty: 'intermediate' },
+    { round: 9, phase: '行为', categories: ['customer_service', 'decision'], difficulty: 'intermediate' },
+    // Round 10-12: 深度追问（专业深度 + 行业深度）
+    { round: 10, phase: '深度', categories: ['professional', 'job_industry'], difficulty: 'advanced' },
+    { round: 11, phase: '深度', categories: ['professional', 'job_industry'], difficulty: 'advanced' },
+    { round: 12, phase: '深度', categories: ['professional', 'job_industry'], difficulty: 'advanced' },
+    // Round 13-14: 岗位匹配
+    { round: 13, phase: '匹配', categories: ['general'], difficulty: 'intermediate' },
+    { round: 14, phase: '匹配', categories: ['general'], difficulty: 'intermediate' },
+    // Round 15: 收尾
+    { round: 15, phase: '收尾', categories: ['general'], difficulty: 'basic' },
+  ];
+
+  // 通用面试问题分类映射
+  const CATEGORY_MAP = {
+    self_intro: ['自我介绍', '核心优势', '职业亮点', '岗位理解', '竞争优势', '职业故事', '技能盘点', '职业阶段', '工作风格', '个人品牌', '行业认知', '职业转型', '领导力', '解决问题', '成长性'],
+    career_gap: ['空白期解释', '回归动机', '技能更新', '稳定性担忧', '全职妈妈优势', '工作家庭平衡', '薪资期望', '职业连续性', '面试准备', '空窗期学习', '适应能力', '职业规划', '年龄担忧', '心态调整', '价值证明'],
+    career_change: ['转行动机', '技能迁移', '差距分析', '准备程度', '行业认知', '薪资谈判', '风险评估', '稳定性', '成功案例', '自我认知'],
+    general: ['离职原因', '冲突处理', '失败反思', '薪资谈判', '职业规划', '学习能力', '沟通能力', '适应能力', '求职动机', '优缺点', '抗压能力', '团队合作', '反问环节', '稳定性'],
+    teamwork: ['冲突解决', '跨部门协作', '向上管理', '团队贡献', '沟通风格', '反馈能力'],
+    pressure: ['压力认知', '情绪管理', '高压环境', '挫折应对', '自我调节', '完美主义', '抗压能力', '冲突处理', '压力面试', '动力维持'],
+    decision: ['决策风格', '风险评估', '创新思维', '战略思维', '问题分析'],
+    customer_service: ['投诉处理', '客户满意度', '服务标准', '团队培训', '情绪管理'],
+    remote_work: ['自律能力', '沟通协作', '时间管理', '工作效率'],
+    entrepreneurship: ['创业经历', '商业思维', '资源整合', '风险管理'],
+    mom_special: ['回归准备', '能力优势', '时间管理', '职业规划', '稳定性'],
+    // 通用专业能力分类（用于能力轮和深度轮）
+    professional: ['专业能力', '项目经验', '问题解决', '学习能力', '抗压能力', '沟通能力', '团队协作', '创新能力', '领导力', '执行力', '分析能力', '决策能力'],
+    // 行业分类（动态填充，根据岗位匹配）
+    job_industry: [],
+    // 行业分类保持原样
+    management: ['领导力', '战略规划', '团队管理', '决策能力', '变革管理'],
+    technical: ['项目经验', '技术深度', '系统设计', '代码质量', '技术选型'],
+    sales: ['客户开发', '谈判技巧', '业绩目标', '客户关系', '市场洞察'],
+    marketing: ['品牌策略', '市场分析', '推广方案', '数据分析', '创意策划'],
+    operations: ['运营策略', '数据分析', '用户增长', '内容运营', '活动策划'],
+    finance: ['财务分析', '预算管理', '风险控制', '合规审计', '成本优化'],
+    hr_admin: ['招聘管理', '员工关系', '培训发展', '薪酬绩效', '组织文化'],
+    design: ['设计理念', '用户体验', '设计流程', '作品展示', '设计工具'],
+    data_analytics: ['数据思维', '分析方法', '工具使用', '业务理解', '数据治理'],
+    ecommerce_retail: ['电商运营', '店铺管理', '选品策略', '直播带货', '供应链'],
+    new_energy: ['行业认知', '技术理解', '政策解读', '项目经验', '市场趋势'],
+    ai_tech: ['模型理解', '应用场景', '技术趋势', '项目经验', '伦理思考'],
+    banking_insurance: ['金融知识', '风险意识', '合规要求', '客户服务', '产品理解'],
+    logistics: ['供应链管理', '仓储优化', '配送效率', '成本控制', '系统流程'],
+    pharma_med: ['专业知识', '合规意识', '临床经验', '客户服务', '学术推广'],
+    culture_media: ['内容创作', '平台运营', '粉丝增长', '商业变现', '版权意识'],
+    construction_re: ['项目管理', '施工经验', '安全规范', '成本控制', '质量把控'],
+    hospitality: ['服务意识', '客户体验', '团队管理', '运营效率', '品质控制'],
+    education: ['教学能力', '课程设计', '学生管理', '教育理念', '专业发展'],
+    healthcare: ['专业知识', '患者沟通', '团队协作', '应急处理', '职业素养'],
+    legal: ['专业知识', '案例分析', '风险评估', '沟通协调', '合规意识'],
+  };
+
   function initInterviewSession(jobName) {
     const jobTypes = detectJobTypes(jobName);
-    const pool = [...INTERVIEW_DB.general];
+    
+    // 动态填充 job_industry 分类
+    CATEGORY_MAP.job_industry = [];
     for (const t of jobTypes) {
-      if (INTERVIEW_DB[t]) pool.push(...INTERVIEW_DB[t]);
+      if (CATEGORY_MAP[t]) {
+        CATEGORY_MAP.job_industry.push(...CATEGORY_MAP[t]);
+      }
     }
-    pool.push(...INTERVIEW_DB.mom_special);
-    // 去重
-    const seen = new Set();
-    const unique = pool.filter(q => { if (seen.has(q.id)) return false; seen.add(q.id); return true; });
-    for (let i = unique.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [unique[i], unique[j]] = [unique[j], unique[i]];
+    // 如果没有匹配到行业分类，添加通用专业分类
+    if (CATEGORY_MAP.job_industry.length === 0) {
+      CATEGORY_MAP.job_industry = ['专业能力', '项目经验', '问题解决', '学习能力'];
     }
-    return { jobName, jobTypes, pool: unique, asked: [], answers: [], currentQ: 0, round: 0, followups: [], followupProgress: {}, competencyScores: {}, startTime: Date.now() };
-  }
 
-  function detectJobTypes(jobName) {
-    const n = (jobName || '').toLowerCase();
-    const types = [];
-    if (/管理|主管|经理|总监|leader|director|vp|ceo|cto|coo/i.test(n)) types.push('management');
-    if (/开发|工程|技术|测试|运维|数据|IT| programmer|架构|前端|后端|全栈|算法/i.test(n)) types.push('technical');
-    if (/销售|商务|客户|bd|渠道|招商|大客户|区域/i.test(n)) types.push('sales');
-    if (/市场|品牌|推广|广告|公关|新媒体|营销/i.test(n)) types.push('marketing');
-    if (/运营|内容|社群|增长|产品|直播|短视频/i.test(n)) types.push('operations');
-    if (/客服|服务|售后|支持|投诉/i.test(n)) types.push('customer_service');
-    if (/财务|会计|审计|出纳|税务|资金|财务分析/i.test(n)) types.push('finance');
-    if (/人事|hr|行政|招聘|薪酬|培训|组织发展|人力资源/i.test(n)) types.push('hr_admin');
-    if (/设计|ui|ux|视觉|交互|平面|品牌设计|插画/i.test(n)) types.push('design');
-    if (/数据|bi|分析|数据仓库|数据治理|数据挖掘/i.test(n)) types.push('data_analytics');
-    if (/教育|培训|老师|讲师|教学|课程设计|教务/i.test(n)) types.push('education');
-    if (/医疗|护士|医生|健康|康复|护理|诊所/i.test(n)) types.push('healthcare');
-    if (/法务|律师|合规|法律顾问|知识产权|诉讼/i.test(n)) types.push('legal');
-    if (/远程|居家|自由职业|兼职|外包|灵活/i.test(n)) types.push('remote_work');
-    if (/创业|自由|个体|独立|副业|合伙/i.test(n)) types.push('entrepreneurship');
-    // 新增行业分类
-    if (/电商|新零售|淘宝|天猫|京东|拼多多|抖音|快手|直播带货|选品|店铺/i.test(n)) types.push('ecommerce_retail');
-    if (/新能源|光伏|储能|充电桩|风电|碳中和|环保|绿电/i.test(n)) types.push('new_energy');
-    if (/人工智能|ai|大模型|机器学习|深度学习|算法|prompt|aigc/i.test(n)) types.push('ai_tech');
-    if (/银行|保险|信贷|风控|理财|基金|证券|期货|信托/i.test(n)) types.push('banking_insurance');
-    if (/物流|供应链|仓储|配送|快递|货运|采购|库存/i.test(n)) types.push('logistics');
-    if (/医药|药品|医疗器械|制药|临床|药剂|药房|药店|gsp|gmp/i.test(n)) types.push('pharma_med');
-    if (/文化|传媒|影视|娱乐|出版|版权|mcn|内容创作|自媒体/i.test(n)) types.push('culture_media');
-    if (/建筑|房地产|地产|施工|装修|土建|造价|监理/i.test(n)) types.push('construction_re');
-    if (/餐饮|酒店|民宿|旅游|烹饪|厨师|前厅|客房|美团/i.test(n)) types.push('hospitality');
-    if (/农业|畜牧|养殖|种植|农场|饲料|农资|农机|渔业/i.test(n)) types.push('agriculture');
-    if (types.length === 0) types.push('self_intro', 'career_gap', 'career_change');
-    return types;
+    // 构建分类到题目的索引
+    const categoryIndex = {};
+    for (const [catKey, catNames] of Object.entries(CATEGORY_MAP)) {
+      if (INTERVIEW_DB[catKey]) {
+        for (const q of INTERVIEW_DB[catKey]) {
+          if (!categoryIndex[catKey]) categoryIndex[catKey] = [];
+          categoryIndex[catKey].push(q);
+        }
+      }
+    }
+    
+    return {
+      jobName, jobTypes, categoryIndex,
+      asked: [], answers: [], currentQ: 0, round: 0,
+      followups: [], followupProgress: {},
+      competencyScores: {}, startTime: Date.now()
+    };
   }
 
   function getNextQuestion(session) {
+    // 优先返回追问
     if (session.followups && session.followups.length > 0) return session.followups.shift();
-    const round = session.round || 0;
-    if (session.pool.length > 0) {
-      // 按难度渐进：前5轮基础，6-10轮中级，11+轮高级
-      let targetDiff;
-      if (round <= 5) targetDiff = 'basic';
-      else if (round <= 10) targetDiff = 'intermediate';
-      else targetDiff = 'advanced';
-      // 优先选目标难度，没有则取任意
-      let idx = session.pool.findIndex(q => q.difficulty === targetDiff);
-      if (idx === -1) idx = 0;
-      const q = session.pool.splice(idx, 1)[0];
-      session.asked.push(q.id);
-      return q;
+
+    const round = session.round + 1; // 下一轮（从1开始）
+    if (round > 15) {
+      // 超过15轮，随机补充问题
+      const allQ = Object.values(INTERVIEW_DB).flat();
+      const available = allQ.filter(q => !session.asked.includes(q.id));
+      if (available.length === 0) return null;
+      const rq = available[Math.floor(Math.random() * available.length)];
+      session.asked.push(rq.id);
+      return { ...rq, id: 'fu_' + Date.now(), cat: '补充问题' };
     }
-    const allQ = Object.values(INTERVIEW_DB).flat();
-    const rq = allQ[Math.floor(Math.random() * allQ.length)];
-    return { ...rq, id: 'fu_' + Date.now(), cat: '深度追问' };
+
+    // 根据流程框架选择题目
+    const flowStep = INTERVIEW_FLOW.find(f => f.round === round);
+    if (!flowStep) return null;
+
+    // 从指定分类中选题
+    let candidates = [];
+    for (const catKey of flowStep.categories) {
+      if (session.categoryIndex[catKey]) {
+        candidates.push(...session.categoryIndex[catKey]);
+      }
+    }
+
+    // 过滤已问过的题目
+    candidates = candidates.filter(q => !session.asked.includes(q.id));
+    if (candidates.length === 0) {
+      // 分类题目用完，从所有题目中补充
+      const allQ = Object.values(INTERVIEW_DB).flat();
+      candidates = allQ.filter(q => !session.asked.includes(q.id));
+    }
+    if (candidates.length === 0) return null;
+
+    // 按难度优先选择
+    const difficultyOrder = { basic: 0, intermediate: 1, advanced: 2 };
+    const targetDiff = flowStep.difficulty;
+    candidates.sort((a, b) => {
+      const da = difficultyOrder[a.difficulty] || 1;
+      const db = difficultyOrder[b.difficulty] || 1;
+      return Math.abs(da - difficultyOrder[targetDiff]) - Math.abs(db - difficultyOrder[targetDiff]);
+    });
+
+    // 选第一个（最匹配难度的）
+    const q = candidates[0];
+    session.asked.push(q.id);
+    return q;
   }
 
   // 删除了第二个generateFollowups（引用未定义的FOLLOWUP_RULES，导致崩溃）
