@@ -437,31 +437,56 @@ const app = {
 
       case 1:
         title.innerText = "请选择你感兴趣的领域（可多选）";
+        this._interestCatIdx = this._interestCatIdx || 0;
         wrapper.innerHTML = `
-          <div class="pc-opt-grid">
-            ${CareerData.INTERESTS.map(item => `
-              <div class="pc-opt-card ${this.userAnswers.interests.includes(item.id)?'active':''}" onclick="app.toggleArrayAnswer('interests', '${item.id}')">
-                <h4>${item.label}</h4>
+          <div class="lr-layout">
+            <div class="lr-sidebar" id="interest-cat-list">
+              ${CareerData.INTEREST_GROUPS.map((g, i) => `
+                <div class="lr-cat-item ${i===this._interestCatIdx?'active':''}" onclick="app._interestCatIdx=${i};app.renderAssessStep();">
+                  <span class="lr-cat-name">${g.cat}</span>
+                  <span class="lr-cat-count">${g.items.length}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="lr-main">
+              <div class="lr-main-title">${CareerData.INTEREST_GROUPS[this._interestCatIdx].cat}</div>
+              <div class="pc-opt-grid cols-4">
+                ${CareerData.INTEREST_GROUPS[this._interestCatIdx].items.map(item => `
+                  <div class="pc-opt-card ${this.userAnswers.interests.includes(item.id)?'active':''}" onclick="app.toggleArrayAnswer('interests', '${item.id}')">
+                    <h4>${item.label}</h4>
+                  </div>
+                `).join('')}
               </div>
-            `).join('')}
+            </div>
           </div>
         `;
         break;
 
       case 2:
         title.innerText = "请选择你目前具备或擅长的技能项";
-        wrapper.innerHTML = CareerData.SKILL_GROUPS.map(group => `
-          <div style="margin-bottom:20px;">
-            <h4 style="font-size:14px; color:var(--text-muted); margin-bottom:10px;">${group.group}</h4>
-            <div class="pc-opt-grid">
-              ${group.items.map(item => `
-                <div class="pc-opt-card ${this.userAnswers.skills.includes(item.id)?'active':''}" onclick="app.toggleArrayAnswer('skills', '${item.id}')">
-                  <h4>${item.label}</h4>
+        this._skillCatIdx = this._skillCatIdx || 0;
+        wrapper.innerHTML = `
+          <div class="lr-layout">
+            <div class="lr-sidebar" id="skill-cat-list">
+              ${CareerData.SKILL_GROUPS.map((g, i) => `
+                <div class="lr-cat-item ${i===this._skillCatIdx?'active':''}" onclick="app._skillCatIdx=${i};app.renderAssessStep();">
+                  <span class="lr-cat-name">${g.group}</span>
+                  <span class="lr-cat-count">${g.items.length}</span>
                 </div>
               `).join('')}
             </div>
+            <div class="lr-main">
+              <div class="lr-main-title">${CareerData.SKILL_GROUPS[this._skillCatIdx].group}</div>
+              <div class="pc-opt-grid cols-4">
+                ${CareerData.SKILL_GROUPS[this._skillCatIdx].items.map(item => `
+                  <div class="pc-opt-card ${this.userAnswers.skills.includes(item.id)?'active':''}" onclick="app.toggleArrayAnswer('skills', '${item.id}')">
+                    <h4>${item.label}</h4>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
           </div>
-        `).join('');
+        `;
         break;
 
       case 3:
@@ -484,13 +509,27 @@ const app = {
 
       case 4:
         title.innerText = "请选择你的求职工作偏好";
+        this._prefCatIdx = this._prefCatIdx || 0;
         wrapper.innerHTML = `
-          <div class="pc-opt-grid">
-            ${CareerData.PREF_ITEMS.map(item => `
-              <div class="pc-opt-card ${this.userAnswers.prefs.includes(item.id)?'active':''}" onclick="app.toggleArrayAnswer('prefs', '${item.id}')">
-                <h4>${item.label}</h4>
+          <div class="lr-layout">
+            <div class="lr-sidebar" id="pref-cat-list">
+              ${CareerData.PREF_GROUPS.map((g, i) => `
+                <div class="lr-cat-item ${i===this._prefCatIdx?'active':''}" onclick="app._prefCatIdx=${i};app.renderAssessStep();">
+                  <span class="lr-cat-name">${g.cat}</span>
+                  <span class="lr-cat-count">${g.items.length}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="lr-main">
+              <div class="lr-main-title">${CareerData.PREF_GROUPS[this._prefCatIdx].cat}</div>
+              <div class="pc-opt-grid cols-4">
+                ${CareerData.PREF_GROUPS[this._prefCatIdx].items.map(item => `
+                  <div class="pc-opt-card ${this.userAnswers.prefs.includes(item.id)?'active':''}" onclick="app.toggleArrayAnswer('prefs', '${item.id}')">
+                    <h4>${item.label}</h4>
+                  </div>
+                `).join('')}
               </div>
-            `).join('')}
+            </div>
           </div>
         `;
         nextBtn.innerHTML = `生成大屏分析报告 <i class="ri-sparkles-line"></i>`;
