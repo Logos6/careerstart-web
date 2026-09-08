@@ -1045,36 +1045,96 @@ const app = {
     this.renderAssessStep();
   },
 
-  // 导出报告
-  exportReport() {
+  // 导出报告为 PDF
+  async exportReport() {
     const report = CareerEngine.buildReport(this.userAnswers);
-    const top1 = report.top[0];
-    const text = `
-启航 CareerStart 职业启航分析报告
-================================
-生成时间：${new Date().toLocaleString('zh-CN')}
+    if (!report.top || report.top.length === 0) {
+      alert('暂无测评数据，请先完成测评。');
+      return;
+    }
 
-【最佳匹配岗位】
-${top1.job.name} (匹配度: ${top1.total}%)
-${top1.job.desc}
+    // 检查库是否加载
+    if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+      alert('PDF 导出组件加载中，请稍后重试。');
+      return;
+    }
 
-【推荐理由】
-${CareerEngine.reasonText(this.userAnswers, top1).join('\n')}
+    const btn = document.querySelector('[onclick="app.exportReport()"]');
+    const origText = btn ? btn.innerHTML : '';
+    if (btn) btn.innerHTML = '<i class="ri-loader-4-line" style="animation:spin 1s linear infinite;"></i> 生成中...';
 
-【备选岗位】
-${report.top.slice(1).map(item => `${item.job.name} (${item.total}%)`).join('\n')}
+    try {
+      // 1. 截取报告区域
+      const content = document.getElementById('result-pc-content');
+      if (!content) { alert('请先完成测评查看报告。'); return; }
 
----
-报告由启航 CareerStart 生成
-    `.trim();
+      const canvas = await html2canvas(content, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#f8f7ff',
+        logging: false,
+        windowWidth: 900,
+      });
 
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `启航职业报告_${new Date().toISOString().slice(0,10)}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+      // 2. 计算 PDF 尺寸（A4 竖版）
+      const { jsPDF } = jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = pdf.internal.pageSize.getWidth();   // 210mm
+      const pageH = pdf.internal.pageSize.getHeight();  // 297mm
+      const margin = 10;
+      const usableW = pageW - margin * 2;
+
+      const imgW = canvas.width;
+      const imgH = canvas.height;
+      const ratio = usableW / imgW;
+      const scaledH = imgH * ratio;
+
+      // 3. 分页写入
+      const pageContentH = pageH - margin * 2;
+      let yOffset = 0;
+      let page = 0;
+
+      while (yOffset < scaledH) {
+        if (page > 0) pdf.addPage();
+
+        // 计算当前页裁剪区域
+        const srcY = yOffset / ratio;
+        const remainingH = scaledH - yOffset;
+        const sliceH = Math.min(pageContentH, remainingH);
+        const srcH = sliceH / ratio;
+
+        // 从 canvas 裁剪当前页内容
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = imgW;
+        pageCanvas.height = srcH;
+        const ctx = pageCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, srcY, imgW, srcH, 0, 0, imgW, srcH);
+
+        const pageImg = pageCanvas.toDataURL('image/jpeg', 0.92);
+        pdf.addImage(pageImg, 'JPEG', margin, margin, usableW, sliceH);
+
+        yOffset += pageContentH;
+        page++;
+      }
+
+      // 4. 添加页脚
+      for (let i = 1; i <= page; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(160);
+        pdf.text(`启航 CareerStart · ${new Date().toLocaleDateString('zh-CN')} · 第${i}/${page}页`, pageW / 2, pageH - 5, { align: 'center' });
+      }
+
+      // 5. 下载
+      const top1Name = report.top[0].job.name;
+      pdf.save(`启航职业报告_${top1Name}_${new Date().toISOString().slice(0,10)}.pdf`);
+
+    } catch (e) {
+      console.error('[ExportPDF Error]', e);
+      alert('PDF 生成失败：' + e.message);
+    } finally {
+      if (btn) btn.innerHTML = origText;
+    }
   },
 
   // 6. 简历诊断
