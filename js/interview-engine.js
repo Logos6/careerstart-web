@@ -857,28 +857,42 @@
   function generateFeedback(score, text, question) {
     const parts = [];
 
+    // 开头总评
     if (score >= 80) {
-      parts.push('回答得很好');
+      parts.push('✅ 回答得很好，结构清晰、内容充实。');
     } else if (score >= 60) {
-      parts.push('回答还不错');
+      parts.push('👍 回答还不错，但还有提升空间。');
     } else if (score >= 40) {
-      parts.push('回答还可以更充实');
+      parts.push('⚠️ 回答基本合格，但需要补充更多内容。');
     } else {
-      parts.push('回答需要更多内容');
+      parts.push('❌ 这个回答不够理想，需要认真改进。');
     }
 
-    // 具体反馈
-    if (text.length < 30) {
-      parts.push('内容偏短，建议多说一些细节');
+    // 具体诊断
+    const issues = [];
+    if (text.length < 15) {
+      issues.push('回答只有' + text.length + '个字，太简短了。面试中至少要说3-5句话（100字以上），展示你的思考过程');
+    } else if (text.length < 50) {
+      issues.push('内容偏短（' + text.length + '字），建议扩展到100字以上，多说说具体做法和结果');
     }
     if (!/\d+/.test(text)) {
-      parts.push('可以加入一些数据来支撑');
+      issues.push('缺少数据支撑。加入具体数字（如"提升了30%"、"管理5人团队"）会让回答更有说服力');
     }
-    if (!/比如|例如|举个例子/.test(text)) {
-      parts.push('举一个实际例子会更有说服力');
+    if (!/比如|例如|举个例子|有一次|当时/.test(text)) {
+      issues.push('没有具体案例。用STAR法则讲一个真实经历：当时的背景→你的任务→你做了什么→结果如何');
+    }
+    if (!/结果|最终|完成后|上线后|优化后|提升了?|增长了?|节省了?/.test(text)) {
+      issues.push('没有提到结果。面试官最想听的是你做事的成效，哪怕是一句话的量化结果也好');
     }
 
-    return parts.join('。');
+    if (issues.length > 0) {
+      parts.push('\n💡 改进建议：');
+      issues.forEach(function(issue, i) {
+        parts.push((i + 1) + '. ' + issue);
+      });
+    }
+
+    return parts.join('\n');
   }
 
   // ═══════════════════════════════════════════════════
@@ -1123,11 +1137,26 @@
     // 决定下一步
     if (evaluation.action === 'followup' && evaluation.followupQuestion) {
       // 追问
-      const reaction = evaluation.score >= 70
-        ? persona.reactions.good[Math.floor(Math.random() * persona.reactions.good.length)]
-        : persona.reactions.mid[Math.floor(Math.random() * persona.reactions.mid.length)];
+      let reaction = '';
+      if (evaluation.score >= 70) {
+        reaction = persona.reactions.good[Math.floor(Math.random() * persona.reactions.good.length)];
+      } else {
+        reaction = persona.reactions.mid[Math.floor(Math.random() * persona.reactions.mid.length)];
+      }
 
-      aiMessage = reaction + '\n\n' + evaluation.followupQuestion.q;
+      // 构建反馈消息：评分标签 + 具体反馈 + 遗漏要点 + 追问
+      let feedbackBlock = '';
+      if (evaluation.score < 75) {
+        feedbackBlock = '\n\n📝 **反馈：**' + evaluation.feedback;
+        if (evaluation.analysis.missedKeyPoints && evaluation.analysis.missedKeyPoints.length > 0) {
+          feedbackBlock += '\n\n⚠️ **你遗漏了这些要点：** ' + evaluation.analysis.missedKeyPoints.join('；');
+        }
+        if (evaluation.analysis.refCoverage > 0) {
+          feedbackBlock += '\n📊 参考答案覆盖率：要点' + evaluation.analysis.refCoverage + '% / 内容' + (evaluation.analysis.refSentenceCoverage || 0) + '%';
+        }
+      }
+
+      aiMessage = reaction + feedbackBlock + '\n\n💬 **追问：**' + evaluation.followupQuestion.q;
       nextQuestion = {
         id: 'followup_' + Date.now(),
         q: evaluation.followupQuestion.q,
@@ -1140,11 +1169,26 @@
       session.phaseRounds++;
     } else {
       // 进入下一题
-      const reaction = evaluation.score >= 75
-        ? persona.reactions.good[Math.floor(Math.random() * persona.reactions.good.length)]
-        : evaluation.score >= 50
-          ? persona.reactions.mid[Math.floor(Math.random() * persona.reactions.mid.length)]
-          : persona.reactions.weak[Math.floor(Math.random() * persona.reactions.weak.length)];
+      let reaction = '';
+      if (evaluation.score >= 75) {
+        reaction = persona.reactions.good[Math.floor(Math.random() * persona.reactions.good.length)];
+      } else if (evaluation.score >= 50) {
+        reaction = persona.reactions.mid[Math.floor(Math.random() * persona.reactions.mid.length)];
+      } else {
+        reaction = persona.reactions.weak[Math.floor(Math.random() * persona.reactions.weak.length)];
+      }
+
+      // 构建反馈消息：低分时显示具体反馈
+      let feedbackBlock = '';
+      if (evaluation.score < 75) {
+        feedbackBlock = '\n\n📝 **反馈：**' + evaluation.feedback;
+        if (evaluation.analysis.missedKeyPoints && evaluation.analysis.missedKeyPoints.length > 0) {
+          feedbackBlock += '\n\n⚠️ **你遗漏了这些要点：** ' + evaluation.analysis.missedKeyPoints.join('；');
+        }
+        if (evaluation.analysis.refCoverage > 0) {
+          feedbackBlock += '\n📊 参考答案覆盖率：要点' + evaluation.analysis.refCoverage + '% / 内容' + (evaluation.analysis.refSentenceCoverage || 0) + '%';
+        }
+      }
 
       // 检查是否需要推进阶段
       const phase = getCurrentPhase(session);
@@ -1158,7 +1202,7 @@
 
       if (!nextQuestion) {
         // 面试结束
-        aiMessage = reaction + '\n\n' + persona.transitions[Math.floor(Math.random() * persona.transitions.length)] + '\n\n' + '好的，今天的面试就到这里。感谢你的参与，正在为你生成评估报告，请稍候...';
+        aiMessage = reaction + feedbackBlock + '\n\n' + persona.transitions[Math.floor(Math.random() * persona.transitions.length)] + '\n\n' + '好的，今天的面试就到这里。感谢你的参与，正在为你生成评估报告，请稍候...';
         isFinished = true;
       } else {
         session.askedIds.add(nextQuestion.id);
@@ -1166,7 +1210,7 @@
         session.phaseRounds++;
 
         const transition = phaseTransition || persona.transitions[Math.floor(Math.random() * persona.transitions.length)];
-        aiMessage = reaction + '\n\n' + transition + '\n\n' + nextQuestion.q;
+        aiMessage = reaction + feedbackBlock + '\n\n' + transition + '\n\n' + nextQuestion.q;
       }
     }
 
