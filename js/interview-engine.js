@@ -855,9 +855,15 @@
   }
 
   function generateFeedback(score, text, question) {
-    const parts = [];
+    // 使用 AnswerAnalyzer 进行12类错误模式检测
+    const analyzer = (typeof AnswerAnalyzer !== 'undefined') ? AnswerAnalyzer : null;
+    if (analyzer) {
+      const result = analyzer.analyze(text, question);
+      return result.summary;
+    }
 
-    // 开头总评
+    // 降级方案：基础反馈
+    const parts = [];
     if (score >= 80) {
       parts.push('✅ 回答得很好，结构清晰、内容充实。');
     } else if (score >= 60) {
@@ -867,31 +873,6 @@
     } else {
       parts.push('❌ 这个回答不够理想，需要认真改进。');
     }
-
-    // 具体诊断
-    const issues = [];
-    if (text.length < 15) {
-      issues.push('回答只有' + text.length + '个字，太简短了。面试中至少要说3-5句话（100字以上），展示你的思考过程');
-    } else if (text.length < 50) {
-      issues.push('内容偏短（' + text.length + '字），建议扩展到100字以上，多说说具体做法和结果');
-    }
-    if (!/\d+/.test(text)) {
-      issues.push('缺少数据支撑。加入具体数字（如"提升了30%"、"管理5人团队"）会让回答更有说服力');
-    }
-    if (!/比如|例如|举个例子|有一次|当时/.test(text)) {
-      issues.push('没有具体案例。用STAR法则讲一个真实经历：当时的背景→你的任务→你做了什么→结果如何');
-    }
-    if (!/结果|最终|完成后|上线后|优化后|提升了?|增长了?|节省了?/.test(text)) {
-      issues.push('没有提到结果。面试官最想听的是你做事的成效，哪怕是一句话的量化结果也好');
-    }
-
-    if (issues.length > 0) {
-      parts.push('\n💡 改进建议：');
-      issues.forEach(function(issue, i) {
-        parts.push((i + 1) + '. ' + issue);
-      });
-    }
-
     return parts.join('\n');
   }
 
@@ -1148,6 +1129,17 @@
       let feedbackBlock = '';
       if (evaluation.score < 75) {
         feedbackBlock = '\n\n📝 **反馈：**' + evaluation.feedback;
+        // 显示 AnswerAnalyzer 检测到的具体问题
+        if (typeof AnswerAnalyzer !== 'undefined') {
+          const analysis = AnswerAnalyzer.analyze(answer, lastQuestion);
+          if (analysis.detected.length > 0) {
+            const issues = analysis.detected.slice(0, 3).map(function(d) {
+              return d.icon + ' ' + d.name + '：' + d.detail;
+            });
+            feedbackBlock += '\n\n🔍 **问题诊断：**\n' + issues.join('\n');
+            feedbackBlock += '\n\n💡 **改进建议：**\n' + analysis.detected[0].suggestion;
+          }
+        }
         if (evaluation.analysis.missedKeyPoints && evaluation.analysis.missedKeyPoints.length > 0) {
           feedbackBlock += '\n\n⚠️ **你遗漏了这些要点：** ' + evaluation.analysis.missedKeyPoints.join('；');
         }
@@ -1182,6 +1174,17 @@
       let feedbackBlock = '';
       if (evaluation.score < 75) {
         feedbackBlock = '\n\n📝 **反馈：**' + evaluation.feedback;
+        // 显示 AnswerAnalyzer 检测到的具体问题
+        if (typeof AnswerAnalyzer !== 'undefined') {
+          const analysis = AnswerAnalyzer.analyze(answer, lastQuestion);
+          if (analysis.detected.length > 0) {
+            const issues = analysis.detected.slice(0, 3).map(function(d) {
+              return d.icon + ' ' + d.name + '：' + d.detail;
+            });
+            feedbackBlock += '\n\n🔍 **问题诊断：**\n' + issues.join('\n');
+            feedbackBlock += '\n\n💡 **改进建议：**\n' + analysis.detected[0].suggestion;
+          }
+        }
         if (evaluation.analysis.missedKeyPoints && evaluation.analysis.missedKeyPoints.length > 0) {
           feedbackBlock += '\n\n⚠️ **你遗漏了这些要点：** ' + evaluation.analysis.missedKeyPoints.join('；');
         }
