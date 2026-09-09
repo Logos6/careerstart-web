@@ -71,7 +71,7 @@
       <nav class="desktop-nav">
         <button class="nav-item active" data-target="home" onclick="app.switchTab('home')"><i class="ri-home-5-line"></i> 平台首页</button>
         <button class="nav-item" data-target="assess" onclick="app.switchTab('assess')"><i class="ri-compass-3-line"></i> 6维AI测评</button>
-        <button class="nav-item" data-target="tools" onclick="app.switchTab('tools')"><i class="ri-cpu-line"></i> AI简历/面试</button>
+        <button class="nav-item" data-target="tools" onclick="app.switchTab('tools')"><i class="ri-cpu-line"></i> AI简历</button>
         <button class="nav-item" data-target="coaching" onclick="app.switchTab('coaching')"><i class="ri-user-heart-line"></i> 职业陪跑</button>
         
       </nav>
@@ -317,30 +317,7 @@
           </div>
         </div>
 
-        <!-- 模拟面试卡片 -->
-        <div class="tool-card-box">
-          <div class="t-box-header">
-            <h3><i class="ri-user-voice-line"></i> AI 模拟面试演练</h3>
-            <p>针对目标岗位进行多轮深度模拟面试，含实时评分与详细报告。</p>
-          </div>
-          <div class="t-box-body">
-            <div class="pc-chat-window" id="interview-chat-box">
-              <div style="text-align:center; padding:32px 20px;">
-                <div style="width:64px; height:64px; margin:0 auto 16px; background:linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(99,102,241,0.3);">
-                  <i class="ri-robot-fill" style="font-size:28px; color:#fff;"></i>
-                </div>
-                <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:6px;">AI 面试官已就位</div>
-                <div style="font-size:12px; color:var(--text-muted); line-height:1.6; max-width:240px; margin:0 auto;">
-                  输入目标岗位，即可开始 7 轮深度模拟面试
-                </div>
-              </div>
-            </div>
-            <div class="pc-chat-input-bar">
-              <input type="text" id="interview-input" placeholder="输入岗位名称开始面试..." onkeypress="if(event.key==='Enter') app.startInterview()">
-              <button class="btn btn-primary-gradient" onclick="app.startInterview()"><i class="ri-send-plane-fill"></i> 开始面试</button>
-            </div>
-          </div>
-        </div>
+
       </div>
     </section>
 
@@ -777,8 +754,7 @@
   <!-- 引入逻辑脚本 -->
   <script src="js/data.js?v=5"></script>
   <script src="js/engine.js?v=5"></script>
-  <script src="js/question_bank.js?v=1"></script>
-  <script src="js/interview-engine.js?v=6"></script>
+
   <script src="js/app.js?v=1757300001"></script>
   <!-- 后端访客统计 -->
   <script>
