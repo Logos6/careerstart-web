@@ -71,7 +71,7 @@
       <nav class="desktop-nav">
         <button class="nav-item active" data-target="home" onclick="app.switchTab('home')"><i class="ri-home-5-line"></i> 平台首页</button>
         <button class="nav-item" data-target="assess" onclick="app.switchTab('assess')"><i class="ri-compass-3-line"></i> 6维AI测评</button>
-        <button class="nav-item" data-target="tools" onclick="app.switchTab('tools')"><i class="ri-cpu-line"></i> AI简历</button>
+        <button class="nav-item" data-target="tools" onclick="app.switchTab('tools')"><i class="ri-cpu-line"></i> AI简历/面试</button>
         <button class="nav-item" data-target="coaching" onclick="app.switchTab('coaching')"><i class="ri-user-heart-line"></i> 职业陪跑</button>
         
       </nav>
@@ -317,7 +317,29 @@
           </div>
         </div>
 
-
+        <!-- AI 模拟面试演练 -->
+        <div class="tool-card-box">
+          <div class="t-box-header">
+            <h3><i class="ri-robot-2-line"></i> AI 模拟面试演练</h3>
+            <p>输入目标岗位，AI面试官将生成专属面试题并实时评分反馈。</p>
+          </div>
+          <div class="t-box-body">
+            <div class="pc-chat-window" id="interview-chat-box">
+              <div class="chat-msg system">
+                <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+                <div class="msg-content">您好！感谢您参加模拟面试。请告诉我您准备面试的岗位（例如：物业主管 / 数据分析 / 托管助教）：</div>
+              </div>
+            </div>
+            <div class="pc-chat-input-bar">
+              <input type="text" id="interview-input" placeholder="输入目标岗位名称开始面试..." onkeypress="if(event.key==='Enter') app.startInterview()">
+              <button class="btn btn-primary-gradient" onclick="app.startInterview()"><i class="ri-play-fill"></i> 开始面试</button>
+            </div>
+            <div style="margin-top:8px;">
+              <button class="btn btn-outline-primary btn-sm" onclick="app.downloadReport()" style="font-size:11px; padding:4px 10px;"><i class="ri-download-line"></i> 导出报告</button>
+              <button class="btn btn-outline-primary btn-sm" onclick="app.resetInterview()" style="font-size:11px; padding:4px 10px; margin-left:6px;"><i class="ri-refresh-line"></i> 重新开始</button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -754,7 +776,8 @@
   <!-- 引入逻辑脚本 -->
   <script src="js/data.js?v=5"></script>
   <script src="js/engine.js?v=5"></script>
-
+  <script src="js/question_bank.js?v=1"></script>
+  <script src="js/interview-engine.js?v=6"></script>
   <script src="js/app.js?v=1757300001"></script>
   <!-- 后端访客统计 -->
   <script>
