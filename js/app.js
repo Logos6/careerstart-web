@@ -1925,6 +1925,7 @@ const app = {
 
   resetInterview() {
     this.interviewSession = null;
+    this._currentQuestion = null;
     const chatBox = document.getElementById('interview-chat-box');
     chatBox.innerHTML = `
       <div class="chat-msg system">
@@ -1932,6 +1933,14 @@ const app = {
         <div class="msg-content">您好！感谢您参加模拟面试。请告诉我您准备面试的岗位（例如：物业主管 / 数据分析 / 托管助教）：</div>
       </div>
     `;
+    // 恢复输入栏为初始状态
+    const inputBar = document.querySelector('.pc-chat-input-bar');
+    if (inputBar) {
+      inputBar.innerHTML = `
+        <input type="text" id="interview-input" placeholder="输入目标岗位名称开始面试..." onkeypress="if(event.key==='Enter') app.startInterview()">
+        <button class="btn btn-primary-gradient" onclick="app.startInterview()"><i class="ri-play-fill"></i> 开始面试</button>
+      `;
+    }
   },
 
   // 套餐次数限制
