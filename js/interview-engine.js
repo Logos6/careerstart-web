@@ -207,7 +207,7 @@
   // ═══════════════════════════════════════════════════
 
   function analyzeResume(resumeText) {
-    if (!resumeText) return { skills: [], experiences: [], keywords: [], hasResume: false };
+    if (!resumeText) return { skills: [], experiences: [], keywords: [], companies: [], years: null, education: null, achievements: [], hasResume: false };
 
     const text = resumeText.toLowerCase();
 
