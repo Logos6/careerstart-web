@@ -273,7 +273,7 @@
   }
 
   function analyzeJD(jdText) {
-    if (!jdText) return { requiredSkills: [], responsibilities: [], keywords: [], hasJD: false };
+    if (!jdText) return { requiredSkills: [], responsibilities: [], keywords: [], jobTypes: [], hasJD: false };
 
     const text = jdText.toLowerCase();
 
