@@ -855,25 +855,8 @@
   }
 
   function generateFeedback(score, text, question) {
-    // 使用 AnswerAnalyzer 进行12类错误模式检测
-    const analyzer = (typeof AnswerAnalyzer !== 'undefined') ? AnswerAnalyzer : null;
-    if (analyzer) {
-      const result = analyzer.analyze(text, question);
-      return result.summary;
-    }
-
-    // 降级方案：基础反馈
-    const parts = [];
-    if (score >= 80) {
-      parts.push('✅ 回答得很好，结构清晰、内容充实。');
-    } else if (score >= 60) {
-      parts.push('👍 回答还不错，但还有提升空间。');
-    } else if (score >= 40) {
-      parts.push('⚠️ 回答基本合格，但需要补充更多内容。');
-    } else {
-      parts.push('❌ 这个回答不够理想，需要认真改进。');
-    }
-    return parts.join('\n');
+    // 此函数仅用于 evaluateAnswer 返回值，实际反馈在 processAnswer 中动态生成
+    return '';
   }
 
   // ═══════════════════════════════════════════════════
@@ -1092,6 +1075,70 @@
     };
   }
 
+  // ═══════════════════════════════════════════════════
+  //  5.5 动态反馈生成器 — 根据回答内容生成个性化反馈
+  // ═══════════════════════════════════════════════════
+
+  function buildDynamicFeedback(evaluation, answer, question) {
+    const text = (answer || '').trim();
+    const score = evaluation.score;
+    const len = text.length;
+
+    // 无反馈情况：高分且无遗漏要点
+    if (score >= 80 && (!evaluation.analysis.missedKeyPoints || evaluation.analysis.missedKeyPoints.length === 0)) {
+      return '';
+    }
+
+    const parts = [];
+
+    // 1. 评分标签
+    const scoreLabel = score >= 80 ? '优秀' : score >= 60 ? '良好' : score >= 40 ? '合格' : '需改进';
+    const scoreColor = score >= 80 ? '#10b981' : score >= 60 ? '#3b82f6' : score >= 40 ? '#f59e0b' : '#ef4444';
+    parts.push('📊 评分：**' + score + '分**（' + scoreLabel + '）');
+
+    // 2. AnswerAnalyzer 12类错误模式检测（每次回答都检测，结果不同）
+    if (typeof AnswerAnalyzer !== 'undefined') {
+      const analysis = AnswerAnalyzer.analyze(text, question);
+      if (analysis.detected.length > 0) {
+        parts.push('');
+        parts.push('🔍 **问题诊断：**');
+        analysis.detected.slice(0, 3).forEach(function(d) {
+          parts.push(d.icon + ' ' + d.name + '：' + d.detail);
+        });
+        // 给出最优先的改进建议
+        parts.push('');
+        parts.push('💡 **改进建议：** ' + analysis.detected[0].suggestion);
+      } else if (score < 80) {
+        // 没有检测到错误模式但分数不高，给出通用建议
+        parts.push('');
+        if (len < 60) {
+          parts.push('💡 **建议：** 回答内容偏短，可以多展开说说具体的做法和成果。');
+        } else {
+          parts.push('💡 **建议：** 可以尝试用STAR法则（情境→任务→行动→结果）来组织回答。');
+        }
+      }
+    }
+
+    // 3. 遗漏要点（来自参考答案对比）
+    if (evaluation.analysis.missedKeyPoints && evaluation.analysis.missedKeyPoints.length > 0) {
+      parts.push('');
+      parts.push('⚠️ **遗漏要点：** ' + evaluation.analysis.missedKeyPoints.join('；'));
+    }
+
+    // 4. 覆盖率（如果有参考答案）
+    if (evaluation.analysis.refCoverage > 0) {
+      parts.push('📊 参考覆盖率：要点' + evaluation.analysis.refCoverage + '% / 内容' + (evaluation.analysis.refSentenceCoverage || 0) + '%');
+    }
+
+    // 5. 针对低分回答的具体追问方向提示
+    if (score < 40) {
+      parts.push('');
+      parts.push('🎯 **你可以这样改进：** 先说背景情况，再说你具体做了什么，最后说取得了什么结果。');
+    }
+
+    return parts.length > 1 ? '\n\n' + parts.join('\n') : '';
+  }
+
   function processAnswer(session, answer, lastQuestion) {
     const evaluation = evaluateAnswer(answer, lastQuestion, session.resumeInfo, session.refAnswerMap);
 
@@ -1125,29 +1172,8 @@
         reaction = persona.reactions.mid[Math.floor(Math.random() * persona.reactions.mid.length)];
       }
 
-      // 构建反馈消息：评分标签 + 具体反馈 + 遗漏要点 + 追问
-      let feedbackBlock = '';
-      if (evaluation.score < 75) {
-        feedbackBlock = '\n\n📝 **反馈：**' + evaluation.feedback;
-        // 显示 AnswerAnalyzer 检测到的具体问题
-        if (typeof AnswerAnalyzer !== 'undefined') {
-          const analysis = AnswerAnalyzer.analyze(answer, lastQuestion);
-          if (analysis.detected.length > 0) {
-            const issues = analysis.detected.slice(0, 3).map(function(d) {
-              return d.icon + ' ' + d.name + '：' + d.detail;
-            });
-            feedbackBlock += '\n\n🔍 **问题诊断：**\n' + issues.join('\n');
-            feedbackBlock += '\n\n💡 **改进建议：**\n' + analysis.detected[0].suggestion;
-          }
-        }
-        if (evaluation.analysis.missedKeyPoints && evaluation.analysis.missedKeyPoints.length > 0) {
-          feedbackBlock += '\n\n⚠️ **你遗漏了这些要点：** ' + evaluation.analysis.missedKeyPoints.join('；');
-        }
-        if (evaluation.analysis.refCoverage > 0) {
-          feedbackBlock += '\n📊 参考答案覆盖率：要点' + evaluation.analysis.refCoverage + '% / 内容' + (evaluation.analysis.refSentenceCoverage || 0) + '%';
-        }
-      }
-
+      // 动态生成个性化反馈
+      const feedbackBlock = buildDynamicFeedback(evaluation, answer, lastQuestion);
       aiMessage = reaction + feedbackBlock + '\n\n💬 **追问：**' + evaluation.followupQuestion.q;
       nextQuestion = {
         id: 'followup_' + Date.now(),
@@ -1170,28 +1196,8 @@
         reaction = persona.reactions.weak[Math.floor(Math.random() * persona.reactions.weak.length)];
       }
 
-      // 构建反馈消息：低分时显示具体反馈
-      let feedbackBlock = '';
-      if (evaluation.score < 75) {
-        feedbackBlock = '\n\n📝 **反馈：**' + evaluation.feedback;
-        // 显示 AnswerAnalyzer 检测到的具体问题
-        if (typeof AnswerAnalyzer !== 'undefined') {
-          const analysis = AnswerAnalyzer.analyze(answer, lastQuestion);
-          if (analysis.detected.length > 0) {
-            const issues = analysis.detected.slice(0, 3).map(function(d) {
-              return d.icon + ' ' + d.name + '：' + d.detail;
-            });
-            feedbackBlock += '\n\n🔍 **问题诊断：**\n' + issues.join('\n');
-            feedbackBlock += '\n\n💡 **改进建议：**\n' + analysis.detected[0].suggestion;
-          }
-        }
-        if (evaluation.analysis.missedKeyPoints && evaluation.analysis.missedKeyPoints.length > 0) {
-          feedbackBlock += '\n\n⚠️ **你遗漏了这些要点：** ' + evaluation.analysis.missedKeyPoints.join('；');
-        }
-        if (evaluation.analysis.refCoverage > 0) {
-          feedbackBlock += '\n📊 参考答案覆盖率：要点' + evaluation.analysis.refCoverage + '% / 内容' + (evaluation.analysis.refSentenceCoverage || 0) + '%';
-        }
-      }
+      // 动态生成个性化反馈
+      const feedbackBlock = buildDynamicFeedback(evaluation, answer, lastQuestion);
 
       // 检查是否需要推进阶段
       const phase = getCurrentPhase(session);
