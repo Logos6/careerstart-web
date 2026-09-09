@@ -1616,17 +1616,21 @@ const app = {
       const loadingEl = document.getElementById('interview-loading');
       if (loadingEl) loadingEl.remove();
       try {
+        console.log('[Interview] processAnswer called, session:', !!this.interviewSession, 'currentQ:', JSON.stringify(this._currentQuestion));
         const result = InterviewEngine.processAnswer(this.interviewSession, txt, this._currentQuestion);
+        console.log('[Interview] result:', JSON.stringify({ msg: (result.message||'').substring(0,80), score: result.evaluation && result.evaluation.score, isFinished: result.isFinished, hasQuestion: !!result.question }));
         this._currentQuestion = result.question;
 
         this.updateInterviewProgress(result.round);
         const scoreTag = result.evaluation ? `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; background:${result.evaluation.color}20; color:${result.evaluation.color}; margin-left:8px;">${result.evaluation.score}分 ${result.evaluation.level}</span>` : '';
+        const msgHtml = (result.message || '').replace(/\n/g, '<br>');
+        console.log('[Interview] msgHtml length:', msgHtml.length, 'first 100:', msgHtml.substring(0, 100));
         chatBox.innerHTML += `
           <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
             <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
             <div class="msg-content">
               <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> ${this.interviewSession.persona.name}${scoreTag}</div>
-              ${result.message.replace(/\n/g, '<br>')}
+              ${msgHtml}
             </div>
           </div>
         `;
@@ -1635,11 +1639,11 @@ const app = {
           setTimeout(() => this.finishInterview(), 2000);
         }
       } catch (err) {
-        console.error('Interview process error:', err);
+        console.error('[Interview] FATAL error:', err);
         chatBox.innerHTML += `
           <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
             <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-            <div class="msg-content" style="color:#ef4444;">处理回答时出错：${err.message}</div>
+            <div class="msg-content" style="color:#ef4444;">处理回答时出错：${err.message}<br><small>${err.stack || ''}</small></div>
           </div>
         `;
       }
