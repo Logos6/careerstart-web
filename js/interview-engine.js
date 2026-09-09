@@ -1080,67 +1080,98 @@
   // ═══════════════════════════════════════════════════
 
   function buildDynamicFeedback(evaluation, answer, question) {
-    const text = (answer || '').trim();
-    const score = evaluation.score;
-    const len = text.length;
+    try {
+      const text = (answer || '').trim();
+      const score = evaluation.score;
+      const len = text.length;
 
-    // 无反馈情况：高分且无遗漏要点
-    if (score >= 80 && (!evaluation.analysis.missedKeyPoints || evaluation.analysis.missedKeyPoints.length === 0)) {
-      return '';
-    }
+      // 无反馈情况：高分且无遗漏要点
+      const analysis = evaluation.analysis || {};
+      if (score >= 80 && (!analysis.missedKeyPoints || analysis.missedKeyPoints.length === 0)) {
+        return '';
+      }
 
-    const parts = [];
+      const parts = [];
 
-    // 1. 评分标签
-    const scoreLabel = score >= 80 ? '优秀' : score >= 60 ? '良好' : score >= 40 ? '合格' : '需改进';
-    const scoreColor = score >= 80 ? '#10b981' : score >= 60 ? '#3b82f6' : score >= 40 ? '#f59e0b' : '#ef4444';
-    parts.push('📊 评分：**' + score + '分**（' + scoreLabel + '）');
+      // 1. 评分标签
+      const scoreLabel = score >= 80 ? '优秀' : score >= 60 ? '良好' : score >= 40 ? '合格' : '需改进';
+      parts.push('📊 评分：**' + score + '分**（' + scoreLabel + '）');
 
-    // 2. AnswerAnalyzer 12类错误模式检测（每次回答都检测，结果不同）
-    if (typeof AnswerAnalyzer !== 'undefined') {
-      const analysis = AnswerAnalyzer.analyze(text, question);
-      if (analysis.detected.length > 0) {
-        parts.push('');
-        parts.push('🔍 **问题诊断：**');
-        analysis.detected.slice(0, 3).forEach(function(d) {
-          parts.push(d.icon + ' ' + d.name + '：' + d.detail);
-        });
-        // 给出最优先的改进建议
-        parts.push('');
-        parts.push('💡 **改进建议：** ' + analysis.detected[0].suggestion);
-      } else if (score < 80) {
-        // 没有检测到错误模式但分数不高，给出通用建议
-        parts.push('');
-        if (len < 60) {
-          parts.push('💡 **建议：** 回答内容偏短，可以多展开说说具体的做法和成果。');
-        } else {
+      // 2. AnswerAnalyzer 12类错误模式检测（每次回答都检测，结果不同）
+      if (typeof AnswerAnalyzer !== 'undefined') {
+        try {
+          const aaResult = AnswerAnalyzer.analyze(text, question);
+          if (aaResult && aaResult.detected && aaResult.detected.length > 0) {
+            parts.push('');
+            parts.push('🔍 **问题诊断：**');
+            aaResult.detected.slice(0, 3).forEach(function(d) {
+              parts.push(d.icon + ' ' + d.name + '：' + d.detail);
+            });
+            parts.push('');
+            parts.push('💡 **改进建议：** ' + aaResult.detected[0].suggestion);
+          } else if (score < 80) {
+            parts.push('');
+            if (len < 60) {
+              parts.push('💡 **建议：** 回答内容偏短，可以多展开说说具体的做法和成果。');
+            } else {
+              parts.push('💡 **建议：** 可以尝试用STAR法则（情境→任务→行动→结果）来组织回答。');
+            }
+          }
+        } catch (aaErr) {
+          console.error('[AnswerAnalyzer] Error:', aaErr);
+          parts.push('');
           parts.push('💡 **建议：** 可以尝试用STAR法则（情境→任务→行动→结果）来组织回答。');
         }
+      } else {
+        // AnswerAnalyzer 未加载，使用基础建议
+        if (score < 80) {
+          parts.push('');
+          if (len < 60) {
+            parts.push('💡 **建议：** 回答内容偏短，可以多展开说说具体的做法和成果。');
+          } else {
+            parts.push('💡 **建议：** 可以尝试用STAR法则（情境→任务→行动→结果）来组织回答。');
+          }
+        }
       }
-    }
 
-    // 3. 遗漏要点（来自参考答案对比）
-    if (evaluation.analysis.missedKeyPoints && evaluation.analysis.missedKeyPoints.length > 0) {
-      parts.push('');
-      parts.push('⚠️ **遗漏要点：** ' + evaluation.analysis.missedKeyPoints.join('；'));
-    }
+      // 3. 遗漏要点（来自参考答案对比）
+      if (analysis.missedKeyPoints && analysis.missedKeyPoints.length > 0) {
+        parts.push('');
+        parts.push('⚠️ **遗漏要点：** ' + analysis.missedKeyPoints.join('；'));
+      }
 
-    // 4. 覆盖率（如果有参考答案）
-    if (evaluation.analysis.refCoverage > 0) {
-      parts.push('📊 参考覆盖率：要点' + evaluation.analysis.refCoverage + '% / 内容' + (evaluation.analysis.refSentenceCoverage || 0) + '%');
-    }
+      // 4. 覆盖率（如果有参考答案）
+      if (analysis.refCoverage > 0) {
+        parts.push('📊 参考覆盖率：要点' + analysis.refCoverage + '% / 内容' + (analysis.refSentenceCoverage || 0) + '%');
+      }
 
-    // 5. 针对低分回答的具体追问方向提示
-    if (score < 40) {
-      parts.push('');
-      parts.push('🎯 **你可以这样改进：** 先说背景情况，再说你具体做了什么，最后说取得了什么结果。');
-    }
+      // 5. 针对低分回答的具体追问方向提示
+      if (score < 40) {
+        parts.push('');
+        parts.push('🎯 **你可以这样改进：** 先说背景情况，再说你具体做了什么，最后说取得了什么结果。');
+      }
 
-    return parts.length > 1 ? '\n\n' + parts.join('\n') : '';
+      return parts.length > 1 ? '\n\n' + parts.join('\n') : '';
+    } catch (err) {
+      console.error('[buildDynamicFeedback] Error:', err);
+      return '\n\n📊 评分：**' + (evaluation.score || '?') + '分**';
+    }
   }
 
   function processAnswer(session, answer, lastQuestion) {
-    const evaluation = evaluateAnswer(answer, lastQuestion, session.resumeInfo, session.refAnswerMap);
+    let evaluation;
+    try {
+      evaluation = evaluateAnswer(answer, lastQuestion, session.resumeInfo, session.refAnswerMap);
+    } catch (evalErr) {
+      console.error('[processAnswer] evaluateAnswer error:', evalErr);
+      evaluation = {
+        score: 50, level: '良好', color: '#3b82f6',
+        dimension: (lastQuestion && lastQuestion.dimension) || '综合',
+        action: 'next', followupQuestion: null,
+        analysis: { missedKeyPoints: [], refCoverage: 0, refSentenceCoverage: 0 },
+        feedback: '',
+      };
+    }
 
     // 记录回答
     session.answers.push({
