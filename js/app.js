@@ -1436,37 +1436,51 @@ const app = {
     input.value = '';
 
     // 使用本地引擎开始面试
-    this.interviewSession = InterviewEngine.createSession(txt, resumeText, jdText);
-    const startResult = InterviewEngine.startInterview(this.interviewSession);
-    this._currentQuestion = startResult.question;
+    try {
+      if (typeof InterviewEngine === 'undefined') {
+        throw new Error('面试引擎未加载');
+      }
+      this.interviewSession = InterviewEngine.createSession(txt, resumeText, jdText);
+      const startResult = InterviewEngine.startInterview(this.interviewSession);
+      this._currentQuestion = startResult.question;
 
-    // 切换输入框为聊天模式
-    const inputBar = document.querySelector('.pc-chat-input-bar');
-    if (inputBar) {
-      inputBar.innerHTML = `
-        <input type="text" id="interview-input" placeholder="输入你的回答..." onkeypress="if(event.key==='Enter') app.sendInterviewMsg()">
-        <button class="btn btn-primary-gradient" onclick="app.sendInterviewMsg()"><i class="ri-send-plane-fill"></i> 发送</button>
+      // 切换输入框为聊天模式
+      const inputBar = document.querySelector('.pc-chat-input-bar');
+      if (inputBar) {
+        inputBar.innerHTML = `
+          <input type="text" id="interview-input" placeholder="输入你的回答..." onkeypress="if(event.key==='Enter') app.sendInterviewMsg()">
+          <button class="btn btn-primary-gradient" onclick="app.sendInterviewMsg()"><i class="ri-send-plane-fill"></i> 发送</button>
+        `;
+      }
+
+      chatBox.innerHTML = `
+        <div id="interview-progress-bar" class="interview-progress" style="margin-bottom:16px;">
+          <span style="font-size:11px; color:var(--primary); font-weight:700; white-space:nowrap;"><i class="ri-bar-chart-fill"></i> 第 <span id="interview-round-num">1</span> / 15 轮 | <span id="interview-phase-label">${startResult.phase}</span></span>
+          <div class="interview-progress-bar"><div class="interview-progress-fill" id="interview-progress-fill" style="width:6.67%;"></div></div>
+          <span style="font-size:10px; color:var(--text-muted); white-space:nowrap;" id="interview-time-est">预计剩余 ~12分钟</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 输入"结束"可随时完成面试</span>
+        </div>
+        <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+          <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+          <div class="msg-content">
+            <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> ${this.interviewSession.persona.name}</div>
+            ${startResult.message.replace(/\n/g, '<br>')}
+          </div>
+        </div>
+      `;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (err) {
+      console.error('Interview start error:', err);
+      chatBox.innerHTML = `
+        <div style="text-align:center; padding:40px 20px;">
+          <div style="font-size:16px; font-weight:700; color:#ef4444; margin-bottom:8px;">面试启动失败</div>
+          <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">${err.message}</div>
+          <button class="btn btn-primary-gradient" onclick="app.resetInterview()">重新开始</button>
+        </div>
       `;
     }
-
-    chatBox.innerHTML = `
-      <div id="interview-progress-bar" class="interview-progress" style="margin-bottom:16px;">
-        <span style="font-size:11px; color:var(--primary); font-weight:700; white-space:nowrap;"><i class="ri-bar-chart-fill"></i> 第 <span id="interview-round-num">1</span> / 15 轮 | <span id="interview-phase-label">${startResult.phase}</span></span>
-        <div class="interview-progress-bar"><div class="interview-progress-fill" id="interview-progress-fill" style="width:6.67%;"></div></div>
-        <span style="font-size:10px; color:var(--text-muted); white-space:nowrap;" id="interview-time-est">预计剩余 ~12分钟</span>
-      </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <span style="font-size:11px; color:var(--text-muted);"><i class="ri-chat-smile-3-line"></i> 输入"结束"可随时完成面试</span>
-      </div>
-      <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-        <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-        <div class="msg-content">
-          <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> ${this.interviewSession.persona.name}</div>
-          ${startResult.message.replace(/\n/g, '<br>')}
-        </div>
-      </div>
-    `;
-    chatBox.scrollTop = chatBox.scrollHeight;
   },
 
   updateInterviewProgress(round) {
@@ -1532,23 +1546,33 @@ const app = {
     setTimeout(() => {
       const loadingEl = document.getElementById('interview-loading');
       if (loadingEl) loadingEl.remove();
-      const result = InterviewEngine.processAnswer(this.interviewSession, txt, this._currentQuestion);
-      this._currentQuestion = result.question;
+      try {
+        const result = InterviewEngine.processAnswer(this.interviewSession, txt, this._currentQuestion);
+        this._currentQuestion = result.question;
 
-      this.updateInterviewProgress(result.round);
-      const scoreTag = result.evaluation ? `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; background:${result.evaluation.color}20; color:${result.evaluation.color}; margin-left:8px;">${result.evaluation.score}分 ${result.evaluation.level}</span>` : '';
-      chatBox.innerHTML += `
-        <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
-          <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-          <div class="msg-content">
-            <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> ${this.interviewSession.persona.name}${scoreTag}</div>
-            ${result.message.replace(/\n/g, '<br>')}
+        this.updateInterviewProgress(result.round);
+        const scoreTag = result.evaluation ? `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; background:${result.evaluation.color}20; color:${result.evaluation.color}; margin-left:8px;">${result.evaluation.score}分 ${result.evaluation.level}</span>` : '';
+        chatBox.innerHTML += `
+          <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+            <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+            <div class="msg-content">
+              <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> ${this.interviewSession.persona.name}${scoreTag}</div>
+              ${result.message.replace(/\n/g, '<br>')}
+            </div>
           </div>
-        </div>
-      `;
-      chatBox.scrollTop = chatBox.scrollHeight;
-      if (result.isFinished) {
-        setTimeout(() => this.finishInterview(), 2000);
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+        if (result.isFinished) {
+          setTimeout(() => this.finishInterview(), 2000);
+        }
+      } catch (err) {
+        console.error('Interview process error:', err);
+        chatBox.innerHTML += `
+          <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
+            <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
+            <div class="msg-content" style="color:#ef4444;">处理回答时出错：${err.message}</div>
+          </div>
+        `;
       }
     }, 800);
   },
