@@ -689,20 +689,50 @@
       keywordBonus = Math.min(matched.length * 3, 15);
     }
 
-    // 参考答案对比加分（来自专业题库）
+    // 参考答案对比加分（来自专业题库）— 智能分句覆盖率分析
     let refBonus = 0;
     let matchedKeyPoints = [];
+    let missedKeyPoints = [];
+    let refCoverage = 0; // 0-100 覆盖率
+    let refSentenceCoverage = 0; // 参考答案句子覆盖率
     if (refAnswerMap && question.id && refAnswerMap[question.id]) {
       const ref = refAnswerMap[question.id];
+
+      // ── 1. 评估要点（keyPoints）匹配 ──
       if (ref.keyPoints && ref.keyPoints.length > 0) {
-        // 检查用户回答覆盖了哪些评估要点
-        ref.keyPoints.forEach(function(kp) {
-          // 将评估要点拆成关键词
-          var keywords = kp.replace(/[，。！？、]/g, ' ').split(/\s+/).filter(function(w) { return w.length >= 2; });
+        const kps = Array.isArray(ref.keyPoints) ? ref.keyPoints : String(ref.keyPoints).split(/[|｜]/);
+        kps.forEach(function(kp) {
+          if (!kp || !kp.trim()) return;
+          // 将评估要点拆成2字以上关键词，检查是否被用户回答覆盖
+          var keywords = kp.replace(/[，。！？、：；""''（）\(\)]/g, ' ').split(/\s+/).filter(function(w) { return w.length >= 2; });
           var matched = keywords.some(function(kw) { return text.includes(kw); });
-          if (matched) matchedKeyPoints.push(kp);
+          if (matched) {
+            matchedKeyPoints.push(kp.trim());
+          } else {
+            missedKeyPoints.push(kp.trim());
+          }
         });
-        refBonus = Math.min(matchedKeyPoints.length * 5, 20);
+        refCoverage = kps.length > 0 ? Math.round(matchedKeyPoints.length / kps.length * 100) : 0;
+        refBonus = Math.min(matchedKeyPoints.length * 5, 25);
+      }
+
+      // ── 2. 参考答案（a）分句覆盖率 ──
+      if (ref.a && ref.a.length > 10) {
+        // 将参考答案按句号、分号、换行拆成句子
+        var refSentences = ref.a.split(/[。；；\n]/).map(function(s) { return s.trim(); }).filter(function(s) { return s.length >= 6; });
+        var coveredSentences = 0;
+        refSentences.forEach(function(sentence) {
+          // 取句子中的关键词（3字以上）
+          var sentKeywords = sentence.replace(/[，。！？、：；""''（）\(\)123456789①②③④⑤]/g, ' ').split(/\s+/).filter(function(w) { return w.length >= 3; });
+          // 句子中超过40%的关键词被覆盖则认为该句被覆盖
+          var matchCount = sentKeywords.filter(function(kw) { return text.includes(kw); }).length;
+          if (sentKeywords.length > 0 && matchCount / sentKeywords.length >= 0.4) {
+            coveredSentences++;
+          }
+        });
+        refSentenceCoverage = refSentences.length > 0 ? Math.round(coveredSentences / refSentences.length * 100) : 0;
+        // 句子覆盖率额外加分（最高10分）
+        refBonus += Math.min(Math.round(refSentenceCoverage / 10), 10);
       }
     }
 
@@ -756,6 +786,9 @@
         keywordBonus,
         refBonus,
         matchedKeyPoints,
+        missedKeyPoints,
+        refCoverage,
+        refSentenceCoverage,
       },
       feedback: generateFeedback(totalScore, text, question),
     };
@@ -1258,7 +1291,10 @@
           dimensionScores: a.evaluation.analysis,
           referenceAnswer: refData ? refData.a : null,
           matchedKeyPoints: a.evaluation.analysis.matchedKeyPoints || [],
-          allKeyPoints: refData ? refData.keyPoints : [],
+          missedKeyPoints: a.evaluation.analysis.missedKeyPoints || [],
+          allKeyPoints: refData ? (Array.isArray(refData.keyPoints) ? refData.keyPoints : String(refData.keyPoints).split(/[|｜]/)) : [],
+          refCoverage: a.evaluation.analysis.refCoverage || 0,
+          refSentenceCoverage: a.evaluation.analysis.refSentenceCoverage || 0,
         };
       }),
     };
