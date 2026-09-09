@@ -1535,7 +1535,7 @@ const app = {
           <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
           <div class="msg-content">
             <div style="font-size:11px; color:var(--primary); font-weight:600; margin-bottom:6px;"><i class="ri-mic-line"></i> ${this.interviewSession.persona.name}</div>
-            ${startResult.message.replace(/\n/g, '<br>')}
+            ${startResult.message.replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}
           </div>
         </div>
       `;
@@ -1621,7 +1621,9 @@ const app = {
 
         this.updateInterviewProgress(result.round);
         const scoreTag = result.evaluation ? `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; background:${result.evaluation.color}20; color:${result.evaluation.color}; margin-left:8px;">${result.evaluation.score}分 ${result.evaluation.level}</span>` : '';
-        const msgHtml = (result.message || '').replace(/\n/g, '<br>');
+        let msgHtml = (result.message || '').replace(/\n/g, '<br>');
+        // 渲染 Markdown 加粗
+        msgHtml = msgHtml.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
         chatBox.innerHTML += `
           <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
             <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
