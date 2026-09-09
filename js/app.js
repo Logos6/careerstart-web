@@ -1616,15 +1616,12 @@ const app = {
       const loadingEl = document.getElementById('interview-loading');
       if (loadingEl) loadingEl.remove();
       try {
-        console.log('[Interview] processAnswer called, session:', !!this.interviewSession, 'currentQ:', JSON.stringify(this._currentQuestion));
         const result = InterviewEngine.processAnswer(this.interviewSession, txt, this._currentQuestion);
-        console.log('[Interview] result:', JSON.stringify({ msg: (result.message||'').substring(0,80), score: result.evaluation && result.evaluation.score, isFinished: result.isFinished, hasQuestion: !!result.question }));
         this._currentQuestion = result.question;
 
         this.updateInterviewProgress(result.round);
         const scoreTag = result.evaluation ? `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; background:${result.evaluation.color}20; color:${result.evaluation.color}; margin-left:8px;">${result.evaluation.score}分 ${result.evaluation.level}</span>` : '';
         const msgHtml = (result.message || '').replace(/\n/g, '<br>');
-        console.log('[Interview] msgHtml length:', msgHtml.length, 'first 100:', msgHtml.substring(0, 100));
         chatBox.innerHTML += `
           <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
             <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
@@ -1639,13 +1636,20 @@ const app = {
           setTimeout(() => this.finishInterview(), 2000);
         }
       } catch (err) {
-        console.error('[Interview] FATAL error:', err);
         chatBox.innerHTML += `
           <div class="chat-msg system" style="display:flex; gap:12px; margin-bottom:14px;">
             <div class="msg-avatar"><i class="ri-robot-fill"></i></div>
-            <div class="msg-content" style="color:#ef4444;">处理回答时出错：${err.message}<br><small>${err.stack || ''}</small></div>
+            <div class="msg-content" style="color:#ef4444;">
+              <div style="font-weight:700; margin-bottom:4px;">⚠️ 处理出错</div>
+              <div style="font-size:12px;">${err.message || '未知错误'}</div>
+              <div style="font-size:10px; color:#999; margin-top:4px; word-break:break-all;">${(err.stack || '').substring(0, 300)}</div>
+              <div style="font-size:10px; color:#666; margin-top:6px;">
+                诊断：session=${!!this.interviewSession} | currentQ=${this._currentQuestion ? this._currentQuestion.id : 'null'} | AnswerAnalyzer=${typeof AnswerAnalyzer} | InterviewEngine=${typeof InterviewEngine}
+              </div>
+            </div>
           </div>
         `;
+        chatBox.scrollTop = chatBox.scrollHeight;
       }
     }, 800);
   },
