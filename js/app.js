@@ -1810,34 +1810,12 @@ const app = {
 
   // 检查登录状态
   checkLogin() {
-    const token = localStorage.getItem('careerstart_token');
-    const user = localStorage.getItem('careerstart_user');
-    if (token && user) return true;
-    // 未登录，弹出登录框
-    this.openAuthModal();
-    return false;
+    return true; // 测试模式：跳过登录检查
   },
 
   // 检查使用次数
   checkUsage(type) {
-    // VIP用户不限次
-    if (this.userData.isVip) return true;
-
-    const limits = this.planLimits[this.userData.vipPlan] || { resumeCheck: 3, interview: 2 };
-    const limit = limits[type] || 0;
-    const used = this.userData.usage[type] || 0;
-
-    if (used >= limit) {
-      const names = { resumeCheck: 'AI简历诊断', interview: 'AI模拟面试' };
-      const remaining = Math.max(0, limit - used);
-      if (remaining === 0) {
-        alert(`今日${names[type]}次数已用完（${used}/${limit}次）。\n\n升级VIP可解锁更多次数！`);
-        this.openVipModal();
-        return false;
-      }
-      return true;
-    }
-    return true;
+    return true; // 测试模式：跳过次数检查
   },
 
   // 记录使用次数
