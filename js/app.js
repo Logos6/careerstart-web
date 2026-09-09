@@ -1761,6 +1761,20 @@ const app = {
                 <div style="padding:14px; background:#fff;">
                   <div style="font-size:11px; color:#64748b; margin-bottom:6px; padding:6px 8px; background:#f8fafc; border-radius:4px;"><strong style="color:var(--primary);">Q:</strong> ${d.question}</div>
                   <div style="font-size:12px; color:#334155; margin-bottom:8px; line-height:1.6; padding:6px 8px; background:#fafafa; border-radius:4px;"><strong style="color:#475569;">A:</strong> ${d.answer}</div>
+                  ${d.referenceAnswer ? `
+                  <div style="font-size:11px; color:#047857; margin-bottom:6px; padding:6px 8px; background:#ecfdf5; border-radius:4px; border-left:3px solid #10b981;">
+                    <strong><i class="ri-lightbulb-line"></i> 参考答案：</strong> ${d.referenceAnswer}
+                  </div>
+                  ` : ''}
+                  ${d.allKeyPoints && d.allKeyPoints.length > 0 ? `
+                  <div style="font-size:11px; color:#7c3aed; margin-bottom:6px; padding:6px 8px; background:#f5f3ff; border-radius:4px;">
+                    <strong><i class="ri-checkbox-circle-line"></i> 评估要点：</strong>
+                    ${d.allKeyPoints.map(kp => {
+                      const matched = d.matchedKeyPoints && d.matchedKeyPoints.includes(kp);
+                      return `<span style="display:inline-block; margin:2px 4px 2px 0; padding:2px 6px; border-radius:3px; font-size:10px; background:${matched ? '#ddd6fe' : '#f1f5f9'}; color:${matched ? '#5b21b6' : '#64748b'};">${matched ? '✓ ' : ''}${kp}</span>`;
+                    }).join('')}
+                  </div>
+                  ` : ''}
                   <div style="font-size:12px; color:#475569; line-height:1.6; padding:6px 8px; background:#f0f9ff; border-radius:4px; border-left:3px solid var(--primary);"><i class="ri-chat-check-line" style="color:var(--primary);"></i> ${d.feedback}</div>
                 </div>
               </div>
