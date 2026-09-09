@@ -1,5 +1,74 @@
 /* 启航 CareerStart Web 客户端全功能交互控制 (大屏+实时渲染增强) */
 
+const SUPABASE_URL = 'https://hvdqivgygkcpkzikibkp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_igOmb4KEBqcG8lwOSYbbEQ_S4UcjkBT';
+
+function getVisitorId() {
+  let vid = localStorage.getItem('cs_visitor_id');
+  if (!vid) {
+    vid = 'v_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    localStorage.setItem('cs_visitor_id', vid);
+  }
+  return vid;
+}
+
+async function saveInterviewSession(report) {
+  try {
+    const sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    const body = {
+      user_id: getVisitorId(),
+      session_id: sessionId,
+      job_name: report.jobName || '',
+      total_score: report.totalScore || 0,
+      dimension_scores: report.dimensionScores || {},
+      details: (report.details || []).map(d => ({
+        question: d.question,
+        score: d.score,
+        dimension: d.dimension,
+        refCoverage: d.refCoverage || 0,
+        refSentenceCoverage: d.refSentenceCoverage || 0,
+        missedKeyPoints: d.missedKeyPoints || [],
+      })),
+      duration_seconds: report._durationSeconds || 0,
+      total_questions: report.totalQuestions || 0,
+      answered_questions: report.answeredQuestions || 0,
+      level: report.level || '',
+    };
+    await fetch(`${SUPABASE_URL}/rest/v1/interview_sessions`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    console.warn('Failed to save interview session:', e);
+  }
+}
+
+async function loadInterviewHistory() {
+  try {
+    const vid = getVisitorId();
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/interview_sessions?user_id=eq.${vid}&order=created_at.desc&limit=50`,
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+        },
+      }
+    );
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (e) {
+    console.warn('Failed to load interview history:', e);
+    return [];
+  }
+}
+
 const app = {
   currentTab: 'home',
   selectedPlan: 'quarter',
@@ -1592,9 +1661,15 @@ const app = {
     // 使用本地引擎生成报告
     setTimeout(() => {
       const report = InterviewEngine.generateReport(this.interviewSession);
+      // 计算面试时长
+      if (this.interviewSession && this.interviewSession.startTime) {
+        report._durationSeconds = Math.round((Date.now() - this.interviewSession.startTime) / 1000);
+      }
       const loadingEl = document.getElementById('interview-report-loading');
       if (loadingEl) loadingEl.remove();
       this._renderReport(report, chatBox);
+      // 保存到 Supabase
+      saveInterviewSession(report);
     }, 500);
   },
 
@@ -1775,6 +1850,14 @@ const app = {
                     }).join('')}
                   </div>
                   ` : ''}
+                  ${(d.refCoverage > 0 || d.refSentenceCoverage > 0) ? `
+                  <div style="font-size:11px; margin-bottom:6px; padding:6px 8px; background:#fffbeb; border-radius:4px; border-left:3px solid #f59e0b;">
+                    <strong style="color:#92400e;"><i class="ri-bar-chart-grouped-line"></i> 参考答案覆盖：</strong>
+                    <span style="color:#78716c;">要点覆盖 <strong style="color:#92400e;">${d.refCoverage || 0}%</strong></span>
+                    ${d.refSentenceCoverage > 0 ? `<span style="color:#78716c;"> · 内容覆盖 <strong style="color:#92400e;">${d.refSentenceCoverage}%</strong></span>` : ''}
+                    ${(d.missedKeyPoints && d.missedKeyPoints.length > 0) ? `<div style="margin-top:4px; font-size:10px; color:#92400e;">遗漏要点：${d.missedKeyPoints.join('、')}</div>` : ''}
+                  </div>
+                  ` : ''}
                   <div style="font-size:12px; color:#475569; line-height:1.6; padding:6px 8px; background:#f0f9ff; border-radius:4px; border-left:3px solid var(--primary);"><i class="ri-chat-check-line" style="color:var(--primary);"></i> ${d.feedback}</div>
                 </div>
               </div>
@@ -1818,6 +1901,8 @@ const app = {
       txt += `Q: ${d.question}\n`;
       txt += `A: ${d.answer}\n`;
       txt += `点评：${d.feedback}\n`;
+      if (d.refCoverage > 0) txt += `要点覆盖：${d.refCoverage}%  内容覆盖：${d.refSentenceCoverage || 0}%\n`;
+      if (d.missedKeyPoints && d.missedKeyPoints.length > 0) txt += `遗漏要点：${d.missedKeyPoints.join('、')}\n`;
       if (d.suggestion) txt += `建议：${d.suggestion}\n`;
     });
     const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
@@ -2167,6 +2252,82 @@ const app = {
       authBtn.innerHTML = '<i class="ri-user-3-line"></i> 登录';
       authBtn.onclick = () => this.openAuthModal();
     }
+  },
+
+  async showProgress() {
+    const sessions = await loadInterviewHistory();
+    const modal = document.getElementById('modal-overlay');
+    if (!modal) return;
+
+    const dims = ['专业能力', '沟通表达', '问题解决', '团队协作', '学习成长', '抗压韧性'];
+    const dimColors = { '专业能力': '#8b5cf6', '沟通表达': '#3b82f6', '问题解决': '#f59e0b', '团队协作': '#10b981', '学习成长': '#ec4899', '抗压韧性': '#ef4444' };
+
+    let historyHTML = '';
+    if (sessions.length === 0) {
+      historyHTML = '<div style="text-align:center; padding:40px 20px; color:#94a3b8;"><i class="ri-inbox-line" style="font-size:48px; display:block; margin-bottom:12px;"></i>暂无面试记录<br><span style="font-size:12px;">完成一次面试后，这里会显示你的进步轨迹</span></div>';
+    } else {
+      // 趋势图（最近10次）
+      const recent = sessions.slice(0, 10).reverse();
+      const maxScore = 100;
+
+      // 维度平均分对比
+      const latestDims = recent.length > 0 ? recent[recent.length - 1].dimension_scores : {};
+      const firstDims = recent.length > 1 ? recent[0].dimension_scores : latestDims;
+
+      let dimCompareHTML = dims.map(dim => {
+        const latest = latestDims[dim] || 0;
+        const first = firstDims[dim] || 0;
+        const diff = latest - first;
+        const diffStr = diff > 0 ? `<span style="color:#16a34a;">+${diff}</span>` : diff < 0 ? `<span style="color:#ef4444;">${diff}</span>` : '<span style="color:#94a3b8;">0</span>';
+        return `
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <span style="width:70px; font-size:11px; color:#64748b; text-align:right;">${dim}</span>
+            <div style="flex:1; height:8px; background:#f1f5f9; border-radius:4px; overflow:hidden;">
+              <div style="width:${latest}%; height:100%; background:${dimColors[dim]}; border-radius:4px; transition:width 0.6s;"></div>
+            </div>
+            <span style="width:30px; font-size:11px; font-weight:600; color:${dimColors[dim]};">${latest}</span>
+            <span style="width:36px; font-size:10px;">${diffStr}</span>
+          </div>`;
+      }).join('');
+
+      // 历史记录列表
+      let rowsHTML = sessions.slice(0, 20).map((s, i) => {
+        const date = new Date(s.created_at).toLocaleDateString('zh-CN');
+        const dims = s.dimension_scores || {};
+        const dimTags = Object.entries(dims).slice(0, 3).map(([k, v]) =>
+          `<span style="display:inline-block; padding:1px 5px; border-radius:3px; font-size:9px; background:#f1f5f9; color:#64748b; margin-right:3px;">${k} ${v}</span>`
+        ).join('');
+        return `
+          <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #f1f5f9;">
+            <span style="font-size:11px; color:#94a3b8; width:70px;">${date}</span>
+            <span style="font-size:12px; font-weight:600; width:60px; color:${s.total_score >= 80 ? '#16a34a' : s.total_score >= 60 ? '#3b82f6' : s.total_score >= 40 ? '#f59e0b' : '#ef4444'};">${s.total_score}分</span>
+            <span style="font-size:11px; color:#475569; flex:1;">${s.job_name || '未指定岗位'}</span>
+            <span style="font-size:10px; padding:1px 6px; border-radius:8px; background:${s.total_score >= 80 ? '#dcfce7' : s.total_score >= 60 ? '#dbeafe' : s.total_score >= 40 ? '#fef3c7' : '#fee2e2'}; color:${s.total_score >= 80 ? '#166534' : s.total_score >= 60 ? '#1e40af' : s.total_score >= 40 ? '#92400e' : '#991b1b'};">${s.level}</span>
+          </div>`;
+      }).join('');
+
+      historyHTML = `
+        <div style="margin-bottom:20px;">
+          <h4 style="font-size:13px; color:#475569; margin-bottom:12px;"><i class="ri-bar-chart-grouped-line" style="color:var(--primary);"></i> 维度进步对比（首次 vs 最近）</h4>
+          ${dimCompareHTML}
+        </div>
+        <div>
+          <h4 style="font-size:13px; color:#475569; margin-bottom:12px;"><i class="ri-history-line" style="color:var(--primary);"></i> 历史记录（最近${Math.min(sessions.length, 20)}次）</h4>
+          ${rowsHTML}
+        </div>`;
+    }
+
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width:520px; max-height:80vh; overflow-y:auto; border-radius:12px;">
+        <div style="padding:16px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg, var(--primary), #7c3aed); color:#fff; border-radius:12px 12px 0 0;">
+          <h3 style="font-size:16px; font-weight:700; margin:0;"><i class="ri-line-chart-line"></i> 面试进度追踪</h3>
+          <button onclick="document.getElementById('modal-overlay').classList.remove('active')" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;"><i class="ri-close-line"></i></button>
+        </div>
+        <div style="padding:20px;">
+          ${historyHTML}
+        </div>
+      </div>`;
+    modal.classList.add('active');
   },
 };
 
