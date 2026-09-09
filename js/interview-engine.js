@@ -18,6 +18,12 @@
 }(typeof self !== 'undefined' ? self : this, function () {
 
   // ═══════════════════════════════════════════════════
+  //  0. 专业题库加载（来自 question_bank.js）
+  // ═══════════════════════════════════════════════════
+
+  const QB = (typeof QuestionBank !== 'undefined') ? QuestionBank : null;
+
+  // ═══════════════════════════════════════════════════
   //  1. 题库系统 — 按维度×难度组织
   // ═══════════════════════════════════════════════════
 
@@ -647,7 +653,7 @@
   //  3. 评估引擎 — 多维度打分 + 决策
   // ═══════════════════════════════════════════════════
 
-  function evaluateAnswer(answer, question, resumeInfo) {
+  function evaluateAnswer(answer, question, resumeInfo, refAnswerMap) {
     const text = (answer || '').trim();
     const len = text.length;
 
@@ -683,12 +689,29 @@
       keywordBonus = Math.min(matched.length * 3, 15);
     }
 
+    // 参考答案对比加分（来自专业题库）
+    let refBonus = 0;
+    let matchedKeyPoints = [];
+    if (refAnswerMap && question.id && refAnswerMap[question.id]) {
+      const ref = refAnswerMap[question.id];
+      if (ref.keyPoints && ref.keyPoints.length > 0) {
+        // 检查用户回答覆盖了哪些评估要点
+        ref.keyPoints.forEach(function(kp) {
+          // 将评估要点拆成关键词
+          var keywords = kp.replace(/[，。！？、]/g, ' ').split(/\s+/).filter(function(w) { return w.length >= 2; });
+          var matched = keywords.some(function(kw) { return text.includes(kw); });
+          if (matched) matchedKeyPoints.push(kp);
+        });
+        refBonus = Math.min(matchedKeyPoints.length * 5, 20);
+      }
+    }
+
     // 重复扣分
     let repeatPenalty = 0;
     // （这个需要在session级别检查，这里先留接口）
 
     const totalScore = Math.min(100, Math.max(10,
-      baseScore + structureBonus + starBonus + quantBonus + exampleBonus + keywordBonus
+      baseScore + structureBonus + starBonus + quantBonus + exampleBonus + keywordBonus + refBonus
     ));
 
     // 判断等级
@@ -731,6 +754,8 @@
         quantBonus,
         exampleBonus,
         keywordBonus,
+        refBonus,
+        matchedKeyPoints,
       },
       feedback: generateFeedback(totalScore, text, question),
     };
@@ -878,11 +903,32 @@
     if (jdInfo.jobTypes.includes('tech') || jobType === '数据分析' || jobType === '产品经理') personaKey = 'tech';
     else if (jdInfo.jobTypes.includes('management') || jobName.includes('主管') || jobName.includes('经理')) personaKey = 'manager';
 
-    // 生成岗位专业问题
-    const jobQuestions = JOB_QUESTIONS[jobType] || JOB_QUESTIONS['通用'];
+    // 生成岗位专业问题（优先从新题库加载）
+    let jobQuestions = JOB_QUESTIONS[jobType] || JOB_QUESTIONS['通用'];
+    let positionQBData = null;
+    if (QB) {
+      positionQBData = QB.getPositionQuestions(jobName);
+      if (positionQBData && positionQBData.length > 0) {
+        // 使用新题库的题目覆盖旧的
+        jobQuestions = {
+          dimension: '专业能力',
+          questions: positionQBData.map(function(q) {
+            return { id: q.id, q: q.q, difficulty: q.difficulty, tags: [jobType], dimension: q.dimension || '专业能力' };
+          })
+        };
+      }
+    }
 
     // 生成个性化问题
     const personalizedQuestions = generatePersonalizedQuestions(resumeInfo, jdInfo, jobName, jobType);
+
+    // 构建参考答案索引（从新题库）
+    const refAnswerMap = {};
+    if (QB && positionQBData) {
+      positionQBData.forEach(function(q) {
+        refAnswerMap[q.id] = { a: q.a, keyPoints: q.keyPoints, category: q.category };
+      });
+    }
 
     // 构建问题池
     const questionPool = {};
@@ -906,6 +952,7 @@
       persona: PERSONAS[personaKey],
       personaKey,
       questionPool,
+      refAnswerMap,
       phaseIndex: 0,
       phaseRounds: 0,
       round: 0,
@@ -1018,7 +1065,7 @@
   }
 
   function processAnswer(session, answer, lastQuestion) {
-    const evaluation = evaluateAnswer(answer, lastQuestion, session.resumeInfo);
+    const evaluation = evaluateAnswer(answer, lastQuestion, session.resumeInfo, session.refAnswerMap);
 
     // 记录回答
     session.answers.push({
@@ -1198,16 +1245,22 @@
       weaknesses,
       starAnalysis: { complete: starComplete, partial: starPartial, missing: starMissing },
       confidenceAnalysis,
-      details: session.answers.map(a => ({
-        question: a.question.q,
-        category: a.question.tags?.[0] || '未分类',
-        answer: a.answer,
-        score: a.evaluation.score,
-        level: a.evaluation.level,
-        dimension: a.evaluation.dimension,
-        feedback: a.evaluation.feedback,
-        dimensionScores: a.evaluation.analysis,
-      })),
+      details: session.answers.map(a => {
+        const refData = (session.refAnswerMap && a.question.id) ? session.refAnswerMap[a.question.id] : null;
+        return {
+          question: a.question.q,
+          category: a.question.tags?.[0] || (refData ? refData.category : '未分类'),
+          answer: a.answer,
+          score: a.evaluation.score,
+          level: a.evaluation.level,
+          dimension: a.evaluation.dimension,
+          feedback: a.evaluation.feedback,
+          dimensionScores: a.evaluation.analysis,
+          referenceAnswer: refData ? refData.a : null,
+          matchedKeyPoints: a.evaluation.analysis.matchedKeyPoints || [],
+          allKeyPoints: refData ? refData.keyPoints : [],
+        };
+      }),
     };
   }
 
