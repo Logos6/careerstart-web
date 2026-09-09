@@ -716,7 +716,7 @@
     session.phaseRounds++;
 
     return {
-      message: persona.greeting + '\n\n' + question.question,
+      message: persona.greeting + '\n\n' + question.q,
       question,
       phase: getCurrentPhase(session).label,
       round: session.round,
