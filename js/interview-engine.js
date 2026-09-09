@@ -203,7 +203,262 @@
   };
 
   // ═══════════════════════════════════════════════════
-  //  2. RAG分析模块 — 从简历/JD提取信息
+  //  2. 岗位专业题库 — 按岗位类型组织
+  // ═══════════════════════════════════════════════════
+
+  const JOB_QUESTIONS = {
+    // ── 新媒体运营 ──
+    新媒体运营: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'nm1', q: '你做过哪些新媒体平台？哪个平台的运营效果最好，为什么？', difficulty: 2 },
+        { id: 'nm2', q: '如果让你从0到1搭建一个账号，你会怎么规划内容方向？', difficulty: 2 },
+        { id: 'nm3', q: '你写过爆款内容吗？能分析一下那条内容为什么能火？', difficulty: 3 },
+        { id: 'nm4', q: '你平时怎么找热点？能说说你追热点的一个成功案例吗？', difficulty: 2 },
+        { id: 'nm5', q: '你熟悉哪些数据分析工具？怎么用数据指导内容优化？', difficulty: 2 },
+        { id: 'nm6', q: '抖音、小红书、公众号这三个平台的运营逻辑有什么区别？', difficulty: 2 },
+        { id: 'nm7', q: '你怎么做用户画像分析？能举个实际例子吗？', difficulty: 3 },
+        { id: 'nm8', q: '如果账号流量一直上不去，你会从哪些方面排查原因？', difficulty: 3 },
+        { id: 'nm9', q: '你了解SEO吗？怎么优化内容让它更容易被搜索到？', difficulty: 2 },
+        { id: 'nm10', q: '你做过社群运营吗？怎么提高社群的活跃度和转化率？', difficulty: 2 },
+        { id: 'nm11', q: '短视频和图文内容，你觉得哪个更适合什么场景？', difficulty: 2 },
+        { id: 'nm12', q: '你怎么看待AI生成内容？在运营中会怎么用？', difficulty: 2 },
+        { id: 'nm13', q: '你有投放经验吗？怎么评估一个渠道的投放效果？', difficulty: 3 },
+        { id: 'nm14', q: '说说你对私域流量的理解，你做过哪些私域运营？', difficulty: 2 },
+        { id: 'nm15', q: '如果老板要求你一个月涨粉10万，你会怎么拆解目标？', difficulty: 3 },
+      ],
+    },
+
+    // ── 内容运营 ──
+    内容运营: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'co1', q: '你平时怎么规划内容日历？能说说你的内容排期思路吗？', difficulty: 2 },
+        { id: 'co2', q: '你怎么判断一篇内容的质量好不好？有什么评估标准？', difficulty: 2 },
+        { id: 'co3', q: '你做过内容矩阵吗？不同平台的内容怎么差异化？', difficulty: 3 },
+        { id: 'co4', q: '说说你对内容SEO的理解，怎么让内容获得更多自然流量？', difficulty: 2 },
+        { id: 'co5', q: '你怎么平衡内容的质量和数量？', difficulty: 2 },
+      ],
+    },
+
+    // ── 活动运营 ──
+    活动运营: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'ao1', q: '你策划过最成功的一个活动是什么？能说说完整流程吗？', difficulty: 2 },
+        { id: 'ao2', q: '活动策划前你会做哪些准备工作？', difficulty: 2 },
+        { id: 'ao3', q: '怎么评估一个活动的效果？你看哪些核心指标？', difficulty: 2 },
+        { id: 'ao4', q: '如果活动参与人数不及预期，你会怎么调整？', difficulty: 3 },
+        { id: 'ao5', q: '线上活动和线下活动的运营重点有什么不同？', difficulty: 2 },
+      ],
+    },
+
+    // ── 用户运营 ──
+    用户运营: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'uo1', q: '你怎么理解用户生命周期管理？能举个实际例子吗？', difficulty: 2 },
+        { id: 'uo2', q: '你做过用户分层吗？怎么划分用户群体？', difficulty: 2 },
+        { id: 'uo3', q: '怎么提高用户留存率？你用过哪些方法？', difficulty: 3 },
+        { id: 'uo4', q: '用户流失了你会怎么挽回？能说说你的经验吗？', difficulty: 2 },
+        { id: 'uo5', q: 'NPS、DAU、MAU这些指标你都了解吗？怎么用？', difficulty: 2 },
+      ],
+    },
+
+    // ── 电商运营 ──
+    电商运营: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'eo1', q: '你做过哪些电商平台？各平台的运营策略有什么区别？', difficulty: 2 },
+        { id: 'eo2', q: '怎么打造一个爆款商品？从选品到推广说说你的思路。', difficulty: 3 },
+        { id: 'eo3', q: '你做过直播带货吗？怎么策划一场直播？', difficulty: 2 },
+        { id: 'eo4', q: '店铺流量下降了30%，你会从哪些方面排查？', difficulty: 3 },
+        { id: 'eo5', q: '你怎么做竞品分析？能举个例子吗？', difficulty: 2 },
+      ],
+    },
+
+    // ── 产品经理 ──
+    产品经理: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'pm1', q: '你做过的最成功的一个产品功能是什么？从需求到上线说说。', difficulty: 2 },
+        { id: 'pm2', q: '你怎么收集和筛选用户需求？', difficulty: 2 },
+        { id: 'pm3', q: '说说你对产品思维的理解，你觉得做好产品经理最重要的是什么？', difficulty: 2 },
+        { id: 'pm4', q: '你怎么写PRD？能说说你的文档结构吗？', difficulty: 2 },
+        { id: 'pm5', q: '开发说你的需求做不了，你怎么沟通？', difficulty: 3 },
+        { id: 'pm6', q: '你怎么做竞品分析？用什么工具和方法？', difficulty: 2 },
+        { id: 'pm7', q: '说说你熟悉的产品方法论，比如KANO模型、MVP？', difficulty: 3 },
+        { id: 'pm8', q: '你怎么衡量一个功能上线后的效果？', difficulty: 2 },
+      ],
+    },
+
+    // ── 数据分析 ──
+    数据分析: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'da1', q: '你最常用的数据分析工具是什么？能说说你的分析流程吗？', difficulty: 2 },
+        { id: 'da2', q: '怎么搭建一个数据指标体系？能举个例子吗？', difficulty: 3 },
+        { id: 'da3', q: '你做过AB测试吗？怎么设计实验方案？', difficulty: 3 },
+        { id: 'da4', q: '数据量很大的时候你会怎么优化查询效率？', difficulty: 3 },
+        { id: 'da5', q: '你怎么向非技术人员汇报数据分析结果？', difficulty: 2 },
+      ],
+    },
+
+    // ── 客户服务 ──
+    客户服务: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'cs1', q: '你处理过最难缠的客户投诉是什么？最后怎么解决的？', difficulty: 2 },
+        { id: 'cs2', q: '你怎么定义好的客户服务？能举个你的成功案例吗？', difficulty: 2 },
+        { id: 'cs3', q: '客户情绪很激动的时候，你怎么安抚？', difficulty: 2 },
+        { id: 'cs4', q: '你怎么处理客户投诉和公司利益的冲突？', difficulty: 3 },
+        { id: 'cs5', q: '你用过哪些客服工具？怎么提高客服效率？', difficulty: 2 },
+      ],
+    },
+
+    // ── 行政/文员 ──
+    行政: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'ad1', q: '你平时怎么安排领导的日程和会议？能说说你的时间管理方法吗？', difficulty: 2 },
+        { id: 'ad2', q: '你怎么确保文件和档案管理有序？', difficulty: 1 },
+        { id: 'ad3', q: '公司要组织一次年会，你会怎么策划和执行？', difficulty: 2 },
+        { id: 'ad4', q: '你怎么和各部门沟通协调？能举个例子吗？', difficulty: 2 },
+        { id: 'ad5', q: '你熟悉哪些办公软件？有什么高级用法吗？', difficulty: 1 },
+      ],
+    },
+
+    // ── 人事/HR ──
+    人事: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'hr1', q: '你做过哪些招聘渠道？哪个渠道效果最好？', difficulty: 2 },
+        { id: 'hr2', q: '你怎么筛选简历？看重候选人的哪些方面？', difficulty: 2 },
+        { id: 'hr3', q: '说说你对绩效考核的理解，你用过什么考核方法？', difficulty: 3 },
+        { id: 'hr4', q: '你怎么处理员工关系问题？能举个例子吗？', difficulty: 2 },
+        { id: 'hr5', q: '你怎么设计培训计划？怎么评估培训效果？', difficulty: 3 },
+      ],
+    },
+
+    // ── 财务 ──
+    财务: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'fn1', q: '你最擅长哪个财务模块？能说说你的经验吗？', difficulty: 2 },
+        { id: 'fn2', q: '你怎么确保财务数据的准确性？', difficulty: 2 },
+        { id: 'fn3', q: '说说你对税务筹划的理解，有实际操作经验吗？', difficulty: 3 },
+        { id: 'fn4', q: '你怎么编制预算？能说说你的流程吗？', difficulty: 2 },
+        { id: 'fn5', q: '你怎么向管理层汇报财务状况？', difficulty: 2 },
+      ],
+    },
+
+    // ── 销售 ──
+    销售: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'sl1', q: '你最好的销售业绩是什么？能说说你是怎么做到的吗？', difficulty: 2 },
+        { id: 'sl2', q: '你怎么开发新客户？用过哪些方法？', difficulty: 2 },
+        { id: 'sl3', q: '客户说"太贵了"，你怎么回应？', difficulty: 2 },
+        { id: 'sl4', q: '你怎么维护老客户关系？能举个例子吗？', difficulty: 2 },
+        { id: 'sl5', q: '谈谈你对销售漏斗的理解，你怎么管理客户？', difficulty: 3 },
+      ],
+    },
+
+    // ── 教师/培训 ──
+    教师: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'te1', q: '你教过什么科目/课程？你的教学风格是什么样的？', difficulty: 2 },
+        { id: 'te2', q: '你怎么让课堂变得有趣？能举个例子吗？', difficulty: 2 },
+        { id: 'te3', q: '学生学习动力不足，你会怎么激发？', difficulty: 3 },
+        { id: 'te4', q: '你怎么评估学生的学习效果？', difficulty: 2 },
+        { id: 'te5', q: '你怎么和家长沟通学生的学习情况？', difficulty: 2 },
+      ],
+    },
+
+    // ── 前台/接待 ──
+    前台: {
+      dimension: '专业能力',
+      questions: [
+        { id: 're1', q: '你觉得前台岗位最重要的职责是什么？', difficulty: 1 },
+        { id: 're2', q: '有访客来访但负责人不在，你怎么处理？', difficulty: 2 },
+        { id: 're3', q: '你怎么确保公司电话和快递管理有序？', difficulty: 1 },
+        { id: 're4', q: '遇到情绪不好的来访者，你怎么应对？', difficulty: 2 },
+        { id: 're5', q: '你怎么协调会议室和办公用品的管理？', difficulty: 1 },
+      ],
+    },
+
+    // ── 物业管理 ──
+    物业: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'pr1', q: '你管理过哪些类型的物业项目？能说说你的经验吗？', difficulty: 2 },
+        { id: 'pr2', q: '业主投诉噪音问题，你怎么处理？', difficulty: 2 },
+        { id: 'pr3', q: '你怎么协调保洁、安保、维修这几个部门？', difficulty: 2 },
+        { id: 'pr4', q: '小区要做垃圾分类推广，你会怎么策划？', difficulty: 3 },
+        { id: 'pr5', q: '你怎么控制物业运营成本？', difficulty: 3 },
+      ],
+    },
+
+    // ── 托管/幼教 ──
+    托管: {
+      dimension: '专业能力',
+      questions: [
+        { id: 'ca1', q: '你有托管/幼教经验吗？能说说你带过的孩子年龄段？', difficulty: 1 },
+        { id: 'ca2', q: '孩子之间发生冲突，你怎么处理？', difficulty: 2 },
+        { id: 'ca3', q: '你怎么确保孩子在托管期间的安全？', difficulty: 2 },
+        { id: 'ca4', q: '家长来接孩子时孩子哭闹不肯走，你怎么安抚？', difficulty: 2 },
+        { id: 'ca5', q: '你怎么和家长沟通孩子在托管的表现？', difficulty: 2 },
+      ],
+    },
+
+    // ── 通用岗位（兜底） ──
+    通用: {
+      dimension: '综合',
+      questions: [
+        { id: 'gn1', q: '你为什么想做这个岗位？', difficulty: 1 },
+        { id: 'gn2', q: '你觉得自己做这个岗位最大的优势是什么？', difficulty: 2 },
+        { id: 'gn3', q: '你能为这个岗位带来什么价值？', difficulty: 2 },
+        { id: 'gn4', q: '你怎么看待这个岗位的日常工作？', difficulty: 1 },
+        { id: 'gn5', q: '你之前的工作经历对这个岗位有什么帮助？', difficulty: 2 },
+      ],
+    },
+  };
+
+  // 岗位名称 → 岗位类型映射
+  const JOB_TYPE_MAP = {
+    '新媒体运营': '新媒体运营', '新媒体': '新媒体运营', '内容运营': '新媒体运营', '短视频运营': '新媒体运营',
+    '内容运营': '内容运营', '内容编辑': '内容运营', '文案策划': '内容运营',
+    '活动运营': '活动运营', '活动策划': '活动运营', '市场活动': '活动运营',
+    '用户运营': '用户运营', '社群运营': '用户运营', '会员运营': '用户运营',
+    '电商运营': '电商运营', '店铺运营': '电商运营', '直播运营': '电商运营',
+    '产品经理': '产品经理', '产品': '产品经理', '产品助理': '产品经理',
+    '数据分析': '数据分析', '数据分析师': '数据分析', 'BI': '数据分析',
+    '客服': '客户服务', '客户服务': '客户服务', '售后': '客户服务',
+    '行政': '行政', '行政文员': '行政', '文员': '行政', '行政助理': '行政',
+    '人事': '人事', 'HR': '人事', '招聘': '人事', '人力资源': '人事',
+    '财务': '财务', '会计': '财务', '出纳': '财务', '审计': '财务',
+    '销售': '销售', '业务': '销售', '商务': '销售', '客户经理': '销售',
+    '教师': '教师', '老师': '教师', '培训师': '教师', '讲师': '教师',
+    '前台': '前台', '接待': '前台', '行政前台': '前台',
+    '物业': '物业', '物业管理': '物业', '物业主管': '物业',
+    '托管': '托管', '托管老师': '托管', '幼教': '托管', '保育': '托管',
+  };
+
+  function matchJobType(jobName) {
+    if (!jobName) return '通用';
+    const name = jobName.trim();
+    // 精确匹配
+    if (JOB_TYPE_MAP[name]) return JOB_TYPE_MAP[name];
+    // 模糊匹配
+    for (const [keyword, type] of Object.entries(JOB_TYPE_MAP)) {
+      if (name.includes(keyword) || keyword.includes(name)) return type;
+    }
+    return '通用';
+  }
+
+  // ═══════════════════════════════════════════════════
+  //  3. RAG分析模块 — 从简历/JD提取信息
   // ═══════════════════════════════════════════════════
 
   function analyzeResume(resumeText) {
@@ -310,9 +565,34 @@
     };
   }
 
-  // 生成个性化问题（基于简历+JD）
-  function generatePersonalizedQuestions(resumeInfo, jdInfo) {
+  // 生成个性化问题（基于简历+JD+岗位名称）
+  function generatePersonalizedQuestions(resumeInfo, jdInfo, jobName, jobType) {
     const personalized = [];
+
+    // 基于岗位名称生成问题
+    if (jobName) {
+      personalized.push({
+        id: 'personal_job_' + Date.now(),
+        q: `你为什么想做${jobName}这个岗位？是什么吸引你的？`,
+        difficulty: 1,
+        dimension: '学习成长',
+        tags: [jobType],
+      });
+      personalized.push({
+        id: 'personal_job2_' + Date.now(),
+        q: `你觉得自己做${jobName}最大的优势是什么？`,
+        difficulty: 2,
+        dimension: '沟通表达',
+        tags: [jobType],
+      });
+      personalized.push({
+        id: 'personal_job3_' + Date.now(),
+        q: `你对${jobName}的日常工作是怎么理解的？`,
+        difficulty: 1,
+        dimension: '专业能力',
+        tags: [jobType],
+      });
+    }
 
     // 如果简历提到某些技能，生成相关深度问题
     if (resumeInfo.skills.length > 0) {
@@ -322,7 +602,7 @@
         q: `你简历里提到了${skill}，能说说你在这方面的具体经验吗？`,
         difficulty: 2,
         dimension: '专业能力',
-        tags: ['个性化'],
+        tags: [jobType],
       });
     }
 
@@ -333,7 +613,7 @@
         q: `你有${resumeInfo.years}年工作经验，这段时间你最大的成长是什么？`,
         difficulty: 1,
         dimension: '学习成长',
-        tags: ['个性化'],
+        tags: [jobType],
       });
     }
 
@@ -344,7 +624,7 @@
         q: `你在${resumeInfo.companies[0]}主要负责什么？能分享一个你在那里的项目经历吗？`,
         difficulty: 2,
         dimension: '专业能力',
-        tags: ['个性化'],
+        tags: [jobType],
       });
     }
 
@@ -356,7 +636,7 @@
         q: `这个岗位要求${skill}，你能说说你在这方面的经验吗？`,
         difficulty: 2,
         dimension: '专业能力',
-        tags: ['个性化'],
+        tags: [jobType],
       });
     }
 
@@ -590,13 +870,19 @@
     const resumeInfo = analyzeResume(resumeText);
     const jdInfo = analyzeJD(jdText);
 
-    // 选择面试官
+    // 根据岗位名称匹配岗位类型
+    const jobType = matchJobType(jobName);
+
+    // 选择面试官（根据岗位类型）
     let personaKey = 'hr';
-    if (jdInfo.jobTypes.includes('tech')) personaKey = 'tech';
-    else if (jdInfo.jobTypes.includes('management')) personaKey = 'manager';
+    if (jdInfo.jobTypes.includes('tech') || jobType === '数据分析' || jobType === '产品经理') personaKey = 'tech';
+    else if (jdInfo.jobTypes.includes('management') || jobName.includes('主管') || jobName.includes('经理')) personaKey = 'manager';
+
+    // 生成岗位专业问题
+    const jobQuestions = JOB_QUESTIONS[jobType] || JOB_QUESTIONS['通用'];
 
     // 生成个性化问题
-    const personalizedQuestions = generatePersonalizedQuestions(resumeInfo, jdInfo);
+    const personalizedQuestions = generatePersonalizedQuestions(resumeInfo, jdInfo, jobName, jobType);
 
     // 构建问题池
     const questionPool = {};
@@ -604,14 +890,17 @@
       questionPool[catKey] = [...catData.questions];
     }
 
-    // 如果有个性化问题，混入相关类别
-    if (personalizedQuestions.length > 0) {
-      if (!questionPool['professional']) questionPool['professional'] = [];
-      questionPool['professional'] = [...personalizedQuestions, ...questionPool['professional']];
-    }
+    // 添加岗位专业问题到专业能力类别
+    if (!questionPool['professional']) questionPool['professional'] = [];
+    questionPool['professional'] = [
+      ...jobQuestions.questions.map(q => ({ ...q, dimension: jobQuestions.dimension, tags: [jobType] })),
+      ...personalizedQuestions,
+      ...questionPool['professional'],
+    ];
 
     return {
       jobName,
+      jobType,
       resumeInfo,
       jdInfo,
       persona: PERSONAS[personaKey],
@@ -715,8 +1004,12 @@
     session.round++;
     session.phaseRounds++;
 
+    // 自定义开场白，加入岗位名称
+    const jobName = session.jobName || '这个岗位';
+    const greeting = persona.greeting.replace('今天的面试', `${jobName}岗位的面试`);
+
     return {
-      message: persona.greeting + '\n\n' + question.q,
+      message: greeting + '\n\n' + question.q,
       question,
       phase: getCurrentPhase(session).label,
       round: session.round,
