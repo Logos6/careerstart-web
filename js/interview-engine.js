@@ -28,35 +28,89 @@
   // ═══════════════════════════════════════════════════
 
   const QUESTION_BANK = {
-    // ── 自我介绍 & 背景 ──
+    // ── 自我介绍 & 开场（15题，每种风格3-4题）──
     self_intro: {
       dimension: '沟通表达',
       questions: [
+        // 经典自我介绍
         { id: 'si1', q: '请用3分钟介绍一下你自己，重点说说你的工作经历和核心能力。', difficulty: 1, tags: ['通用'] },
-        { id: 'si2', q: '如果你只能用3个关键词形容自己，你会选哪3个？为什么？', difficulty: 1, tags: ['通用'] },
-        { id: 'si3', q: '能聊聊你最近一份工作吗？你主要负责什么？', difficulty: 1, tags: ['通用'] },
+        { id: 'si2', q: '能用1分钟做个简短的自我介绍吗？', difficulty: 1, tags: ['通用'] },
+        { id: 'si3', q: '如果你只能用3个关键词形容自己，你会选哪3个？为什么？', difficulty: 1, tags: ['通用'] },
+        // 针对性开场
+        { id: 'si4', q: '能聊聊你最近一份工作吗？你主要负责什么？', difficulty: 1, tags: ['通用'] },
+        { id: 'si5', q: '你觉得你过往的经历中，哪段经验最能代表你的能力？', difficulty: 2, tags: ['通用'] },
+        { id: 'si6', q: '如果让你的同事用一句话形容你，他们会怎么说？', difficulty: 1, tags: ['通用'] },
+        // 能力聚焦型
+        { id: 'si7', q: '你觉得自己做这个岗位最大的优势是什么？', difficulty: 1, tags: ['通用'] },
+        { id: 'si8', q: '你能为这个岗位带来什么别人给不了的东西？', difficulty: 2, tags: ['通用'] },
+        { id: 'si9', q: '你之前的工作经历对这个岗位有什么帮助？', difficulty: 1, tags: ['通用'] },
+        // 情境型开场
+        { id: 'si10', q: '你为什么想来应聘这个岗位？是什么吸引你的？', difficulty: 1, tags: ['通用'] },
+        { id: 'si11', q: '你对我们公司了解多少？为什么想加入？', difficulty: 1, tags: ['通用'] },
+        { id: 'si12', q: '你怎么看待这个岗位的日常工作？', difficulty: 1, tags: ['通用'] },
+        // 深度型开场
+        { id: 'si13', q: '你目前的职业状态是什么？在找什么样的机会？', difficulty: 1, tags: ['通用'] },
+        { id: 'si14', q: '你未来3-5年的职业规划是什么？这个岗位在你的规划里扮演什么角色？', difficulty: 2, tags: ['通用'] },
+        { id: 'si15', q: '你最近在学习或关注什么新东西？和这个岗位有关吗？', difficulty: 1, tags: ['通用'] },
       ],
     },
 
     career_gap: {
       dimension: '抗压韧性',
       questions: [
+        // 直面空白期
         { id: 'cg1', q: '我看你简历里有一段职业空白期，能说说这段时间你做了什么吗？', difficulty: 1, tags: ['35+', '宝妈'] },
         { id: 'cg2', q: '离开职场一段时间后，重新找工作最大的挑战是什么？', difficulty: 2, tags: ['35+', '宝妈'] },
         { id: 'cg3', q: '空白期有没有保持学习或做些什么来保持专业状态？', difficulty: 1, tags: ['35+', '宝妈'] },
+        // 家庭平衡
         { id: 'cg4', q: '家人对你重新工作是什么态度？你怎么平衡家庭和工作？', difficulty: 2, tags: ['宝妈'] },
         { id: 'cg5', q: '你觉得自己和一直在职场的人相比，优势和劣势分别是什么？', difficulty: 2, tags: ['35+', '宝妈'] },
+        // 心态调整
+        { id: 'cg6', q: '空白期对你的职业信心有影响吗？你怎么调整的？', difficulty: 2, tags: ['35+', '宝妈'] },
+        { id: 'cg7', q: '这段时间你有没有做过什么兼职、志愿活动或自由职业？', difficulty: 1, tags: ['35+', '宝妈'] },
+        // 行动证明
+        { id: 'cg8', q: '为了重新回到职场，你做了哪些具体的准备工作？', difficulty: 2, tags: ['35+', '宝妈'] },
+        { id: 'cg9', q: '你有没有通过课程、证书或项目来证明你一直在进步？', difficulty: 2, tags: ['35+', '宝妈'] },
+        // 重新定位
+        { id: 'cg10', q: '重新找工作的时候，你最看重什么？薪资、成长还是稳定性？', difficulty: 1, tags: ['35+', '宝妈'] },
+        { id: 'cg11', q: '如果入职后发现需要经常加班，你能接受吗？你的底线是什么？', difficulty: 2, tags: ['35+', '宝妈'] },
+        { id: 'cg12', q: '你觉得之前的经历给你积累了什么独特的竞争力？', difficulty: 2, tags: ['35+', '宝妈'] },
       ],
     },
 
     career_change: {
       dimension: '学习成长',
       questions: [
+        // 动机探索
         { id: 'cc1', q: '你为什么想从原来的行业/岗位转到这个方向？', difficulty: 1, tags: ['转行'] },
-        { id: 'cc2', q: '为了这次转型，你做了哪些准备？', difficulty: 2, tags: ['转行'] },
-        { id: 'cc3', q: '你觉得原来的工作经验对新岗位有什么帮助？', difficulty: 2, tags: ['转行'] },
-        { id: 'cc4', q: '新岗位和你之前做的差别很大，你打算怎么快速上手？', difficulty: 2, tags: ['转行'] },
-        { id: 'cc5', q: '如果转型失败，你的Plan B是什么？', difficulty: 3, tags: ['转行'] },
+        { id: 'cc2', q: '是什么让你下定决心要转行？', difficulty: 1, tags: ['转行'] },
+        { id: 'cc3', q: '你对新行业/岗位做了哪些了解？和你之前想象的一样吗？', difficulty: 2, tags: ['转行'] },
+        // 准备工作
+        { id: 'cc4', q: '为了这次转型，你做了哪些准备？', difficulty: 2, tags: ['转行'] },
+        { id: 'cc5', q: '你觉得原来的工作经验对新岗位有什么帮助？', difficulty: 2, tags: ['转行'] },
+        { id: 'cc6', q: '新岗位和你之前做的差别很大，你打算怎么快速上手？', difficulty: 2, tags: ['转行'] },
+        // 能力迁移
+        { id: 'cc7', q: '你之前的哪些技能可以迁移到新岗位上？', difficulty: 2, tags: ['转行'] },
+        { id: 'cc8', q: '你在新岗位上有哪些优势是科班出身的人没有的？', difficulty: 2, tags: ['转行'] },
+        // 风险评估
+        { id: 'cc9', q: '如果转型失败，你的Plan B是什么？', difficulty: 3, tags: ['转行'] },
+        { id: 'cc10', q: '你觉得转行最大的风险是什么？你准备怎么应对？', difficulty: 2, tags: ['转行'] },
+        { id: 'cc11', q: '有没有人质疑过你的转行决定？你怎么回应的？', difficulty: 2, tags: ['转行'] },
+      ],
+    },
+
+    // ── 职业价值观（新增，用于背景阶段）──
+    career_values: {
+      dimension: '职业素养',
+      questions: [
+        { id: 'cv1', q: '你理想的工作状态是什么样的？', difficulty: 1, tags: ['通用'] },
+        { id: 'cv2', q: '你怎么看待加班这件事？', difficulty: 1, tags: ['通用'] },
+        { id: 'cv3', q: '你觉得什么样的领导是你最愿意跟随的？', difficulty: 1, tags: ['通用'] },
+        { id: 'cv4', q: '你上一份工作离职的真正原因是什么？', difficulty: 2, tags: ['通用'] },
+        { id: 'cv5', q: '你最不能接受的工作环境是什么样的？', difficulty: 1, tags: ['通用'] },
+        { id: 'cv6', q: '如果工作内容和你预期的不一样，你会怎么调整？', difficulty: 2, tags: ['通用'] },
+        { id: 'cv7', q: '你觉得一份好工作的标准是什么？', difficulty: 1, tags: ['通用'] },
+        { id: 'cv8', q: '你之前换过几份工作？每次变动的原因是什么？', difficulty: 2, tags: ['通用'] },
       ],
     },
 
@@ -87,6 +141,11 @@
         { id: 'ps3', q: '工作中遇到信息不全但必须快速决策的情况，你一般怎么处理？', difficulty: 2, tags: ['通用'] },
         { id: 'ps4', q: '能举一个你用数据驱动决策的例子吗？', difficulty: 2, tags: ['通用'] },
         { id: 'ps5', q: '你犯过最大的工作错误是什么？后来怎么处理的？', difficulty: 2, tags: ['通用'] },
+        { id: 'ps6', q: '你有没有优化过一个工作流程？能说说你是怎么发现机会并改进的吗？', difficulty: 2, tags: ['通用'] },
+        { id: 'ps7', q: '遇到一个你从来没处理过的问题，你会怎么入手分析？', difficulty: 2, tags: ['通用'] },
+        { id: 'ps8', q: '你有没有过因为方法不对，导致事倍功半的经历？后来怎么调整的？', difficulty: 3, tags: ['通用'] },
+        { id: 'ps9', q: '能举一个你快速学习新技能来解决工作问题的例子吗？', difficulty: 2, tags: ['通用'] },
+        { id: 'ps10', q: '你怎么判断一个问题值不值得花时间去解决？你的优先级标准是什么？', difficulty: 2, tags: ['通用'] },
       ],
     },
 
@@ -99,6 +158,10 @@
         { id: 'tc4', q: '如果团队成员工作不配合，你会怎么处理？', difficulty: 2, tags: ['通用'] },
         { id: 'tc5', q: '你有没有跨部门协作的经验？遇到过什么困难？', difficulty: 2, tags: ['通用'] },
         { id: 'tc6', q: '你觉得一个好的团队最重要的是什么？', difficulty: 1, tags: ['通用'] },
+        { id: 'tc7', q: '你有没有带过新人？你是怎么帮助他们快速上手的？', difficulty: 2, tags: ['管理'] },
+        { id: 'tc8', q: '团队目标和个人目标冲突的时候，你怎么处理？', difficulty: 2, tags: ['通用'] },
+        { id: 'tc9', q: '你有没有组织过团队活动或项目复盘？能说说你的经验吗？', difficulty: 2, tags: ['管理'] },
+        { id: 'tc10', q: '你和性格完全不同的同事合作过吗？怎么磨合的？', difficulty: 2, tags: ['通用'] },
       ],
     },
 
@@ -106,13 +169,26 @@
     behavioral: {
       dimension: '综合',
       questions: [
+        // 主动担当
         { id: 'b1', q: '请举一个你主动承担额外责任的例子。', difficulty: 2, tags: ['通用'] },
         { id: 'b2', q: '讲一个你在压力下完成任务的经历。', difficulty: 2, tags: ['抗压'] },
         { id: 'b3', q: '说一个你推动改变或改进的成功案例。', difficulty: 3, tags: ['通用'] },
         { id: 'b4', q: '你有没有过「明知很难但还是坚持做了」的经历？', difficulty: 2, tags: ['抗压'] },
+        // 领导力与协作
         { id: 'b5', q: '讲一个你帮助同事/下属成长的例子。', difficulty: 2, tags: ['管理'] },
         { id: 'b6', q: '你做过最冒险的一个决定是什么？结果怎么样？', difficulty: 3, tags: ['通用'] },
         { id: 'b7', q: '讲一次你面对客户/用户投诉的经历，你是怎么处理的？', difficulty: 2, tags: ['客服'] },
+        // 冲突处理
+        { id: 'b8', q: '你和同事意见不合的时候，你怎么处理？能举个例子吗？', difficulty: 2, tags: ['通用'] },
+        { id: 'b9', q: '讲一个你犯过的错误，你是怎么补救的？', difficulty: 2, tags: ['通用'] },
+        // 成就与反思
+        { id: 'b10', q: '你工作中最有成就感的一件事是什么？', difficulty: 1, tags: ['通用'] },
+        { id: 'b11', q: '讲一个你失败的经历，你从中学到了什么？', difficulty: 2, tags: ['通用'] },
+        { id: 'b12', q: '你做过最困难的一个决定是什么？为什么难？', difficulty: 3, tags: ['通用'] },
+        // 效率与方法
+        { id: 'b13', q: '你有没有同时处理多个紧急任务的经历？怎么安排优先级？', difficulty: 2, tags: ['通用'] },
+        { id: 'b14', q: '讲一个你用创新方法解决问题的例子。', difficulty: 3, tags: ['通用'] },
+        { id: 'b15', q: '你有没有在资源有限的情况下完成任务的经历？怎么做的？', difficulty: 3, tags: ['通用'] },
       ],
     },
 
@@ -124,6 +200,10 @@
         { id: 'pt2', q: '你经历过最崩溃的工作时刻是什么？', difficulty: 2, tags: ['通用'] },
         { id: 'pt3', q: '连续加班一周后，你发现项目方向全错了，你会怎么办？', difficulty: 3, tags: ['通用'] },
         { id: 'pt4', q: '你怎么看待加班？能接受什么程度的加班？', difficulty: 1, tags: ['通用'] },
+        { id: 'pt5', q: '如果同时有3个领导给你安排不同的任务，你怎么处理？', difficulty: 2, tags: ['通用'] },
+        { id: 'pt6', q: '你遇到过最难相处的同事或领导是什么样的？你怎么应对的？', difficulty: 2, tags: ['通用'] },
+        { id: 'pt7', q: '如果你的方案被否决了，你会怎么调整心态和策略？', difficulty: 2, tags: ['通用'] },
+        { id: 'pt8', q: '你有没有经历过团队士气很低落的时期？你做了什么？', difficulty: 2, tags: ['管理'] },
       ],
     },
 
@@ -135,6 +215,10 @@
         { id: 'cp2', q: '你为什么选择我们公司/这个行业？', difficulty: 1, tags: ['通用'] },
         { id: 'cp3', q: '你理想中的工作是什么样的？', difficulty: 1, tags: ['通用'] },
         { id: 'cp4', q: '你期望的薪资是多少？怎么考虑的？', difficulty: 1, tags: ['通用'] },
+        { id: 'cp5', q: '你怎么看待这个岗位的发展前景？', difficulty: 1, tags: ['通用'] },
+        { id: 'cp6', q: '如果入职后发现工作内容和想象的不一样，你会怎么处理？', difficulty: 2, tags: ['通用'] },
+        { id: 'cp7', q: '你打算在这家公司待多久？你的长期打算是什么？', difficulty: 2, tags: ['通用'] },
+        { id: 'cp8', q: '如果同时拿到两个offer，你会怎么选择？最看重什么？', difficulty: 2, tags: ['通用'] },
       ],
     },
 
@@ -143,6 +227,9 @@
       dimension: '沟通表达',
       questions: [
         { id: 'end1', q: '你有什么想问我的吗？', difficulty: 1, tags: ['通用'] },
+        { id: 'end2', q: '你对这个岗位还有什么想了解的？', difficulty: 1, tags: ['通用'] },
+        { id: 'end3', q: '如果入职，你希望公司给你什么样的支持？', difficulty: 1, tags: ['通用'] },
+        { id: 'end4', q: '你还有什么顾虑需要我帮你解答的吗？', difficulty: 1, tags: ['通用'] },
       ],
     },
   };
@@ -656,6 +743,7 @@
   function evaluateAnswer(answer, question, resumeInfo, refAnswerMap) {
     const text = (answer || '').trim();
     const len = text.length;
+    console.log('[Eval] START, textLen:', len, 'questionId:', question ? question.id : 'NULL', 'hasRefMap:', !!refAnswerMap);
 
     // 基础分（长度）
     let baseScore = 0;
@@ -824,34 +912,86 @@
     const text = (answer || '').trim();
     const len = text.length;
 
-    // 根据回答内容选择追问方向
+    // ── STAR 四要素检测 ──
+    const hasS = /当时|那时候|之前|有一次|在[^\s]{2,6}(?:的时候|期间|项目中)/.test(text);
+    const hasT = /需要|要求|目标|任务|负责|要做|面临/.test(text);
+    const hasA = /我做了|我通过|我采取|我决定|我负责|我主导|我协调|我优化|我搭建|我想到了/.test(text);
+    const hasR = /结果|最终|完成后|上线后|优化后|提升了?|增长了?|节省了?|达到了?|效果/.test(text);
+    const hasData = /\d+[%％万元人天次个月年周名]|\d+人|\d+万|\d+%/.test(text);
+    const hasExample = /比如|例如|举个例子|有一次|记得|当时在/.test(text);
+    const hasDifficulty = /困难|挑战|问题|难点|冲突|矛盾|压力/.test(text);
+    const hasProject = /项目|产品|功能|上线|发布|活动|方案/.test(text);
+    const hasTeam = /团队|同事|协作|配合|跨部门/.test(text);
+    const has反思 = /学到|反思|总结|经验|教训|改进/.test(text);
+
+    // ── 根据缺失要素精准追问（遵循STAR追问法） ──
+    const missing = [];
+    if (!hasS) missing.push('situation');
+    if (!hasT) missing.push('task');
+    if (!hasA) missing.push('action');
+    if (!hasR) missing.push('result');
+
+    // 极短回答：引导展开
     if (len < 20) {
-      return { q: '能再展开说说吗？给我讲一个具体的例子。', type: 'expand' };
+      const shortFollowups = [
+        { q: '能具体说说当时是什么情况吗？给我还原一下场景。', type: 'situation' },
+        { q: '你说的这件事，你具体做了什么？能展开讲讲吗？', type: 'action' },
+        { q: '听起来不错，那最终结果怎么样？有没有具体的数据？', type: 'result' },
+      ];
+      return shortFollowups[Math.floor(Math.random() * shortFollowups.length)];
     }
 
-    const hasProject = /项目|产品|功能|上线|发布/.test(text);
-    const hasData = /\d+[%％万元]/.test(text);
-    const hasDifficulty = /困难|挑战|问题|难点/.test(text);
-    const hasSuccess = /成功|完成|达成|效果/.test(text);
-
-    if (hasProject && !hasData) {
-      return { q: '这个项目的成果如何？有可以量化的数据吗？', type: 'quantify' };
-    }
-    if (hasDifficulty) {
-      return { q: '你是怎么解决这个困难的？具体采取了什么措施？', type: 'solution' };
-    }
-    if (hasSuccess && !hasData) {
-      return { q: '效果如何？能给个具体数字吗？', type: 'result' };
+    // 有情境没行动：追问行动
+    if (hasS && !hasA && !hasT) {
+      return { q: '情况我了解了，那你具体采取了什么措施？你是怎么做的？', type: 'action' };
     }
 
-    const followups = [
-      { q: '能举一个你实际做过的例子吗？', type: 'example' },
-      { q: '当时具体是什么情况？你做了什么？', type: 'detail' },
-      { q: '结果怎么样？你从中学到了什么？', type: 'reflection' },
-      { q: '如果现在让你重新来过，你会怎么做？', type: 'improvement' },
+    // 有行动没结果：追问结果
+    if (hasA && !hasR) {
+      const resultFollowups = [
+        { q: '做的过程清楚了，最终结果如何？有没有可以量化的成效？', type: 'result' },
+        { q: '你采取了这些措施后，效果怎么样？能给个具体数字吗？', type: 'result' },
+        { q: '这件事最后达成了什么目标？对团队/公司有什么影响？', type: 'result' },
+      ];
+      return resultFollowups[Math.floor(Math.random() * resultFollowups.length)];
+    }
+
+    // 有结果没数据：量化追问
+    if (hasR && !hasData) {
+      return { q: '结果听起来不错，能用具体数字说明吗？比如提升了多少、节省了多少、完成了多少？', type: 'quantify' };
+    }
+
+    // 有项目但没困难：追问挑战
+    if (hasProject && !hasDifficulty) {
+      return { q: '这个项目推进过程中，遇到的最大挑战是什么？你怎么克服的？', type: 'challenge' };
+    }
+
+    // 有困难但没反思：追问成长
+    if (hasDifficulty && !has反思) {
+      return { q: '经历了这些挑战后，你最大的收获或反思是什么？', type: 'reflection' };
+    }
+
+    // 有团队但没说个人角色：追问个人贡献
+    if (hasTeam && !/我(负责|主导|带领|独立|单独)/.test(text)) {
+      return { q: '你说的是团队的结果，那你自己在这个过程中的核心贡献是什么？', type: 'personal' };
+    }
+
+    // 回答较长但缺深度：追问决策过程
+    if (len > 80 && !hasA) {
+      return { q: '你当时是怎么做出这个决定的？考虑了哪些因素？有没有其他备选方案？', type: 'decision' };
+    }
+
+    // 通用深度追问池（避免重复）
+    const deepFollowups = [
+      { q: '你刚才提到了一个关键点，能再深入讲讲吗？', type: 'deepen' },
+      { q: '如果现在让你重新来过，你会做哪些不同的选择？', type: 'retrospect' },
+      { q: '这件事对你后来的工作方式有什么影响？', type: 'growth' },
+      { q: '你觉得这个经历中，最值得分享的经验是什么？', type: 'takeaway' },
+      { q: '有没有什么是你当时没做但事后觉得应该做的？', type: 'regret' },
+      { q: '你的上级或同事对这件事是怎么评价的？', type: 'feedback' },
+      { q: '如果把这个经验应用到我们这个岗位上，你觉得会怎么发挥？', type: 'transfer' },
     ];
-
-    return followups[Math.floor(Math.random() * followups.length)];
+    return deepFollowups[Math.floor(Math.random() * deepFollowups.length)];
   }
 
   function generateFeedback(score, text, question) {
@@ -867,23 +1007,23 @@
     {
       id: 'opening',
       label: '开场',
-      targetRounds: 2,
+      targetRounds: 3,
       categories: ['self_intro'],
-      questionCount: 2,
+      questionCount: 3,
     },
     {
       id: 'background',
       label: '背景',
       targetRounds: 3,
-      categories: ['career_gap', 'career_change', 'self_intro'],
+      categories: ['career_gap', 'career_change', 'self_intro', 'career_values'],
       questionCount: 3,
     },
     {
       id: 'ability',
       label: '能力',
-      targetRounds: 4,
-      categories: ['professional', 'problem_solving'],
-      questionCount: 4,
+      targetRounds: 6,
+      categories: ['professional', 'problem_solving', 'problem_solving_extra'],
+      questionCount: 6,
     },
     {
       id: 'behavior',
@@ -914,46 +1054,106 @@
     if (jdInfo.jobTypes.includes('tech') || jobType === '数据分析' || jobType === '产品经理') personaKey = 'tech';
     else if (jdInfo.jobTypes.includes('management') || jobName.includes('主管') || jobName.includes('经理')) personaKey = 'manager';
 
-    // 生成岗位专业问题（优先从新题库加载）
-    let jobQuestions = JOB_QUESTIONS[jobType] || JOB_QUESTIONS['通用'];
-    let positionQBData = null;
+    // ══════════════════════════════════════════════
+    //  题库整合：三个来源全部打通
+    // ══════════════════════════════════════════════
+
+    // 来源1: JOB_QUESTIONS（岗位专属题，按 jobType 匹配）
+    const jobQData = JOB_QUESTIONS[jobType] || JOB_QUESTIONS['通用'];
+
+    // 来源2: QB（新题库2152道，按岗位名称匹配，支持模糊匹配）
+    let qbQuestions = [];
+    let refAnswerMap = {};
     if (QB) {
-      positionQBData = QB.getPositionQuestions(jobName);
-      if (positionQBData && positionQBData.length > 0) {
-        // 使用新题库的题目覆盖旧的
-        jobQuestions = {
-          dimension: '专业能力',
-          questions: positionQBData.map(function(q) {
-            return { id: q.id, q: q.q, difficulty: q.difficulty, tags: [jobType], dimension: q.dimension || '专业能力' };
-          })
-        };
+      // 先尝试精确匹配
+      qbQuestions = QB.getPositionQuestions(jobName) || [];
+      // 精确匹配失败，尝试 jobType
+      if (qbQuestions.length === 0 && jobType !== jobName) {
+        qbQuestions = QB.getPositionQuestions(jobType) || [];
       }
-    }
-
-    // 生成个性化问题
-    const personalizedQuestions = generatePersonalizedQuestions(resumeInfo, jdInfo, jobName, jobType);
-
-    // 构建参考答案索引（从新题库）
-    const refAnswerMap = {};
-    if (QB && positionQBData) {
-      positionQBData.forEach(function(q) {
+      // 还是失败，遍历所有岗位名做模糊匹配
+      if (qbQuestions.length === 0) {
+        var allPositions = QB.getAllPositions ? QB.getAllPositions() : [];
+        for (var i = 0; i < allPositions.length; i++) {
+          var pos = allPositions[i];
+          if (pos.includes(jobName) || jobName.includes(pos) || pos.includes(jobType) || jobType.includes(pos)) {
+            qbQuestions = QB.getPositionQuestions(pos) || [];
+            if (qbQuestions.length > 0) break;
+          }
+        }
+      }
+      // 构建参考答案索引
+      qbQuestions.forEach(function(q) {
         refAnswerMap[q.id] = { a: q.a, keyPoints: q.keyPoints, category: q.category };
       });
     }
 
-    // 构建问题池
+    // 来源3: 个性化问题（从简历/JD提取）
+    const personalizedQuestions = generatePersonalizedQuestions(resumeInfo, jdInfo, jobName, jobType);
+
+    // ══════════════════════════════════════════════
+    //  构建问题池：按阶段分配
+    // ══════════════════════════════════════════════
     const questionPool = {};
+
+    // 通用题：从 QUESTION_BANK 加载
     for (const [catKey, catData] of Object.entries(QUESTION_BANK)) {
       questionPool[catKey] = [...catData.questions];
     }
 
-    // 添加岗位专业问题到专业能力类别
+    // 专业题合并：JOB_QUESTIONS + QB + 个性化 → professional
     if (!questionPool['professional']) questionPool['professional'] = [];
-    questionPool['professional'] = [
-      ...jobQuestions.questions.map(q => ({ ...q, dimension: jobQuestions.dimension, tags: [jobType] })),
-      ...personalizedQuestions,
-      ...questionPool['professional'],
-    ];
+    const allProfessional = [];
+
+    // JOB_QUESTIONS 的岗位专属题
+    jobQData.questions.forEach(function(q) {
+      allProfessional.push({ ...q, dimension: jobQData.dimension, tags: [jobType], _source: 'job' });
+    });
+
+    // QB 的专业题（最多取50道，避免池子太大）
+    qbQuestions.forEach(function(q) {
+      allProfessional.push({
+        id: q.id,
+        q: q.q,
+        difficulty: q.difficulty || 2,
+        dimension: q.dimension || '专业能力',
+        tags: [jobType],
+        _source: 'qb',
+      });
+    });
+
+    // 个性化问题
+    personalizedQuestions.forEach(function(q) {
+      allProfessional.push({ ...q, _source: 'personal' });
+    });
+
+    // 通用专业题
+    questionPool['professional'].forEach(function(q) {
+      allProfessional.push({ ...q, _source: 'generic' });
+    });
+
+    // 去重（按 id）
+    const seenIds = new Set();
+    questionPool['professional'] = allProfessional.filter(function(q) {
+      if (seenIds.has(q.id)) return false;
+      seenIds.add(q.id);
+      return true;
+    });
+
+    // ══════════════════════════════════════════════
+    //  动态分配：把专业题也分一些到其他阶段
+    // ══════════════════════════════════════════════
+    // 如果专业题足够多，把一部分移到 problem_solving 和 behavioral
+    const profQs = questionPool['professional'];
+    if (profQs.length > 20) {
+      // 取难度>=2的专业题放到 problem_solving（问题解决阶段用）
+      if (!questionPool['problem_solving_extra']) questionPool['problem_solving_extra'] = [];
+      profQs.forEach(function(q) {
+        if (q.difficulty >= 2 && q._source !== 'generic') {
+          questionPool['problem_solving_extra'].push({ ...q, dimension: '问题解决' });
+        }
+      });
+    }
 
     return {
       jobName,
@@ -973,6 +1173,8 @@
       competencyScores: {},
       startTime: Date.now(),
       _usedFollowups: new Set(),
+      _qbCount: qbQuestions.length,
+      _jobCount: jobQData.questions.length,
     };
   }
 
@@ -1062,16 +1264,21 @@
     session.round++;
     session.phaseRounds++;
 
-    // 自定义开场白，加入岗位名称
+    // 自定义开场白，加入岗位名称和题库信息
     const jobName = session.jobName || '这个岗位';
     const greeting = persona.greeting.replace('今天的面试', `${jobName}岗位的面试`);
+    const profCount = (session.questionPool.professional || []).length;
+    const qbCount = session._qbCount || 0;
+    const jobCount = session._jobCount || 0;
 
     return {
       message: greeting + '\n\n' + question.q,
       question,
       phase: getCurrentPhase(session).label,
       round: session.round,
+      totalRounds: session.maxRounds,
       isFinished: false,
+      _poolInfo: profCount + '道专业题（岗位' + jobCount + '道 + 新题库' + qbCount + '道）',
     };
   }
 
@@ -1084,86 +1291,294 @@
       const text = (answer || '').trim();
       const score = evaluation.score;
       const len = text.length;
+      console.log('[Feedback] START, score:', score, 'answerLen:', len, 'hasQuestion:', !!question);
 
-      // 无反馈情况：高分且无遗漏要点
       const analysis = evaluation.analysis || {};
-      if (score >= 80 && (!analysis.missedKeyPoints || analysis.missedKeyPoints.length === 0)) {
-        return '';
+
+      // 高分 + 覆盖率高 + 无遗漏：简短肯定
+      if (score >= 80 && (!analysis.missedKeyPoints || analysis.missedKeyPoints.length === 0) && len >= 80) {
+        return '\n\n✅ **回答得很好。** 结构清晰，内容扎实，面试官会满意。继续保持这个水平。';
       }
 
       const parts = [];
 
-      // 1. 评分标签
-      const scoreLabel = score >= 80 ? '优秀' : score >= 60 ? '良好' : score >= 40 ? '合格' : '需改进';
-      parts.push('📊 评分：**' + score + '分**（' + scoreLabel + '）');
+      // ══════════════════════════════════════════════
+      //  A. 先听懂你在说什么（共情开场）
+      // ══════════════════════════════════════════════
+      const hasData = /\d+[%％万元人天次个月年周名]|\d+人|\d+万|\d+%/.test(text);
+      const hasExample = /比如|例如|有一次|记得|当时在/.test(text);
+      const hasSTAR = /当时|那时候|之前|有一次/.test(text) && /我做了|我通过|我采取|我负责|我主导|我协调|我优化|我搭建/.test(text) && /结果|最终|完成后|上线后|优化后|提升了?|增长了?|节省了?|达到了?/.test(text);
+      const hasStructure = /第一|首先|其次|然后|最后|总结|1\.|2\.|①|②/.test(text);
 
-      // 2. AnswerAnalyzer 12类错误模式检测（每次回答都检测，结果不同）
+      // STAR四要素
+      const hasS = /当时|那时候|之前|有一次|在[^\s]{2,6}(?:的时候|期间|项目中)/.test(text);
+      const hasT = /需要|要求|目标|任务|负责|要做|面临/.test(text);
+      const hasA = /我做了|我通过|我采取|我决定|我负责|我主导|我协调|我优化|我搭建|我想到/.test(text);
+      const hasR = /结果|最终|完成后|上线后|优化后|提升了?|增长了?|节省了?|达到了?|效果/.test(text);
+
+      // 先说你听到了什么
+      if (len < 10) {
+        parts.push('📝 你的回答只有' + len + '个字，我没法判断你想表达什么。');
+      } else if (len < 30) {
+        // 提取用户说了什么关键词
+        const keywords = text.replace(/[，。！？、：；""''（）\s]/g, ' ').split(/\s+/).filter(function(w) { return w.length >= 2; }).slice(0, 5);
+        parts.push('📝 你提到了"' + keywords.join('、') + '"，但信息太少了，面试官没法从这个回答里判断你的能力。');
+      } else {
+        // 提取用户回答的核心内容
+        const summary = text.length > 60 ? text.substring(0, 60) + '...' : text;
+        parts.push('📝 你说了"' + summary + '"');
+      }
+
+      // ══════════════════════════════════════════════
+      //  B. 诊断：缺什么（不是"你需要STAR"，而是"你缺了S和R"）
+      // ══════════════════════════════════════════════
+      const missingSTAR = [];
+      if (!hasS) missingSTAR.push('S（情境）');
+      if (!hasT && !hasA) missingSTAR.push('T（任务）');
+      if (!hasA) missingSTAR.push('A（行动）');
+      if (!hasR) missingSTAR.push('R（结果）');
+
+      // ══════════════════════════════════════════════
+      //  C. 核心改进建议：分层 + 改前→改后
+      // ══════════════════════════════════════════════
+
+      // ── C1. 极短回答（<15字）──
+      if (len < 15) {
+        parts.push('');
+        parts.push('🔴 **问题：** 你的回答几乎没有内容。面试官会觉得你不想回答或者没准备。');
+        parts.push('');
+        parts.push('🔧 **怎么改：** 把你的回答扩展成一个完整的故事——');
+        parts.push('> **改前：** "' + text + '"');
+        parts.push('> **改后：** "当时（什么情况），我负责（什么任务），通过（什么方法），最终（什么结果+数字）"');
+        parts.push('');
+        parts.push('举个例子，假设问题是"说说你处理客户投诉的经历"：');
+        parts.push('> "之前有位客户因为产品问题非常生气，直接打电话来投诉。我先安抚了他的情绪，然后详细了解问题，24小时内给出了换货方案，最后客户不仅取消了投诉还成了回头客。"');
+
+      // ── C2. 偏短但有内容（15-40字）──
+      } else if (len < 40) {
+        parts.push('');
+        if (missingSTAR.length >= 2) {
+          parts.push('🔴 **问题：** 回答太短，缺了' + missingSTAR.join('和') + '。面试官听完不知道"什么情况→你做了什么→结果怎样"。');
+        } else {
+          parts.push('🔴 **问题：** 有一定内容，但信息密度不够，面试官会觉得你没展开说。');
+        }
+        // 给出具体改写建议
+        parts.push('');
+        parts.push('🔧 **改写你的回答：**');
+        parts.push('> **改前：** "' + text + '"');
+        // 基于用户实际内容生成改后建议
+        var rewrite = generateRewrite(text, question, missingSTAR);
+        parts.push('> **改后：** "' + rewrite + '"');
+
+      // ── C3. 中等回答（40-80字）──
+      } else if (len < 80) {
+        parts.push('');
+        parts.push('🟡 **分析：** 回答有一定内容，但还不够让面试官信服。');
+        // 具体诊断
+        if (missingSTAR.length > 0) {
+          parts.push('');
+          parts.push('🔧 **缺什么：** ' + missingSTAR.join('、'));
+        }
+        if (!hasData) {
+          parts.push('');
+          parts.push('🔧 **加一个数字：** 面试官最想知道"做到了什么程度"——哪怕是一个估算数字，也比没有强。');
+        }
+        if (!hasExample) {
+          parts.push('');
+          parts.push('🔧 **加一个场景：** 用"有一次..."引出一个具体事例，让回答有画面感。');
+        }
+        // 改前→改后
+        var rewrite2 = generateRewrite(text, question, missingSTAR);
+        parts.push('');
+        parts.push('🔧 **参考改写：**');
+        parts.push('> **改前：** "' + text.substring(0, 50) + (text.length > 50 ? '...' : '') + '"');
+        parts.push('> **改后：** "' + rewrite2 + '"');
+
+      // ── C4. 长回答（80+字）：精准诊断 ──
+      } else {
+        parts.push('');
+
+        // ── 偏题检测 ──
+        if (question && question.q) {
+          var qKeywords = question.q.replace(/[？?！!。，、：""''（）]/g, ' ').split(/\s+/).filter(function(w) { return w.length >= 2; });
+          var matched = qKeywords.filter(function(kw) { return text.includes(kw); });
+          var coverage = qKeywords.length > 0 ? matched.length / qKeywords.length : 1;
+          if (coverage < 0.2 && len > 50) {
+            parts.push('⚠️ **偏题了：** 你的回答和问题关联度很低。建议先直接回答问题，再展开。');
+          }
+        }
+
+        // ── 自信度检测 ──
+        const hedgingWords = text.match(/可能|应该|大概|也许|我觉得|感觉|不确定|不太清楚|或许|吧|啊|哦/g) || [];
+        if (hedgingWords.length >= 3) {
+          parts.push('⚠️ **语气太弱：** 你用了' + hedgingWords.length + '个模糊词（"' + hedgingWords.slice(0, 3).join('"、"') + '"）。面试中要说"我做到了"而不是"我可能做到了"。');
+        }
+
+        // ── STAR结构诊断 ──
+        if (!hasSTAR && missingSTAR.length > 0) {
+          parts.push('');
+          parts.push('🔧 **结构调整：** 你的回答缺了' + missingSTAR.join('和') + '。面试官的思维路径是"什么情况→你做了什么→结果怎样"，缺一环他就跟不上。');
+        }
+
+        // ── "我们" vs "我" ──
+        const weCount = (text.match(/我们|团队|大家|公司/g) || []).length;
+        const iCount = (text.match(/我做|我通过|我采取|我决定|我负责|我主导|我协调|我优化|我搭建|我想到|我的/g) || []).length;
+        if (weCount > 3 && iCount < 2) {
+          parts.push('');
+          parts.push('⚠️ **主角模糊：** 你说了很多"我们"，但面试官想知道的是"你"做了什么。把"我们做了XX"改成"我主导了XX部分"。');
+        }
+
+        // ── 量化数据 ──
+        if (!hasData) {
+          parts.push('');
+          parts.push('🔧 **缺数据：** 有案例有行动，但没数字。面试官最想看到"做到了什么程度"。加一个具体数字——哪怕是估算的。');
+        }
+
+        // ── 内容偏理论 ──
+        if (!hasSTAR && !hasData && !hasExample && len > 100) {
+          parts.push('');
+          parts.push('🔧 **偏理论：** 你讲的是"方法论"而不是"自己的故事"。面试官想听你亲身经历的事，不是教科书。');
+        }
+
+        // ── 改前→改后示例（从用户回答中提取一个片段改写）──
+        if (missingSTAR.length > 0 || !hasData) {
+          var rewrite3 = generateRewrite(text, question, missingSTAR);
+          if (rewrite3 !== text) {
+            parts.push('');
+            parts.push('🔧 **参考改写：**');
+            parts.push('> **改前：** "' + text.substring(0, 60) + (text.length > 60 ? '...' : '') + '"');
+            parts.push('> **改后：** "' + rewrite3 + '"');
+          }
+        }
+      }
+
+      // ══════════════════════════════════════════════
+      //  D. AnswerAnalyzer 错误模式
+      // ══════════════════════════════════════════════
       if (typeof AnswerAnalyzer !== 'undefined') {
         try {
           const aaResult = AnswerAnalyzer.analyze(text, question);
           if (aaResult && aaResult.detected && aaResult.detected.length > 0) {
             parts.push('');
-            parts.push('🔍 **问题诊断：**');
-            aaResult.detected.slice(0, 3).forEach(function(d) {
+            parts.push('🔍 **其他问题：');
+            aaResult.detected.slice(0, 2).forEach(function(d) {
               parts.push(d.icon + ' ' + d.name + '：' + d.detail);
             });
-            parts.push('');
-            parts.push('💡 **改进建议：** ' + aaResult.detected[0].suggestion);
-          } else if (score < 80) {
-            parts.push('');
-            if (len < 60) {
-              parts.push('💡 **建议：** 回答内容偏短，可以多展开说说具体的做法和成果。');
-            } else {
-              parts.push('💡 **建议：** 可以尝试用STAR法则（情境→任务→行动→结果）来组织回答。');
+            if (aaResult.detected[0] && aaResult.detected[0].suggestion) {
+              parts.push('💡 ' + aaResult.detected[0].suggestion);
             }
           }
         } catch (aaErr) {
           console.error('[AnswerAnalyzer] Error:', aaErr);
-          parts.push('');
-          parts.push('💡 **建议：** 可以尝试用STAR法则（情境→任务→行动→结果）来组织回答。');
-        }
-      } else {
-        // AnswerAnalyzer 未加载，使用基础建议
-        if (score < 80) {
-          parts.push('');
-          if (len < 60) {
-            parts.push('💡 **建议：** 回答内容偏短，可以多展开说说具体的做法和成果。');
-          } else {
-            parts.push('💡 **建议：** 可以尝试用STAR法则（情境→任务→行动→结果）来组织回答。');
-          }
         }
       }
 
-      // 3. 遗漏要点（来自参考答案对比）
+      // ══════════════════════════════════════════════
+      //  E. 遗漏要点
+      // ══════════════════════════════════════════════
       if (analysis.missedKeyPoints && analysis.missedKeyPoints.length > 0) {
         parts.push('');
-        parts.push('⚠️ **遗漏要点：** ' + analysis.missedKeyPoints.join('；'));
+        parts.push('📋 **参考答案里提到但你没说的：** ' + analysis.missedKeyPoints.slice(0, 3).join('；'));
       }
 
-      // 4. 覆盖率（如果有参考答案）
-      if (analysis.refCoverage > 0) {
-        parts.push('📊 参考覆盖率：要点' + analysis.refCoverage + '% / 内容' + (analysis.refSentenceCoverage || 0) + '%');
+      // ══════════════════════════════════════════════
+      //  F. 评分 + 下一步
+      // ══════════════════════════════════════════════
+      parts.push('');
+      if (score >= 80) {
+        parts.push('📊 **' + score + '分**（优秀）');
+      } else if (score >= 60) {
+        parts.push('📊 **' + score + '分**（良好，按上面的建议改一下会更好）');
+      } else if (score >= 40) {
+        parts.push('📊 **' + score + '分**（及格，试试用改前→改后重写一遍）');
+      } else {
+        parts.push('📊 **' + score + '分**（需要改进，重点补上缺失的STAR要素）');
       }
 
-      // 5. 针对低分回答的具体追问方向提示
-      if (score < 40) {
-        parts.push('');
-        parts.push('🎯 **你可以这样改进：** 先说背景情况，再说你具体做了什么，最后说取得了什么结果。');
-      }
-
-      return parts.length > 1 ? '\n\n' + parts.join('\n') : '';
+      const result = parts.length > 1 ? '\n\n' + parts.join('\n') : '';
+      console.log('[Feedback] DONE, parts count:', parts.length, 'result length:', result.length);
+      return result;
     } catch (err) {
-      console.error('[buildDynamicFeedback] Error:', err);
+      console.error('[Feedback] OUTER ERROR:', err);
       return '\n\n📊 评分：**' + (evaluation.score || '?') + '分**';
     }
   }
 
+  // ═══════════════════════════════════════════════════
+  //  5.6 改写生成器 — 基于用户回答生成"改后"版本
+  // ═══════════════════════════════════════════════════
+  function generateRewrite(text, question, missingSTAR) {
+    // 提取用户回答中的核心信息
+    var coreInfo = text.replace(/[，。！？、：；""''（）\s]+/g, ' ').trim();
+    var words = coreInfo.split(/\s+/).filter(function(w) { return w.length >= 2; });
+
+    // 如果太短，无法改写
+    if (words.length < 3) {
+      return '当时（情境），我负责（任务），通过（方法），最终（结果+数字）';
+    }
+
+    // 提取用户提到的动词和名词
+    var verbs = [];
+    var nouns = [];
+    words.forEach(function(w) {
+      if (/做|负责|处理|协调|优化|搭建|设计|策划|推动|解决|完成|管理|带领|参与|负责/.test(w)) {
+        verbs.push(w);
+      } else if (w.length >= 2) {
+        nouns.push(w);
+      }
+    });
+
+    // 基于缺失要素生成改写
+    var parts = [];
+
+    // S: 情境
+    if (missingSTAR.indexOf('S（情境）') >= 0) {
+      // 从用户回答中提取时间/地点线索
+      var timeMatch = text.match(/去年|上个|之前|之前在|有一次|当时/);
+      var context = timeMatch ? timeMatch[0] : '之前';
+      var project = nouns.length > 0 ? nouns[0] : '项目';
+      parts.push(context + '在' + project + '中');
+    }
+
+    // T: 任务
+    if (missingSTAR.indexOf('T（任务）') >= 0 || missingSTAR.indexOf('A（行动）') >= 0) {
+      if (verbs.length > 0) {
+        parts.push('我' + verbs[0] + '了这个' + (nouns.length > 1 ? nouns[1] : '任务'));
+      } else {
+        parts.push('我负责推进这个任务');
+      }
+    }
+
+    // A: 行动
+    if (missingSTAR.indexOf('A（行动）') >= 0) {
+      if (verbs.length > 1) {
+        parts.push('通过' + verbs.slice(1, 3).join('和') + '等方式');
+      } else {
+        parts.push('通过分析问题、制定方案、协调资源');
+      }
+    }
+
+    // R: 结果
+    if (missingSTAR.indexOf('R（结果）') >= 0 || !text.match(/\d+[%％万元]/)) {
+      parts.push('最终完成了目标，效果不错');
+    }
+
+    // 如果用户有部分内容，保留并补全
+    if (parts.length === 0) {
+      return text + '，最终取得了不错的成果。';
+    }
+
+    return parts.join('，');
+  }
+
   function processAnswer(session, answer, lastQuestion) {
+    console.log('[Engine] processAnswer START, answer length:', (answer||'').length, 'lastQuestion:', lastQuestion ? lastQuestion.id || 'no-id' : 'NULL');
     let evaluation;
     try {
       evaluation = evaluateAnswer(answer, lastQuestion, session.resumeInfo, session.refAnswerMap);
+      console.log('[Engine] evaluateAnswer OK, score:', evaluation.score, 'action:', evaluation.action);
     } catch (evalErr) {
-      console.error('[processAnswer] evaluateAnswer error:', evalErr);
+      console.error('[Engine] evaluateAnswer ERROR:', evalErr);
       evaluation = {
         score: 50, level: '良好', color: '#3b82f6',
         dimension: (lastQuestion && lastQuestion.dimension) || '综合',
@@ -1194,6 +1609,7 @@
     let phaseTransition = '';
 
     // 决定下一步
+    console.log('[Engine] action:', evaluation.action, 'hasFollowup:', !!(evaluation.followupQuestion));
     if (evaluation.action === 'followup' && evaluation.followupQuestion) {
       // 追问
       let reaction = '';
@@ -1204,7 +1620,13 @@
       }
 
       // 动态生成个性化反馈
-      const feedbackBlock = buildDynamicFeedback(evaluation, answer, lastQuestion);
+      let feedbackBlock = '';
+      try {
+        feedbackBlock = buildDynamicFeedback(evaluation, answer, lastQuestion);
+        console.log('[Engine] followup feedbackBlock length:', feedbackBlock.length);
+      } catch (fbErr) {
+        console.error('[Engine] buildDynamicFeedback ERROR (followup):', fbErr);
+      }
       aiMessage = reaction + feedbackBlock + '\n\n💬 **追问：**' + evaluation.followupQuestion.q;
       nextQuestion = {
         id: 'followup_' + Date.now(),
@@ -1228,7 +1650,13 @@
       }
 
       // 动态生成个性化反馈
-      const feedbackBlock = buildDynamicFeedback(evaluation, answer, lastQuestion);
+      let feedbackBlock = '';
+      try {
+        feedbackBlock = buildDynamicFeedback(evaluation, answer, lastQuestion);
+        console.log('[Engine] next-question feedbackBlock length:', feedbackBlock.length);
+      } catch (fbErr) {
+        console.error('[Engine] buildDynamicFeedback ERROR (next):', fbErr);
+      }
 
       // 检查是否需要推进阶段
       const phase = getCurrentPhase(session);
@@ -1239,6 +1667,7 @@
 
       // 获取下一题
       nextQuestion = pickQuestion(session);
+      console.log('[Engine] nextQuestion:', nextQuestion ? nextQuestion.id || nextQuestion.q.substring(0,30) : 'NULL');
 
       if (!nextQuestion) {
         // 面试结束
@@ -1254,6 +1683,7 @@
       }
     }
 
+    console.log('[Engine] processAnswer DONE, msg length:', aiMessage.length, 'isFinished:', isFinished);
     return {
       message: aiMessage,
       evaluation,
