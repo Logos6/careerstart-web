@@ -1225,10 +1225,10 @@ const app = {
     // 显示加载动画
     box.style.display = 'block';
     box.innerHTML = `
-      <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; padding:60px 24px; text-align:center; animation:slideUp 0.4s ease;">
+      <div class="resume-report-card" style="padding:60px 24px; text-align:center;">
         <div style="width:64px; height:64px; margin:0 auto 20px; border:4px solid #e2e8f0; border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;"></div>
-        <div style="font-size:18px; font-weight:700; color:var(--text-main); margin-bottom:8px;">AI 简历正在加载中</div>
-        <div style="font-size:13px; color:var(--text-muted);">正在分析简历结构、量化数据、表述力度...</div>
+        <div style="font-size:18px; font-weight:700; color:var(--text-main); margin-bottom:8px;">AI 简历正在分析中</div>
+        <div style="font-size:13px; color:var(--text-muted);">正在检测年龄歧视、空窗期风险、量化数据...</div>
       </div>
       <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
     `;
@@ -1250,7 +1250,7 @@ const app = {
       const matchColor = { '高': '#16a34a', '中': '#0284c7', '低': '#d97706', '极低': '#dc2626', '未评估': '#94a3b8' };
 
       box.innerHTML = `
-      <div style="background:#fff; border:1px solid var(--border-color); border-radius:16px; overflow:hidden; animation:slideUp 0.4s ease;">
+      <div class="resume-report-card">
 
         <!-- ========== 第一部分：文字报告 ========== -->
 
