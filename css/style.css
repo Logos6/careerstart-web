@@ -1348,14 +1348,23 @@ body {
 .side-feature-list li { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
 .side-feature-list i { color: #10b981; }
 
-/* (旧工具网格样式已移除) */
-
-/* AI 简历页面 */
-.resume-page {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 20px;
+/* AI 工具大屏 */
+.tools-pc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
 }
+
+.tool-card-box {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+.t-box-header h3 { font-size: 20px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.t-box-header p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
 
 .resume-hero {
   text-align: center;
@@ -1481,17 +1490,6 @@ body {
 .resume-tip i {
   color: var(--primary);
   font-size: 14px;
-}
-
-/* 简历诊断结果卡片 */
-.resume-report-card {
-  background: var(--card-bg);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  margin-top: 24px;
-  animation: slideUp 0.4s ease;
 }
 
 .pc-chat-window {
