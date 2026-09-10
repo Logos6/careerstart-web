@@ -925,46 +925,100 @@
 
   <!-- 一对一陪跑咨询 Modal -->
   <div class="modal-backdrop" id="coaching-modal" style="display:none;">
-    <div class="modal-card" style="max-width:520px;">
+    <div class="modal-card" style="max-width:540px;border-radius:20px;overflow:hidden;">
       <button class="modal-close" onclick="document.getElementById('coaching-modal').style.display='none';document.body.style.overflow='auto'">&times;</button>
-      <div class="modal-header">
-        <span class="m-badge"><i class="ri-user-heart-fill"></i> 一对一职业启航陪跑</span>
-        <h2>预约咨询 · 开启你的转型之旅</h2>
-        <p>选择适合你的陪跑方案</p>
+
+      <!-- 顶部标题区 -->
+      <div style="background:linear-gradient(135deg,#7c3aed,#a855f7);padding:32px 28px 28px;color:#fff;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;"><i class="ri-user-heart-fill" style="font-size:18px;"></i></div>
+          <span style="font-size:13px;font-weight:600;opacity:0.9;">一对一职业启航陪跑</span>
+        </div>
+        <h2 style="font-size:22px;font-weight:800;margin:0 0 6px;">开启你的转型之旅</h2>
+        <p style="font-size:13px;opacity:0.8;margin:0;">选择适合你的方案，导师通过文字一对一陪你走完全程</p>
       </div>
-      <div style="padding:0 24px 24px;">
-        <!-- 版本选择 -->
-        <div class="modal-tier-select" style="display:flex;gap:10px;margin-bottom:20px;">
-          <label class="tier-option" style="flex:1;border:2px solid var(--border-color);border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;transition:all .2s;" onclick="app.selectTier(this,'light')">
-            <div style="font-weight:700;font-size:14px;color:var(--text-main);">轻量版</div>
-            <div style="font-size:20px;font-weight:800;color:var(--primary);margin:6px 0;">¥89<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/次</span></div>
-            <div style="font-size:11px;color:var(--text-muted);">单次30分钟诊断</div>
-          </label>
-          <label class="tier-option" style="flex:1;border:2px solid var(--primary);border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#f8f5ff,#eef2ff);transition:all .2s;" onclick="app.selectTier(this,'standard')">
-            <div style="font-weight:700;font-size:14px;color:var(--text-main);">标准版 <span style="font-size:10px;background:var(--primary);color:#fff;padding:2px 6px;border-radius:8px;">推荐</span></div>
-            <div style="font-size:20px;font-weight:800;color:var(--primary);margin:6px 0;">¥299<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/次</span></div>
-            <div style="font-size:11px;color:var(--text-muted);">每周复盘+紧急支持</div>
-          </label>
-          <label class="tier-option" style="flex:1;border:2px solid var(--border-color);border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;transition:all .2s;" onclick="app.selectTier(this,'premium')">
-            <div style="font-weight:700;font-size:14px;color:var(--text-main);">尊享版</div>
-            <div style="font-size:20px;font-weight:800;color:var(--primary);margin:6px 0;">¥699<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/次</span></div>
-            <div style="font-size:11px;color:var(--text-muted);">全程陪跑到入职</div>
-          </label>
+
+      <div style="padding:24px 28px 28px;">
+
+        <!-- 三档方案选择 -->
+        <div style="display:flex;gap:10px;margin-bottom:24px;">
+
+          <!-- 轻量版 -->
+          <div class="coaching-tier-card" data-tier="light" onclick="app.selectTier(this,'light')" style="flex:1;border:2px solid var(--border-color);border-radius:14px;padding:18px 10px 16px;cursor:pointer;text-align:center;transition:all .25s;position:relative;">
+            <div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">入门体验</div>
+            <div style="font-size:16px;font-weight:800;color:var(--text-main);margin-bottom:4px;">轻量版</div>
+            <div style="font-size:28px;font-weight:900;color:var(--primary);line-height:1;">¥69<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/次</span></div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.5;">单次深度诊断<br>快速看清方向</div>
+          </div>
+
+          <!-- 标准版 -->
+          <div class="coaching-tier-card active" data-tier="standard" onclick="app.selectTier(this,'standard')" style="flex:1;border:2px solid var(--primary);border-radius:14px;padding:18px 10px 16px;cursor:pointer;text-align:center;transition:all .25s;position:relative;background:linear-gradient(180deg,#f8f5ff 0%,#fff 100%);box-shadow:0 4px 16px rgba(124,58,237,0.12);">
+            <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--primary-gradient);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:8px;white-space:nowrap;">推荐</div>
+            <div style="font-size:12px;color:var(--primary);font-weight:600;margin-bottom:6px;">系统转型</div>
+            <div style="font-size:16px;font-weight:800;color:var(--text-main);margin-bottom:4px;">标准版</div>
+            <div style="font-size:28px;font-weight:900;color:var(--primary);line-height:1;">¥199<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/次</span></div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.5;">每周复盘+简历优化<br>30天转型方案</div>
+          </div>
+
+          <!-- 尊享版 -->
+          <div class="coaching-tier-card" data-tier="premium" onclick="app.selectTier(this,'premium')" style="flex:1;border:2px solid var(--border-color);border-radius:14px;padding:18px 10px 16px;cursor:pointer;text-align:center;transition:all .25s;position:relative;">
+            <div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">全程护航</div>
+            <div style="font-size:16px;font-weight:800;color:var(--text-main);margin-bottom:4px;">尊享版</div>
+            <div style="font-size:28px;font-weight:900;color:var(--primary);line-height:1;">¥399<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/次</span></div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.5;">全程陪跑到入职<br>不限次模拟面试</div>
+          </div>
         </div>
-        <input type="hidden" id="coaching-tier" value="standard">
-        <div class="input-group" style="margin-bottom:12px;">
-          <input type="text" id="coaching-name" placeholder="你的称呼">
+
+        <!-- 方案详情（根据选择切换） -->
+        <div id="tier-detail-light" class="tier-detail" style="display:none;">
+          <div style="background:#f8f7ff;border-radius:12px;padding:16px;margin-bottom:20px;">
+            <div style="font-size:13px;font-weight:700;color:var(--text-main);margin-bottom:10px;"><i class="ri-checkbox-circle-fill" style="color:var(--primary);margin-right:4px;"></i> 包含服务</div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:2;">
+              <div>· 单次1对1文字深度诊断</div>
+              <div>· 职业背景全面梳理</div>
+              <div>· 技能优势与转型方向分析</div>
+              <div>· 个性化行动建议</div>
+            </div>
+          </div>
         </div>
-        <div class="input-group" style="margin-bottom:12px;">
-          <input type="text" id="coaching-phone" placeholder="手机号或微信号">
+        <div id="tier-detail-standard" class="tier-detail">
+          <div style="background:#f8f7ff;border-radius:12px;padding:16px;margin-bottom:20px;">
+            <div style="font-size:13px;font-weight:700;color:var(--text-main);margin-bottom:10px;"><i class="ri-checkbox-circle-fill" style="color:var(--primary);margin-right:4px;"></i> 包含服务</div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:2;">
+              <div>· 每周一次深度复盘</div>
+              <div>· 不限次数紧急决策支持</div>
+              <div>· 简历作品集定向优化</div>
+              <div>· 30天转型行动方案</div>
+              <div>· 文字实时答疑</div>
+            </div>
+          </div>
         </div>
-        <div class="input-group" style="margin-bottom:16px;">
-          <textarea id="coaching-desc" placeholder="简单描述你的职业背景和转型需求（选填）" style="width:100%;padding:10px 14px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;min-height:80px;resize:vertical;font-family:inherit;"></textarea>
+        <div id="tier-detail-premium" class="tier-detail" style="display:none;">
+          <div style="background:#f8f7ff;border-radius:12px;padding:16px;margin-bottom:20px;">
+            <div style="font-size:13px;font-weight:700;color:var(--text-main);margin-bottom:10px;"><i class="ri-checkbox-circle-fill" style="color:var(--primary);margin-right:4px;"></i> 包含服务</div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:2;">
+              <div>· 标准版全部服务</div>
+              <div>· 岗位筛选与精准推荐</div>
+              <div>· 不限次模拟面试演练</div>
+              <div>· 全程陪跑到入职</div>
+              <div>· 薪资谈判策略指导</div>
+            </div>
+          </div>
         </div>
-        <button class="btn btn-primary-gradient btn-block btn-lg" onclick="app.submitCoaching()" style="background:linear-gradient(135deg,#f59e0b,#f97316) !important;color:#1e293b !important;font-weight:700;">
-          <i class="ri-whatsapp-line"></i> 提交预约，导师24小时内联系你
+
+        <!-- 表单 -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <input type="text" id="coaching-name" placeholder="你的称呼" style="width:100%;padding:12px 16px;border:1.5px solid var(--border-color);border-radius:10px;font-size:14px;outline:none;transition:border-color .2s;box-sizing:border-box;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border-color)'">
+          <input type="text" id="coaching-phone" placeholder="手机号或微信号" style="width:100%;padding:12px 16px;border:1.5px solid var(--border-color);border-radius:10px;font-size:14px;outline:none;transition:border-color .2s;box-sizing:border-box;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border-color)'">
+          <textarea id="coaching-desc" placeholder="简单描述你的职业背景和转型需求（选填）" rows="3" style="width:100%;padding:12px 16px;border:1.5px solid var(--border-color);border-radius:10px;font-size:14px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box;font-family:inherit;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border-color)'"></textarea>
+        </div>
+
+        <!-- 提交按钮 -->
+        <button class="btn btn-primary-gradient btn-xl" onclick="app.submitCoaching()" style="width:100%;margin-top:20px;border-radius:12px;font-size:16px;padding:14px 0;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <i class="ri-wechat-fill" style="font-size:18px;"></i> 提交预约，导师24小时内联系你
         </button>
-        <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;">提交后导师会通过微信与你联系，确认服务详情</p>
+        <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:12px;">提交后导师会通过微信与你联系，确认服务详情</p>
+
       </div>
     </div>
   </div>
