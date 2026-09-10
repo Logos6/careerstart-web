@@ -905,9 +905,18 @@
       </div>
 
       <div class="qr-pay-box">
-        <div class="qr-placeholder">
-          <i class="ri-qr-code-line"></i>
-          <p>请扫码微信/支付宝个人收款码支付</p>
+        <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:10px;">选择以下任一方式扫码完成支付</p>
+        <div style="display:flex;gap:10px;margin-bottom:12px;">
+          <div style="flex:1;text-align:center;background:#f0f9ff;border-radius:10px;padding:10px 6px;border:1.5px solid #e0f2fe;">
+            <div style="font-size:11px;font-weight:700;color:#0ea5e9;margin-bottom:6px;">支付宝</div>
+            <img src="images/alipay.jpg" alt="支付宝收款码" style="width:100%;max-width:150px;border-radius:8px;border:1px solid #e0f2fe;">
+            <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">打开支付宝扫一扫</div>
+          </div>
+          <div style="flex:1;text-align:center;background:#f0fdf4;border-radius:10px;padding:10px 6px;border:1.5px solid #dcfce7;">
+            <div style="font-size:11px;font-weight:700;color:#22c55e;margin-bottom:6px;">微信支付</div>
+            <img src="images/wechat.jpg" alt="微信收款码" style="width:100%;max-width:150px;border-radius:8px;border:1px solid #dcfce7;">
+            <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">打开微信扫一扫</div>
+          </div>
         </div>
         <div class="pay-amount-display">
           应付金额：<strong id="pay-final-price">¥39.00</strong>
