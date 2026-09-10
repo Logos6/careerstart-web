@@ -315,16 +315,25 @@ const app = {
     if (modal) {
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
-      // 设置默认选中版本
-      if (tier) {
-        const input = document.getElementById('coaching-tier');
-        if (input) input.value = tier;
-        document.querySelectorAll('.tier-option').forEach(el => {
-          el.style.borderColor = 'var(--border-color)';
-          el.style.background = 'none';
-        });
-        const labels = document.querySelectorAll('.tier-option');
-        const map = { light: 0, standard: 1, premium: 2 };
+      this._selectedTier = tier || 'standard';
+      document.querySelectorAll('.coaching-tier-card').forEach(el => {
+        el.style.borderColor = 'var(--border-color)';
+        el.style.background = 'none';
+        el.style.boxShadow = 'none';
+        el.classList.remove('active');
+      });
+      var targetCard = document.querySelector('.coaching-tier-card[data-tier="' + this._selectedTier + '"]');
+      if (targetCard) {
+        targetCard.style.borderColor = 'var(--primary)';
+        targetCard.style.background = 'linear-gradient(180deg,#f8f5ff 0%,#fff 100%)';
+        targetCard.style.boxShadow = '0 4px 16px rgba(124,58,237,0.12)';
+        targetCard.classList.add('active');
+      }
+      document.querySelectorAll('.tier-detail').forEach(d => d.style.display = 'none');
+      var detail = document.getElementById('tier-detail-' + this._selectedTier);
+      if (detail) detail.style.display = 'block';
+    }
+  }, { light: 0, standard: 1, premium: 2 };
         if (labels[map[tier]]) {
           labels[map[tier]].style.borderColor = 'var(--primary)';
           labels[map[tier]].style.background = 'linear-gradient(135deg,#f8f5ff,#eef2ff)';
@@ -336,13 +345,22 @@ const app = {
   },
 
   selectTier(el, tier) {
-    document.getElementById('coaching-tier').value = tier;
-    document.querySelectorAll('.tier-option').forEach(e => {
+    document.querySelectorAll('.coaching-tier-card').forEach(e => {
       e.style.borderColor = 'var(--border-color)';
       e.style.background = 'none';
+      e.style.boxShadow = 'none';
+      e.classList.remove('active');
+      var tag = e.querySelector('.tier-recommend-tag');
+      if (tag) tag.remove();
     });
     el.style.borderColor = 'var(--primary)';
-    el.style.background = 'linear-gradient(135deg,#f8f5ff,#eef2ff)';
+    el.style.background = 'linear-gradient(180deg,#f8f5ff 0%,#fff 100%)';
+    el.style.boxShadow = '0 4px 16px rgba(124,58,237,0.12)';
+    el.classList.add('active');
+    document.querySelectorAll('.tier-detail').forEach(d => d.style.display = 'none');
+    var detail = document.getElementById('tier-detail-' + tier);
+    if (detail) detail.style.display = 'block';
+    this._selectedTier = tier;
   },
 
   getPlanName(plan) {
@@ -1997,8 +2015,8 @@ const app = {
     const name = document.getElementById('coaching-name')?.value.trim();
     const phone = document.getElementById('coaching-phone')?.value.trim();
     const desc = document.getElementById('coaching-desc')?.value.trim();
-    const tier = document.getElementById('coaching-tier')?.value || 'standard';
-    const tierMap = { light: '轻量版 ¥89/次', standard: '标准版 ¥299/次', premium: '尊享版 ¥699/次' };
+    const tier = this._selectedTier || 'standard';
+    const tierMap = { light: '轻量版 ¥69/次', standard: '标准版 ¥199/次', premium: '尊享版 ¥399/次' };
     if (!name) { alert('请填写你的称呼'); return; }
     if (!phone) { alert('请填写手机号或微信号'); return; }
     alert(`预约成功！\n\n${name}，你选择的是：${tierMap[tier]}\n导师将在24小时内通过微信联系你。\n\n如有紧急问题，可提前添加导师微信咨询。`);
