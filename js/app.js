@@ -1971,8 +1971,8 @@ const app = {
 
     // 各功能免费次数限制
     const limits = {
-      resumeCheck: 2,    // 简历诊断免费2次
-      interview: 3,      // AI面试免费3次
+      resumeCheck: 1,    // 简历诊断免费1次
+      interview: 1,      // AI面试免费1次
     };
     const limit = limits[type] || 999;
     const used = this.userData.usage[type] || 0;
