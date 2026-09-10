@@ -1966,7 +1966,24 @@ const app = {
 
   // 检查使用次数
   checkUsage(type) {
-    return true; // 测试模式：跳过次数检查
+    // 检查是否是VIP会员
+    if (this.userData.isVip) return true;
+
+    // 各功能免费次数限制
+    const limits = {
+      resumeCheck: 2,    // 简历诊断免费2次
+      interview: 3,      // AI面试免费3次
+    };
+    const limit = limits[type] || 999;
+    const used = this.userData.usage[type] || 0;
+
+    if (used >= limit) {
+      // 达到上限，弹出VIP购买弹窗
+      alert('免费次数已用完！开通会员即可无限使用全部AI功能。');
+      this.openVipModal();
+      return false;
+    }
+    return true;
   },
 
   // 记录使用次数
