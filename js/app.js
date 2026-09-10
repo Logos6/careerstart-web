@@ -333,15 +333,6 @@ const app = {
       var detail = document.getElementById('tier-detail-' + this._selectedTier);
       if (detail) detail.style.display = 'block';
     }
-  }, { light: 0, standard: 1, premium: 2 };
-        if (labels[map[tier]]) {
-          labels[map[tier]].style.borderColor = 'var(--primary)';
-          labels[map[tier]].style.background = 'linear-gradient(135deg,#f8f5ff,#eef2ff)';
-        }
-      }
-    } else {
-      this.openVipModal();
-    }
   },
 
   selectTier(el, tier) {
